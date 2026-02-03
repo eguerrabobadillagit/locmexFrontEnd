@@ -1,0 +1,7 @@
+{
+  "name": "gpsFront",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
