@@ -1,0 +1,239 @@
+<app-wizard-stepper
+  [config]="wizardConfig()"
+  [steps]="steps()"
+  [currentStep]="currentStep()"
+  (close)="cancel()"
+  (next)="nextStep()"
+  (previous)="previousStep()">
+  
+  <!-- Paso 1: Asignación de Cliente -->
+  @if (currentStep() === 0) {
+    <div class="step-content">
+      <ion-card class="info-banner">
+        <ion-card-content>
+          <div class="banner-content">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+            <div class="info-text">
+              <h3>Asignar a Cliente</h3>
+              <p>Selecciona el cliente al que pertenecerá este recurso</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="client-selection-section">
+        <app-modal-searchable-grid
+          title="Selecciona un cliente"
+          [itemCount]="clients().length"
+          searchPlaceholder="Buscar por nombre, empresa, correo o rol..."
+          [columnDefs]="clientColumnDefs()"
+          [rowData]="clients()"
+          (rowSelected)="onClientSelect($event)">
+        </app-modal-searchable-grid>
+      </div>
+    </div>
+  }
+
+  <!-- Paso 2: Información Básica del Dispositivo -->
+  @if (currentStep() === 1) {
+    <div class="step-content">
+      <form [formGroup]="deviceInfoForm">
+        <ion-card class="info-banner">
+          <ion-card-content>
+            <div class="banner-content">
+              <ion-icon name="hardware-chip-outline" color="primary"></ion-icon>
+              <div class="info-text">
+                <h3>Información del Dispositivo</h3>
+                <p>Proporciona los detalles básicos del dispositivo GPS a homologar</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div class="form-fields">
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">IMEI *</label>
+              <ion-item>
+                <ion-input 
+                  formControlName="imei"
+                  placeholder="Ej: 123456789012345">
+                </ion-input>
+              </ion-item>
+              <ion-note class="field-hint">Identificador único del dispositivo</ion-note>
+            </div>
+
+            <div class="form-col">
+              <label class="field-label">Alias</label>
+              <ion-item>
+                <ion-input 
+                  formControlName="alias"
+                  placeholder="Nombre amigable del dispositivo">
+                </ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">Marca *</label>
+              <div class="autocomplete-wrapper">
+                <ion-item>
+                  <ion-input 
+                    formControlName="manufacturer"
+                    placeholder="Escribe o selecciona marca..."
+                    (ionInput)="onManufacturerInput($event)"
+                    (ionFocus)="onManufacturerFocus()">
+                  </ion-input>
+                </ion-item>
+                
+                @if (showManufacturerList() && filteredManufacturers().length > 0) {
+                  <div class="autocomplete-list">
+                    @for (manufacturer of filteredManufacturers(); track manufacturer.id) {
+                      <div class="autocomplete-item" (click)="selectManufacturer(manufacturer)">
+                        <span class="manufacturer-name">{{ manufacturer.name }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              <ion-note class="field-hint">Puedes escribir una marca personalizada</ion-note>
+            </div>
+
+            <div class="form-col">
+              <label class="field-label">Modelo *</label>
+              <div class="autocomplete-wrapper">
+                <ion-item>
+                  <ion-input 
+                    formControlName="model"
+                    placeholder="Escribe o selecciona modelo..."
+                    [disabled]="!selectedBrandId()"
+                    (ionInput)="onModelInput($event)"
+                    (ionFocus)="onModelFocus()">
+                  </ion-input>
+                </ion-item>
+                
+                @if (showModelList() && filteredModels().length > 0) {
+                  <div class="autocomplete-list">
+                    @for (model of filteredModels(); track model.id) {
+                      <div class="autocomplete-item" (click)="selectModel(model)">
+                        <span class="manufacturer-name">{{ model.name }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              @if (!selectedBrandId()) {
+                <ion-note class="field-hint">Selecciona una marca primero</ion-note>
+              }
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">Protocolo *</label>
+              <ion-item>
+                <ion-input 
+                  formControlName="protocol"
+                  placeholder="Se asigna automáticamente al seleccionar modelo"
+                  readonly="true">
+                </ion-input>
+              </ion-item>
+              <ion-note class="field-hint">Se asigna automáticamente al seleccionar el modelo</ion-note>
+            </div>
+
+            <div class="form-col">
+              <label class="field-label">Puerto TCP</label>
+              <ion-item>
+                <ion-input 
+                  type="number"
+                  formControlName="tcpPort"
+                  placeholder="Se asigna automáticamente al seleccionar modelo"
+                  readonly="true">
+                </ion-input>
+              </ion-item>
+              <ion-note class="field-hint">Se asigna automáticamente al seleccionar el modelo</ion-note>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">SIM *</label>
+              <ion-item>
+                <ion-input 
+                  formControlName="simNumber"
+                  placeholder="Ej: 551234567890">
+                </ion-input>
+              </ion-item>
+              <ion-note class="field-hint">Número de SIM del dispositivo</ion-note>
+            </div>
+
+            <div class="form-col">
+              <label class="field-label">Compañía de Telefonía *</label>
+              <div class="autocomplete-wrapper">
+                <ion-item>
+                  <ion-input 
+                    formControlName="phoneCompany"
+                    placeholder="Escribe o selecciona compañía..."
+                    (ionInput)="onCarrierInput($event)"
+                    (ionFocus)="onCarrierFocus()">
+                  </ion-input>
+                </ion-item>
+                
+                @if (showCarrierList() && filteredCarriers().length > 0) {
+                  <div class="autocomplete-list">
+                    @for (carrier of filteredCarriers(); track carrier.code) {
+                      <div class="autocomplete-item" (click)="selectCarrier(carrier)">
+                        <span class="manufacturer-name">{{ carrier.displayName }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              <ion-note class="field-hint">Compañía de telefonía que proporciona el servicio SIM</ion-note>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Paso 3: Confirmación -->
+  @if (currentStep() === 2) {
+    <div class="step-content">
+      <!-- Mensaje de error si existe -->
+      @if (submitError()) {
+        <ion-card color="danger">
+          <ion-card-content>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <ion-icon name="alert-circle-outline" style="font-size: 24px;"></ion-icon>
+              <div>
+                <strong>Error al crear el dispositivo</strong>
+                <p style="margin: 4px 0 0 0;">{{ submitError() }}</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <!-- Spinner de loading -->
+      @if (isSubmitting()) {
+        <ion-card>
+          <ion-card-content>
+            <div style="display: flex; align-items: center; gap: 12px; justify-content: center; padding: 20px;">
+              <ion-spinner name="crescent"></ion-spinner>
+              <p style="margin: 0;">Creando dispositivo...</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <app-wizard-confirmation-summary
+        [sections]="confirmationSections()"
+        successMessage="Dispositivo GPS listo para homologar"
+        description="Revisa la información antes de continuar">
+      </app-wizard-confirmation-summary>
+    </div>
+  }
+
+</app-wizard-stepper>

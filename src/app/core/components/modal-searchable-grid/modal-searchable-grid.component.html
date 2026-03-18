@@ -1,0 +1,27 @@
+<div class="modal-searchable-grid">
+  <div class="grid-header">
+    <h3 class="grid-title">
+      {{ title() }} 
+      @if (itemCount() > 0) {
+        <span class="item-count">({{ itemCount() }} disponibles)</span>
+      }
+    </h3>
+  </div>
+
+  <div class="search-wrapper">
+    <ion-searchbar
+      [placeholder]="searchPlaceholder()"
+      (ionInput)="onSearchChange($event)"
+      mode="md">
+    </ion-searchbar>
+  </div>
+
+  <div class="grid-wrapper">
+    <ag-grid-angular
+      class="ag-theme-alpine"
+      [columnDefs]="columnDefs()"
+      [rowData]="filteredData()"
+      [gridOptions]="gridOptions">
+    </ag-grid-angular>
+  </div>
+</div>

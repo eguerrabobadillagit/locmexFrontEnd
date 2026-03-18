@@ -1,0 +1,59 @@
+<ion-split-pane contentId="main-content">
+  <!-- Menú lateral -->
+  <ion-menu contentId="main-content" type="overlay">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>LogiTrack Pro</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    
+    <ion-content>
+      <app-navbar 
+        [selectedMenu]="selectedMenu"
+        (menuSelect)="selectMenu($event)">
+      </app-navbar>
+    </ion-content>
+    
+    <ion-footer class="ion-no-border">
+      <div class="version-info">
+        <p>Versión 13.0</p>
+        <p>Plataforma de Marca Blanca</p>
+      </div>
+    </ion-footer>
+  </ion-menu>
+
+  <!-- Panel deslizante de Fleet Tracking -->
+  @if (showFleetPanel()) {
+    <div class="fleet-panel">
+      <app-fleet-tracking-view (closeView)="closeFleetPanel()"></app-fleet-tracking-view>
+    </div>
+  }
+
+  <!-- Contenido principal -->
+  <div class="ion-page" id="main-content">
+    <ion-header>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        
+        <ion-title>
+          <div class="header-title">
+            <strong>LogiTrack Pro</strong>
+            <span class="subtitle">Plataforma de Logística</span>
+          </div>
+        </ion-title>
+        
+        <ion-buttons slot="end">
+          <app-user-menu (logout)="onLogout()"></app-user-menu>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="content-area">
+        <router-outlet></router-outlet>
+      </div>
+    </ion-content>
+  </div>
+</ion-split-pane>

@@ -1,0 +1,48 @@
+<div class="data-toolbar">
+  <div class="toolbar-left">
+    <ion-searchbar
+      [placeholder]="searchPlaceholder()"
+      (ionInput)="onSearchChange($event)"
+      class="toolbar-search"
+      mode="md"
+    ></ion-searchbar>
+  </div>
+
+  <div class="toolbar-right">
+    @if (filterOptions().length > 0) {
+      <ion-select
+        [placeholder]="filterLabel()"
+        (ionChange)="onFilterChange($event)"
+        interface="popover"
+        class="toolbar-filter"
+      >
+        @for (option of filterOptions(); track option.value) {
+          <ion-select-option [value]="option.value">
+            {{ option.label }}
+          </ion-select-option>
+        }
+      </ion-select>
+    }
+
+    @if (showViewToggle()) {
+      <div class="view-toggle">
+        <ion-button
+          fill="clear"
+          [class.active]="currentView() === 'list'"
+          (click)="toggleView('list')"
+          class="view-button"
+        >
+          <ion-icon name="list-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button
+          fill="clear"
+          [class.active]="currentView() === 'grid'"
+          (click)="toggleView('grid')"
+          class="view-button"
+        >
+          <ion-icon name="grid-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    }
+  </div>
+</div>

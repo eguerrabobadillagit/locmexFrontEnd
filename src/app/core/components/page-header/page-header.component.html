@@ -1,0 +1,16 @@
+<div class="page-header">
+  <div class="header-content">
+    <div class="header-text">
+      <h1 class="header-title">{{ title() }}</h1>
+      @if (subtitle()) {
+        <p class="header-subtitle">{{ subtitle() }}</p>
+      }
+    </div>
+    @if (showAction() && actionLabel()) {
+      <ion-button (click)="onActionClick()" class="action-button">
+        <ion-icon [name]="actionIcon()" slot="start"></ion-icon>
+        {{ actionLabel() }}
+      </ion-button>
+    }
+  </div>
+</div>

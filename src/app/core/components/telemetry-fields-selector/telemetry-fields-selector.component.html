@@ -1,0 +1,49 @@
+<div class="telemetry-selector">
+  <div class="selector-header">
+    <h3 class="selector-title">
+      Campos de Telemetría 
+      @if (selectedCount > 0) {
+        <span class="selected-count">({{ selectedCount }} seleccionados)</span>
+      }
+    </h3>
+    
+    <div class="view-toggle">
+      <ion-button 
+        fill="clear" 
+        size="small"
+        [color]="viewMode() === 'list' ? 'primary' : 'medium'"
+        (click)="toggleViewMode('list')">
+        <ion-icon slot="icon-only" name="list"></ion-icon>
+      </ion-button>
+      <ion-button 
+        fill="clear" 
+        size="small"
+        [color]="viewMode() === 'grid' ? 'primary' : 'medium'"
+        (click)="toggleViewMode('grid')">
+        <ion-icon slot="icon-only" name="grid"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <div class="fields-container" [class.grid-view]="viewMode() === 'grid'" [class.list-view]="viewMode() === 'list'">
+    @for (field of internalFields(); track field.id) {
+      <div 
+        class="field-card" 
+        [class.selected]="field.selected"
+        (click)="toggleField(field)">
+        <div class="field-content">
+          <div class="field-icon" [style.background-color]="field.iconColor + '20'">
+            <ion-icon [name]="field.icon" [style.color]="field.iconColor"></ion-icon>
+          </div>
+          <div class="field-info">
+            <h4 class="field-name">{{ field.name }}</h4>
+            <p class="field-description">{{ field.description }}</p>
+          </div>
+          @if (field.selected) {
+            <ion-icon name="checkmark" class="check-icon"></ion-icon>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

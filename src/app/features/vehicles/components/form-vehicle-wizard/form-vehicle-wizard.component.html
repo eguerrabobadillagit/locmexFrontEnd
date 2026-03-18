@@ -1,0 +1,245 @@
+<app-wizard-stepper
+  [config]="wizardConfig()"
+  [steps]="steps()"
+  [currentStep]="currentStep()"
+  (close)="onClose()"
+  (next)="onNext()"
+  (previous)="onPrevious()"
+  (stepChange)="onStepChange($event)">
+  
+  <!-- Step 0: Asignación de Cliente -->
+  @if (currentStep() === 0) {
+    <div class="step-content">
+      <ion-card class="info-banner">
+        <ion-card-content>
+          <div class="banner-content">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+            <div class="info-text">
+              <h3>Asignar a Cliente</h3>
+              <p>Selecciona el cliente al que pertenecerá este recurso</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <app-modal-searchable-grid
+        [title]="'Selecciona un cliente'"
+        [itemCount]="clients().length"
+        [searchPlaceholder]="'Buscar por nombre, empresa, correo o rol...'"
+        [columnDefs]="clientColumnDefs()"
+        [rowData]="clients()"
+        (rowSelected)="onClientSelected($event)">
+      </app-modal-searchable-grid>
+    </div>
+  }
+
+  <!-- Step 1: Información del Vehículo -->
+  @if (currentStep() === 1) {
+    <div class="step-content">
+
+
+      <form [formGroup]="vehicleInfoForm">
+        <ion-card class="info-banner-secondary">
+          <ion-card-content>
+            <div class="banner-content">
+              <ion-icon name="information-circle-outline" color="primary"></ion-icon>
+              <div class="info-text">
+                <h3>Información básica del vehículo</h3>
+                <p>Ingresa los datos principales para identificar y clasificar el vehículo en tu flota.</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div class="form-fields">
+          <div class="field-wrapper">
+            <label class="field-label">Placa / Matrícula</label>
+            <ion-item>
+              <ion-input 
+                formControlName="plates"
+                placeholder="ABC-123-XYZ">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">Marca</label>
+              <div class="autocomplete-wrapper">
+                <ion-item>
+                  <ion-input 
+                    formControlName="brand"
+                    (ionInput)="onBrandInput($event)"
+                    (ionFocus)="onBrandFocus()"
+                    placeholder="Escribe o selecciona una marca...">
+                  </ion-input>
+                </ion-item>
+                @if (showBrandList()) {
+                  <div class="autocomplete-list">
+                    @for (brand of filteredBrands(); track brand.id) {
+                      <div class="autocomplete-item" (click)="selectBrand(brand)">
+                        <ion-icon name="business-outline"></ion-icon>
+                        <span>{{ brand.name }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="form-col">
+              <label class="field-label">Modelo</label>
+              <ion-item>
+                <ion-input 
+                  formControlName="model"
+                  placeholder="Escribe o selecciona un modelo...">
+                </ion-input>
+              </ion-item>
+              <ion-note class="field-hint">Selecciona una marca para ver sugerencias</ion-note>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-col">
+              <label class="field-label">Año</label>
+              <ion-item>
+                <ion-input 
+                  type="number"
+                  formControlName="year"
+                  placeholder="2026">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <div class="form-col">
+              <label class="field-label">Tipo de Vehículo</label>
+              <div class="autocomplete-wrapper">
+                <ion-item>
+                  <ion-input 
+                    formControlName="vehicleType"
+                    (ionInput)="onVehicleTypeInput($event)"
+                    (ionFocus)="onVehicleTypeFocus()"
+                    placeholder="Escribe o selecciona un tipo...">
+                  </ion-input>
+                </ion-item>
+                @if (showVehicleTypeList()) {
+                  <div class="autocomplete-list">
+                    @for (type of filteredVehicleTypes(); track type.code) {
+                      <div class="autocomplete-item" (click)="selectVehicleType(type)">
+                        <ion-icon name="car-outline"></ion-icon>
+                        <span>{{ type.displayName }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Step 2: Dispositivo GPS -->
+  @if (currentStep() === 2) {
+    <div class="step-content">
+      <ion-card class="info-banner">
+        <ion-card-content>
+          <div class="banner-content">
+            <ion-icon name="hardware-chip" color="primary"></ion-icon>
+            <div class="info-text">
+              <h3>Vinculación de dispositivo GPS</h3>
+              <p>Selecciona el dispositivo GPS instalado en el vehículo e ingresa su IMEI.</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <app-modal-searchable-grid
+        [title]="'Dispositivo GPS'"
+        [itemCount]="availableDevices().length"
+        [searchPlaceholder]="'Buscar por fabricante, modelo o protocolo...'"
+        [columnDefs]="gpsDevicesColumnDefs()"
+        [rowData]="availableDevices()"
+        (rowSelected)="onGpsDeviceSelected($event)">
+      </app-modal-searchable-grid>
+    </div>
+  }
+
+  <!-- Step 3: Asignar Conductor -->
+  @if (currentStep() === 3) {
+    <div class="step-content">
+      <ion-card class="info-banner success-banner">
+        <ion-card-content>
+          <div class="banner-content">
+            <ion-icon name="person-outline" color="success"></ion-icon>
+            <div class="info-text">
+              <h3>Asignar conductor</h3>
+              <p>Asigna un conductor responsable del vehículo.</p>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <app-modal-searchable-grid
+        [title]="'Conductor'"
+        [itemCount]="drivers().length"
+        [searchPlaceholder]="'Buscar por nombre...'"
+        [columnDefs]="driversColumnDefs()"
+        [rowData]="drivers()"
+        (rowSelected)="onDriverSelected($event)">
+      </app-modal-searchable-grid>
+
+      <div class="status-section">
+        <h3 class="status-title">Estado Inicial</h3>
+        <form [formGroup]="driverForm">
+          <div class="status-options">
+            <div 
+              class="status-card active-card" 
+              [class.selected]="driverForm.value.initialStatus === 'active'"
+              (click)="driverForm.patchValue({ initialStatus: 'active' })">
+              <div class="status-icon success">
+                <ion-icon name="checkmark"></ion-icon>
+              </div>
+              <div class="status-info">
+                <h4>Activo</h4>
+                <p>Listo para operar</p>
+              </div>
+              @if (driverForm.value.initialStatus === 'active') {
+                <div class="status-indicator success"></div>
+              }
+            </div>
+
+            <div 
+              class="status-card inactive-card" 
+              [class.selected]="driverForm.value.initialStatus === 'inactive'"
+              (click)="driverForm.patchValue({ initialStatus: 'inactive' })">
+              <div class="status-icon error">
+                <ion-icon name="close-outline"></ion-icon>
+              </div>
+              <div class="status-info">
+                <h4>Inactivo</h4>
+                <p>No disponible</p>
+              </div>
+              @if (driverForm.value.initialStatus === 'inactive') {
+                <div class="status-indicator error"></div>
+              }
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Step 4: Confirmación -->
+  @if (currentStep() === 4) {
+    <div class="step-content">
+      <app-wizard-confirmation-summary
+        [sections]="confirmationSections()"
+        [successMessage]="'¡Todo listo para crear tu vehículo!'"
+        [successDescription]="'Revisa cuidadosamente la información antes de confirmar. El vehículo estará disponible inmediatamente en tu flota.'">
+      </app-wizard-confirmation-summary>
+    </div>
+  }
+
+</app-wizard-stepper>

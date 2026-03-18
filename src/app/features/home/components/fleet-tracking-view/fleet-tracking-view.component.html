@@ -1,0 +1,99 @@
+<div class="vehicle-list-container">
+  <!-- Header -->
+  <div class="list-header">
+    <div class="header-left">
+      <ion-icon name="car-outline" class="header-icon"></ion-icon>
+      <h2>Unidades ({{ vehicles().length }})</h2>
+    </div>
+    <div class="header-right">
+      <button class="view-toggle" (click)="toggleViewMode()">
+        <ion-icon [name]="viewMode === 'list' ? 'grid-outline' : 'list-outline'"></ion-icon>
+      </button>
+      <button class="close-btn" (click)="onClose()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <p class="subtitle">Ver detalles completos</p>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando vehículos...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (error()) {
+    <div class="error-container">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <p class="error-message">{{ error() }}</p>
+      <button class="retry-btn" (click)="loadVehicles()">
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @else if (vehicles().length === 0) {
+    <div class="empty-container">
+      <ion-icon name="car-outline" class="empty-icon"></ion-icon>
+      <p class="empty-message">No hay vehículos registrados</p>
+    </div>
+  }
+
+  <!-- Vehicle Cards -->
+  @else {
+    <div class="vehicles-container">
+      @for (vehicle of vehicles(); track vehicle.id) {
+      <ion-card class="vehicle-card" (click)="onVehicleClick(vehicle.id)">
+        <ion-card-content>
+          <!-- Header de la card -->
+          <div class="card-header">
+            <div class="vehicle-icon">
+              <ion-icon name="car-outline"></ion-icon>
+            </div>
+            <div class="vehicle-info">
+              <h3>{{ vehicle.plate }}</h3>
+              <p class="driver">{{ vehicle.driver }}</p>
+              <p class="model">{{ vehicle.model }}</p>
+            </div>
+            <button class="view-btn">
+              <ion-icon name="eye-outline"></ion-icon>
+            </button>
+          </div>
+
+          <!-- Status -->
+          <div class="status-badge" [ngClass]="getStatusClass(vehicle.status)">
+            <ion-icon name="speedometer-outline"></ion-icon>
+            <div class="status-info">
+              <span class="status-text">{{ vehicle.statusText }}</span>
+              <span class="status-time">{{ vehicle.lastUpdate }}</span>
+            </div>
+          </div>
+
+          <!-- Metrics -->
+          <div class="metrics">
+            <div class="metric">
+              <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
+              <span>{{ vehicle.speed }} km/h</span>
+            </div>
+            <div class="metric">
+              <ion-icon name="battery-half-outline" class="metric-icon"></ion-icon>
+              <span>{{ vehicle.battery }}%</span>
+            </div>
+          </div>
+
+          <!-- Motor Status -->
+          <div class="motor-status" [class.motor-on]="vehicle.motorOn">
+            <ion-icon name="power-outline"></ion-icon>
+            <span>Motor {{ vehicle.motorOn ? 'ON' : 'OFF' }}</span>
+          </div>
+        </ion-card-content>
+      </ion-card>
+      }
+    </div>
+  }
+</div>

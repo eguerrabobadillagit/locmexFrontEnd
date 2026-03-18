@@ -35,3 +35,80 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+// Wizard Container Styles (para modales con wizard-stepper)
+ion-modal {
+  .wizard-container {
+    height: 90vh;
+    max-height: 90vh;
+  }
+
+  .wizard-content {
+    max-height: calc(90vh - 280px);
+    overflow-y: auto;
+  }
+}
+
+// Custom Scrollbar Styles - Delgado y Auto-hide
+// Para Firefox
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent !important;
+}
+
+// Para navegadores basados en WebKit (Chrome, Safari, Edge)
+*::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 3px !important;
+  transition: background 0.2s ease !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+// Auto-hide scrollbar - solo aparece al hacer hover o scroll
+body::-webkit-scrollbar-thumb,
+ion-app::-webkit-scrollbar-thumb,
+ion-content::-webkit-scrollbar-thumb,
+ion-menu::-webkit-scrollbar-thumb,
+.ion-page::-webkit-scrollbar-thumb,
+.ag-body-viewport::-webkit-scrollbar-thumb,
+.grid-container::-webkit-scrollbar-thumb,
+.wizard-content::-webkit-scrollbar-thumb,
+.content-area::-webkit-scrollbar-thumb {
+  background: transparent !important;
+}
+
+body:hover::-webkit-scrollbar-thumb,
+ion-app:hover::-webkit-scrollbar-thumb,
+ion-content:hover::-webkit-scrollbar-thumb,
+ion-menu:hover::-webkit-scrollbar-thumb,
+.ion-page:hover::-webkit-scrollbar-thumb,
+.ag-body-viewport:hover::-webkit-scrollbar-thumb,
+.grid-container:hover::-webkit-scrollbar-thumb,
+.wizard-content:hover::-webkit-scrollbar-thumb,
+.content-area:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+body:hover::-webkit-scrollbar-thumb:hover,
+ion-app:hover::-webkit-scrollbar-thumb:hover,
+ion-content:hover::-webkit-scrollbar-thumb:hover,
+ion-menu:hover::-webkit-scrollbar-thumb:hover,
+.ion-page:hover::-webkit-scrollbar-thumb:hover,
+.ag-body-viewport:hover::-webkit-scrollbar-thumb:hover,
+.grid-container:hover::-webkit-scrollbar-thumb:hover,
+.wizard-content:hover::-webkit-scrollbar-thumb:hover,
+.content-area:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4) !important;
+}

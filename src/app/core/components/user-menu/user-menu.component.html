@@ -1,0 +1,14 @@
+<div class="user-menu-container">
+  <div class="user-info-card">
+    <ion-icon name="person-outline" class="user-icon"></ion-icon>
+    <span class="user-name">{{ userName }}</span>
+    <ion-badge class="user-role">{{ userRole }}</ion-badge>
+  </div>
+  <ion-button 
+    fill="clear" 
+    class="logout-btn"
+    (click)="onLogout()"
+    title="Cerrar sesión">
+    <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+  </ion-button>
+</div>

@@ -1,0 +1,70 @@
+<div class="wizard-container">
+  <!-- Header -->
+  <div class="wizard-header">
+    <div class="wizard-header-content">
+      <div class="wizard-icon">
+        <ion-icon [name]="config().icon"></ion-icon>
+      </div>
+      <div class="wizard-title-section">
+        <h2 class="wizard-title">{{ config().title }}</h2>
+        <p class="wizard-subtitle">Paso {{ currentStep() + 1 }} de {{ config().totalSteps }}</p>
+      </div>
+    </div>
+    <ion-button 
+      *ngIf="config().closable !== false"
+      fill="clear" 
+      class="close-button"
+      (click)="onClose()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Stepper -->
+  <div class="wizard-stepper">
+    <div class="stepper-container">
+      <div 
+        *ngFor="let step of steps(); let i = index"
+        class="step-item"
+        [class.active]="i === currentStep()"
+        [class.completed]="step.completed"
+        [class.disabled]="step.disabled"
+        (click)="onStepClick(i)">
+        <div *ngIf="i < steps().length - 1" class="step-line"></div>
+        <div class="step-content">
+          <div class="step-icon">
+            <ion-icon [name]="step.icon"></ion-icon>
+          </div>
+          <span class="step-label">{{ step.label }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content (projected) -->
+  <div class="wizard-content">
+    <ng-content></ng-content>
+  </div>
+
+  <!-- Footer -->
+  <div class="wizard-footer">
+    <ion-button 
+      fill="clear" 
+      [disabled]="isFirstStep()"
+      (click)="onPrevious()">
+      <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+      Anterior
+    </ion-button>
+    
+    <div class="step-indicator">
+      {{ currentStep() + 1 }} / {{ config().totalSteps }}
+    </div>
+    
+    <ion-button 
+      fill="solid" 
+      color="dark"
+      (click)="onNext()">
+      {{ isLastStep() ? 'Finalizar' : 'Siguiente' }}
+      <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+    </ion-button>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="confirmation-summary">
+  <!-- Success Banner -->
+  <ion-card class="success-banner">
+    <ion-card-content>
+      <div class="banner-content">
+        <div class="success-icon">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <div class="success-text">
+          <h3>{{ successMessage() }}</h3>
+          <p>{{ successDescription() }}</p>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Confirmation Sections -->
+  @for (section of sections(); track section.title) {
+    <ion-card class="confirmation-section" [style.border-left-color]="section.borderColor">
+      <ion-card-content>
+        <div class="section-header">
+          <div class="section-icon" [style.background-color]="section.backgroundColor">
+            <ion-icon [name]="section.icon" [style.color]="section.iconColor"></ion-icon>
+          </div>
+          <div class="section-title">
+            <h4>{{ section.title }}</h4>
+            <p>{{ section.subtitle }}</p>
+          </div>
+        </div>
+
+        <div class="section-fields">
+          @for (field of section.fields; track field.label) {
+            <div class="field-item">
+              <div class="field-label">
+                @if (field.icon) {
+                  <ion-icon [name]="field.icon"></ion-icon>
+                }
+                <span>{{ field.label }}</span>
+              </div>
+              <div class="field-value">{{ field.value }}</div>
+            </div>
+          }
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+</div>

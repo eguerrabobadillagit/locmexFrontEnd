@@ -1,0 +1,43 @@
+<div class="devices-container">
+  <app-page-header
+    title="Catálogo de Dispositivos GPS"
+    subtitle="Modelos homologados y compatibles con la plataforma"
+    actionLabel="Agregar Dispositivo"
+    actionIcon="add-outline"
+    (actionClick)="onAddDevice()"
+  />
+
+  <app-data-toolbar
+    searchPlaceholder="Buscar por fabricante, modelo o descripción..."
+    filterLabel="Todos los protocolos"
+    [filterOptions]="filterOptions"
+    [showViewToggle]="true"
+    (searchChange)="onSearch($event)"
+    (filterChange)="onFilterChange($event)"
+    (viewChange)="onViewChange($event)"
+  />
+
+  <div class="grid-container">
+    <ag-grid-angular
+      style="width: 100%; height: 100%;"
+      class="ag-theme-quartz"
+      [rowData]="filteredDevices()"
+      [columnDefs]="columnDefs"
+      [gridOptions]="gridOptions"
+      [quickFilterText]="quickFilterText()">
+    </ag-grid-angular>
+  </div>
+
+  <!-- Modal para agregar/editar dispositivo -->
+  <ion-modal 
+    [isOpen]="showDeviceWizard()" 
+    (didDismiss)="onWizardClose()">
+    <ng-template>
+      <app-form-device-wizard
+        [deviceId]="editingDeviceId()"
+        (wizardCancelled)="onWizardClose()"
+        (deviceSubmitted)="onDeviceCreated($event)">
+      </app-form-device-wizard>
+    </ng-template>
+  </ion-modal>
+</div>

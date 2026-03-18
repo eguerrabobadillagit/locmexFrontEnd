@@ -1,0 +1,24 @@
+<ion-accordion-group [multiple]="true" [value]="['Monitoreo', 'Operaciones', 'Inventario', 'Gestión']">
+  @for (group of menuGroups; track group.title) {
+    <ion-accordion [value]="group.title" lines="none">
+      <ion-item slot="header" button lines="none">
+        <ion-icon [name]="group.icon" slot="start"></ion-icon>
+        <ion-label>{{ group.title }}</ion-label>
+      </ion-item>
+      
+      <ion-list slot="content" lines="none">
+        @for (item of group.items; track item.id) {
+          <ion-item 
+            button 
+            [class.selected]="selectedMenu() === item.id"
+            (click)="onMenuSelect(item.id)"
+            class="accordion-item"
+            lines="none">
+            <ion-icon [name]="item.icon" slot="start"></ion-icon>
+            <ion-label>{{ item.title }}</ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    </ion-accordion>
+  }
+</ion-accordion-group>

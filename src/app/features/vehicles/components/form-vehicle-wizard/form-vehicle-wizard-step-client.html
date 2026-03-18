@@ -1,0 +1,23 @@
+<!-- Step 0: Asignación de Cliente -->
+<div class="step-content">
+  <ion-card class="info-banner">
+    <ion-card-content>
+      <div class="banner-content">
+        <ion-icon name="person-outline" color="primary"></ion-icon>
+        <div class="info-text">
+          <h3>Asignar a Cliente</h3>
+          <p>Selecciona el cliente al que pertenecerá este recurso</p>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <app-modal-searchable-grid
+    [title]="'Selecciona un cliente'"
+    [itemCount]="clients().length"
+    [searchPlaceholder]="'Buscar por nombre, empresa, correo o rol...'"
+    [columnDefs]="clientColumnDefs()"
+    [rowData]="clients()"
+    (rowSelected)="onClientSelected($event)">
+  </app-modal-searchable-grid>
+</div>

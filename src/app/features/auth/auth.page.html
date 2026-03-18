@@ -1,0 +1,71 @@
+<ion-content class="ion-padding">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="logo-section">
+        <div class="logo-icon">
+          <ion-icon name="car-sport-outline"></ion-icon>
+        </div>
+        <h1 class="app-title">LogiTrack Pro</h1>
+        <p class="app-subtitle">Plataforma de Control Vehicular</p>
+      </div>
+
+      <p class="welcome-text">Ingresa tus credenciales para acceder al sistema</p>
+
+      <form class="auth-form" (ngSubmit)="onSubmit($event)">
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+            <ion-input
+              type="email"
+              placeholder="usuario@ejemplo.com"
+              [value]="email()"
+              (ionInput)="email.set($any($event.target).value)"
+              required
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            <ion-input
+              type="password"
+              placeholder="••••••••"
+              [value]="password()"
+              (ionInput)="password.set($any($event.target).value)"
+              required
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <div class="form-options">
+          <ion-item lines="none" class="remember-me">
+            <ion-checkbox slot="start"></ion-checkbox>
+            <ion-label>Recordarme</ion-label>
+          </ion-item>
+          <ion-button fill="clear" size="small" class="forgot-password">
+            ¿Olvidaste tu contraseña?
+          </ion-button>
+        </div>
+
+        @if (errorMessage()) {
+          <ion-text color="danger">
+            <p class="error-message">{{ errorMessage() }}</p>
+          </ion-text>
+        }
+
+        <ion-button type="submit" expand="block" class="login-button" [disabled]="isLoading()">
+          <ion-icon name="log-in-outline" slot="start"></ion-icon>
+          {{ isLoading() ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+        </ion-button>
+      </form>
+
+      <div class="footer-text">
+        <span class="footer-question">¿No tienes una cuenta?</span>
+        <a class="footer-link">Contacta a ventas</a>
+      </div>
+    </div>
+  </div>
+</ion-content>
