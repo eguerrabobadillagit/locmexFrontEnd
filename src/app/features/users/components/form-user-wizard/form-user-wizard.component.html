@@ -1,0 +1,195 @@
+<app-wizard-stepper
+  [config]="wizardConfig()"
+  [steps]="steps()"
+  [currentStep]="currentStep()"
+  (close)="cancel()"
+  (next)="nextStep()"
+  (previous)="previousStep()">
+  
+  <form [formGroup]="userForm">
+          <!-- Paso 1: Información Personal -->
+          @if (currentStep() === 0) {
+            <div class="step-content">
+              <ion-card class="info-banner">
+                <ion-card-content>
+                  <div class="banner-content">
+                    <ion-icon name="person-outline" color="primary"></ion-icon>
+                    <div class="info-text">
+                      <h3>Información Personal</h3>
+                      <p>Datos básicos de acceso del usuario</p>
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <div class="form-group">
+                <label for="fullName">Nombre Completo <span class="required">*</span></label>
+                <ion-input
+                  id="fullName"
+                  formControlName="fullName"
+                  placeholder="Ej: Juan Pérez García"
+                  [class.invalid]="userForm.get('fullName')?.invalid && userForm.get('fullName')?.touched"
+                ></ion-input>
+                @if (userForm.get('fullName')?.invalid && userForm.get('fullName')?.touched) {
+                  <span class="error-message">El nombre completo es requerido (mínimo 3 caracteres)</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="email">Correo Electrónico <span class="required">*</span></label>
+                <ion-input
+                  id="email"
+                  type="email"
+                  formControlName="email"
+                  placeholder="usuario@ejemplo.com"
+                  [class.invalid]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
+                >
+                  <ion-icon name="mail-outline" slot="start"></ion-icon>
+                </ion-input>
+                @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+                  <span class="error-message">Ingrese un correo electrónico válido</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="password">Contraseña <span class="required">*</span></label>
+                <ion-input
+                  id="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  placeholder="Ingrese contraseña segura"
+                  [class.invalid]="userForm.get('password')?.invalid && userForm.get('password')?.touched"
+                >
+                  <ion-icon 
+                    [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" 
+                    slot="end"
+                    (click)="togglePasswordVisibility()"
+                    style="cursor: pointer;"
+                  ></ion-icon>
+                </ion-input>
+                @if (userForm.get('password')?.invalid && userForm.get('password')?.touched) {
+                  <span class="error-message">La contraseña debe tener al menos 6 caracteres</span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Paso 2: Rol y Acceso -->
+          @if (currentStep() === 1) {
+            <div class="step-content">
+              <ion-card class="info-banner">
+                <ion-card-content>
+                  <div class="banner-content">
+                    <ion-icon name="shield-checkmark-outline" color="primary"></ion-icon>
+                    <div class="info-text">
+                      <h3>Rol y Nivel de Acceso</h3>
+                      <p>Define el nivel jerárquico y permisos del usuario</p>
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <div class="roles-grid">
+                @for (role of roleDefinitions; track role.id) {
+                  <div 
+                    class="role-card"
+                    [class.selected]="selectedRole() === role.id"
+                    (click)="selectRole(role.id)"
+                  >
+                    <div class="role-card-header">
+                      <ion-icon [name]="getRoleIcon(role.id)"></ion-icon>
+                      <h4>{{ role.name }}</h4>
+                      @if (selectedRole() === role.id) {
+                        <ion-icon name="checkmark-outline" class="check-icon"></ion-icon>
+                      }
+                    </div>
+                    <p class="role-description">{{ role.description }}</p>
+                  </div>
+                }
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="status">Estado</label>
+                  <ion-select
+                    id="status"
+                    formControlName="status"
+                    interface="popover"
+                  >
+                    <ion-select-option value="active">Activo</ion-select-option>
+                    <ion-select-option value="inactive">Inactivo</ion-select-option>
+                  </ion-select>
+                </div>
+
+                <div class="form-group">
+                  <label for="expirationDate">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    Fecha de Caducidad
+                  </label>
+                  <ion-input
+                    id="expirationDate"
+                    type="date"
+                    formControlName="expirationDate"
+                  ></ion-input>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Paso 3: Empresa y Contacto -->
+          @if (currentStep() === 2) {
+            <div class="step-content">
+              <ion-card class="info-banner">
+                <ion-card-content>
+                  <div class="banner-content">
+                    <ion-icon name="business-outline" color="primary"></ion-icon>
+                    <div class="info-text">
+                      <h3>Empresa y Contacto</h3>
+                      <p>Datos de la empresa y teléfono de contacto</p>
+                    </div>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <div class="form-group">
+                <label for="companyId">Empresa <span class="required">*</span></label>
+                <ion-input
+                  id="companyId"
+                  formControlName="companyId"
+                  placeholder="LogiTrack Pro Mazatlan"
+                  [class.invalid]="userForm.get('companyId')?.invalid && userForm.get('companyId')?.touched"
+                >
+                  <ion-icon name="business-outline" slot="start"></ion-icon>
+                </ion-input>
+                <small class="help-text">Selecciona una empresa existente o escribe para crear una nueva</small>
+              </div>
+
+              <div class="form-group">
+                <label for="phone">Teléfono <span class="required">*</span></label>
+                <ion-input
+                  id="phone"
+                  type="tel"
+                  formControlName="phone"
+                  placeholder="+52 XXX XXX XXXX"
+                  [class.invalid]="userForm.get('phone')?.invalid && userForm.get('phone')?.touched"
+                >
+                  <ion-icon name="call-outline" slot="start"></ion-icon>
+                </ion-input>
+                @if (userForm.get('phone')?.invalid && userForm.get('phone')?.touched) {
+                  <span class="error-message">Ingrese un número de teléfono válido</span>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Paso 4: Confirmación -->
+          @if (currentStep() === 3) {
+            <div class="step-content">
+              <app-wizard-confirmation-summary
+                [sections]="confirmationSections()"
+                [successMessage]="isEditMode() ? '¡Usuario actualizado correctamente!' : '¡Usuario creado exitosamente!'"
+              />
+            </div>
+          }
+  </form>
+</app-wizard-stepper>

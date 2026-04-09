@@ -38,13 +38,19 @@ import {
   calendarOutline,
   barcodeOutline,
   logOutOutline,
-  linkOutline
+  linkOutline,
+  radioButtonOnOutline,
+  checkmarkOutline,
+  squareOutline,
+  eyeOutline,
+  eyeOffOutline,
 } from 'ionicons/icons';
 
 import { bootstrapApplication } from '@angular/platform-browser';
 import { RouteReuseStrategy, provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalone';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideNgToast } from 'ng-angular-popup';
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
@@ -86,7 +92,12 @@ addIcons({
   'calendar-outline': calendarOutline,
   'barcode-outline': barcodeOutline,
   'log-out-outline': logOutOutline,
-  'link-outline': linkOutline
+  'link-outline': linkOutline,
+  'radio-button-on-outline': radioButtonOnOutline,
+  'checkmark-outline': checkmarkOutline,
+  'square-outline': squareOutline,
+  'eye-outline': eyeOutline,
+  'eye-off-outline': eyeOffOutline
 });
 
 bootstrapApplication(AppComponent, {
@@ -97,5 +108,11 @@ bootstrapApplication(AppComponent, {
     provideHttpClient(
       withInterceptors([authInterceptor])
     ),
+    provideNgToast({
+      duration: 3000,
+      position: 'toaster-top-right',
+      dismissible: true,
+      showProgress: true
+    }),
   ],
 });

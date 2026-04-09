@@ -1,0 +1,39 @@
+<div class="geofences-container">
+  @if (!showMapComponent()) {
+    <app-page-header
+      title="Geocercas"
+      subtitle="Gestión de zonas y alertas geográficas"
+      actionLabel="Nueva Geocerca"
+      actionIcon="add-outline"
+      (actionClick)="onCreateGeofence()"
+    />
+
+    <app-data-toolbar
+      searchPlaceholder="Buscar por nombre, cliente o descripción..."
+      filterLabel="Todos los estados"
+      [filterOptions]="filterOptions"
+      [showViewToggle]="true"
+      (searchChange)="onSearch($event)"
+      (filterChange)="onFilterChange($event)"
+    />
+
+    <div class="grid-container">
+      <ag-grid-angular
+        style="width: 100%; height: 100%;"
+        class="ag-theme-quartz"
+        [rowData]="filteredGeofences()"
+        [columnDefs]="columnDefs"
+        [gridOptions]="gridOptions"
+        [quickFilterText]="quickFilterText()">
+      </ag-grid-angular>
+    </div>
+  }
+
+  @if (showMapComponent()) {
+    <div class="map-fullscreen-wrapper">
+      <app-geofence-map 
+        [geofenceToEdit]="geofenceToEdit()"
+        (mapClosed)="onMapClose()" />
+    </div>
+  }
+</div>

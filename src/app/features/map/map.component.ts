@@ -1,11 +1,14 @@
-import { Component, OnInit, ViewChild, OnDestroy, computed, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, computed, signal, inject } from '@angular/core';
 import { GoogleMap, MapMarker } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
+import { IonicModule } from '@ionic/angular';
 import { VehicleSelectionService } from '../services/vehicle-selection';
 import { VehicleDetailComponent } from '../home/components/vehicle-detail/vehicle-detail.component';
 import { VehicleWebSocketService } from './service/vehicle-websocket.service';
 import { VehicleWebSocketSimulatorService } from './service/vehicle-websocket-simulator.service';
 import { VehicleAnimationService } from './service/vehicle-animation.service';
+import { VehicleService, SidebarUnit } from '../vehicles/services/vehicle.service';
+import { GeofenceOverlayComponent } from './components/geofence-overlay/geofence-overlay.component';
 import { Subscription } from 'rxjs';
 
 import { VehicleDetail } from './interfaces/vehicle-detail.interface';
@@ -22,7 +25,7 @@ interface VehicleMarker {
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent]
+  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, IonicModule, GeofenceOverlayComponent]
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
@@ -30,6 +33,7 @@ export class MapComponent implements OnInit, OnDestroy {
   
   selectedVehicleId = signal<string | null>(null);
   showVehicleDetail = signal<boolean>(false);
+  showGeofences = signal<boolean>(false);
   
   center: google.maps.LatLngLiteral = {
     lat: 23.2494,
@@ -47,13 +51,16 @@ export class MapComponent implements OnInit, OnDestroy {
   private getColorByStatus(status: string): { stroke: string; fill: string; filterId: string } {
     switch (status) {
       case 'In_route':
+      case 'moving':
         return { stroke: '#4CAF50', fill: '#4CAF50', filterId: 'shadowGreen' };
       case 'stopped':
+      case 'idle':
         return { stroke: '#FF9800', fill: '#FF9800', filterId: 'shadowOrange' };
       case 'no-signal':
+      case 'offline':
         return { stroke: '#F44336', fill: '#F44336', filterId: 'shadowRed' };
       default:
-        return { stroke: '#4CAF50', fill: '#4CAF50', filterId: 'shadowGreen' };
+        return { stroke: '#9E9E9E', fill: '#9E9E9E', filterId: 'shadowGray' };
     }
   }
 
@@ -111,6 +118,8 @@ export class MapComponent implements OnInit, OnDestroy {
 
   @ViewChild(GoogleMap) googleMap!: GoogleMap;
 
+  private readonly vehicleService = inject(VehicleService);
+
   constructor(
     private vehicleSelectionService: VehicleSelectionService,
     private wsService: VehicleWebSocketService,
@@ -125,7 +134,7 @@ export class MapComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.initializeVehicles();
+    this.loadVehiclesFromSidebar();
     
     if (this.useSimulator) {
       this.startSimulation();
@@ -138,6 +147,45 @@ export class MapComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
     this.wsService.disconnect();
     this.animationService.stopAllAnimations();
+  }
+
+  private loadVehiclesFromSidebar(): void {
+    this.vehicleService.getSidebarUnits().subscribe({
+      next: (sidebarUnits: SidebarUnit[]) => {
+        const vehicles: VehicleDetail[] = sidebarUnits
+          .filter(unit => unit.latitude !== null && unit.longitude !== null)
+          .map(unit => this.mapSidebarUnitToVehicleDetail(unit));
+        
+        this.wsService.initializeVehicles(vehicles);
+        console.log(`Cargados ${vehicles.length} vehículos desde sidebar-units`);
+      },
+      error: (error) => {
+        console.error('Error al cargar vehículos desde sidebar-units:', error);
+        // Fallback a datos iniciales si falla
+        this.initializeVehicles();
+      }
+    });
+  }
+
+  private mapSidebarUnitToVehicleDetail(unit: SidebarUnit): VehicleDetail {
+    return {
+      id: unit.deviceId,
+      plate: unit.plate,
+      status: unit.statusCode,
+      model: unit.unitLabel,
+      driver: unit.driverName || 'Sin asignar',
+      imei: unit.deviceId,
+      speed: unit.speedKph || 0,
+      fuel: unit.batteryLevel || 0,
+      heading: 0, // No viene en sidebar-units, se actualizará con WebSocket
+      motorHours: 0,
+      latitude: unit.latitude!,
+      longitude: unit.longitude!,
+      satellites: 0,
+      altitude: 0,
+      odometer: 0,
+      lastReport: unit.lastMessageAtUtc
+    };
   }
 
   private initializeVehicles(): void {
@@ -319,6 +367,11 @@ export class MapComponent implements OnInit, OnDestroy {
   onCloseVehicleDetail() {
     this.showVehicleDetail.set(false);
     this.selectedVehicleId.set(null);
+  }
+
+  toggleGeofences() {
+    const newState = !this.showGeofences();
+    this.showGeofences.set(newState);
   }
 
 }

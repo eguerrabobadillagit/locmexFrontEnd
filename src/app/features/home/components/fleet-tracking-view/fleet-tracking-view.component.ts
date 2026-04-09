@@ -126,17 +126,8 @@ export class FleetTrackingViewComponent implements OnInit {
     this.closeView.emit();
   }
 
-  async onVehicleClick(vehicleId: string) {
+  onVehicleClick(vehicleId: string) {
     this.vehicleSelectionService.selectVehicle(vehicleId);
-    
-    // Detectar si estamos en móvil (menú colapsado)
-    const isMenuOpen = await this.menuController.isOpen();
-    const isMobile = !isMenuOpen; // Si el menú no está abierto permanentemente, es móvil
-    
-    // En móvil, cerrar el panel automáticamente
-    if (isMobile) {
-      this.closeView.emit();
-    }
   }
 
   getStatusClass(status: string): string {

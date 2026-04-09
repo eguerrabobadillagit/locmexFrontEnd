@@ -22,6 +22,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/devices/devices.page').then((m) => m.DevicesPage)
       },
       {
+        path: 'usuarios',
+        loadComponent: () => import('./features/users/users.page').then((m) => m.UsersPage)
+      },
+      {
+        path: 'geocercas',
+        loadComponent: () => import('./features/geofences/geofences.page').then((m) => m.GeofencesPage)
+      },
+      {
         path: 'dashboard',
         loadComponent: () => import('./features/dashboard/dashboard.page').then((m) => m.DashboardPage)
       },

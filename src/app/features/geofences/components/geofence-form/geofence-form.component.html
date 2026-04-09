@@ -1,0 +1,118 @@
+<div class="geofence-form-container">
+  <div class="form-header">
+    <h3>+ Nueva Geocerca</h3>
+  </div>
+
+  <div class="form-content">
+    <!-- Nombre -->
+    <div class="form-field">
+      <label class="field-label">NOMBRE</label>
+      <ion-input
+        [(ngModel)]="name"
+        placeholder="Ej: Zona Centro"
+        class="custom-input">
+      </ion-input>
+    </div>
+
+    <!-- Tipo de Forma -->
+    <div class="form-field">
+      <label class="field-label">TIPO DE FORMA</label>
+      <div class="shape-buttons">
+        <ion-button
+          [fill]="shapeType() === 'circular' ? 'solid' : 'outline'"
+          [color]="shapeType() === 'circular' ? 'dark' : 'medium'"
+          size="small"
+          [disabled]="isEditMode()"
+          (click)="onShapeTypeChange('circular')">
+          <ion-icon slot="start" name="radio-button-on-outline"></ion-icon>
+          Circular
+        </ion-button>
+        <ion-button
+          [fill]="shapeType() === 'polygon' ? 'solid' : 'outline'"
+          [color]="shapeType() === 'polygon' ? 'dark' : 'medium'"
+          size="small"
+          [disabled]="isEditMode()"
+          (click)="onShapeTypeChange('polygon')">
+          <ion-icon slot="start" name="shapes-outline"></ion-icon>
+          Polígono
+        </ion-button>
+        <ion-button
+          [fill]="shapeType() === 'rectangle' ? 'solid' : 'outline'"
+          [color]="shapeType() === 'rectangle' ? 'dark' : 'medium'"
+          size="small"
+          [disabled]="isEditMode()"
+          (click)="onShapeTypeChange('rectangle')">
+          <ion-icon slot="start" name="square-outline"></ion-icon>
+          Rect
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Alertas y Estado -->
+    <div class="form-field">
+      <label class="field-label">ALERTAS Y ESTADO</label>
+      <div class="checkbox-group">
+        <ion-checkbox
+          [(ngModel)]="alertOnEnter"
+          labelPlacement="end">
+          Entrada
+        </ion-checkbox>
+        <ion-checkbox
+          [(ngModel)]="alertOnExit"
+          labelPlacement="end">
+          Salida
+        </ion-checkbox>
+        <ion-checkbox
+          [(ngModel)]="isActive"
+          labelPlacement="end">
+          Activo
+        </ion-checkbox>
+      </div>
+    </div>
+
+    <!-- Vincular Vehículos -->
+    <div class="form-field">
+      <label class="field-label">VINCULAR VEHÍCULOS <span class="optional">(opcional)</span></label>
+      
+      <!-- Vehicle Autocomplete -->
+      <div class="autocomplete-wrapper">
+        <ion-item>
+          <ion-input
+            [(ngModel)]="vehicleSearchText"
+            (ionInput)="onVehicleInput($event)"
+            (ionFocus)="onVehicleFocus()"
+            placeholder="Escribe o selecciona un vehículo...">
+          </ion-input>
+        </ion-item>
+        @if (showVehicleList()) {
+          <div class="autocomplete-list">
+            @for (vehicle of filteredVehicles(); track vehicle.id) {
+              <div class="autocomplete-item" (click)="selectVehicle(vehicle)">
+                <ion-icon name="car-outline"></ion-icon>
+                <span>{{ vehicle.plate }} - {{ vehicle.brandName }} {{ vehicle.model }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="form-actions">
+    <ion-button
+      fill="solid"
+      color="dark"
+      (click)="onSave()"
+      [disabled]="!isFormValid()">
+      <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+      Guardar
+    </ion-button>
+    <ion-button
+      fill="outline"
+      color="medium"
+      (click)="onCancel()">
+      Cancelar
+    </ion-button>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="geofence-map-container">
+  <!-- Geofence Form -->
+  <app-geofence-form
+    [geofenceData]="geofenceToEdit()"
+    [hasDrawnGeofence]="hasDrawnGeofence()"
+    [isEditMode]="geofenceToEdit() !== null"
+    (shapeTypeChange)="onFormShapeTypeChange($event)"
+    (save)="onFormSave($event)"
+    (cancel)="onFormCancel()">
+  </app-geofence-form>
+
+  <!-- Google Maps Container -->
+  <div class="map-container">
+    <div #mapContainer class="map"></div>
+  </div>
+</div>

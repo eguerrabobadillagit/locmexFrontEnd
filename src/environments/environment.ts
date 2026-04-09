@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://staging.americas-iot.com/api'
+  apiUrl: 'https://localhost:7000/api'
 };
 
 /*

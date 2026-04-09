@@ -1,0 +1,40 @@
+<div class="page-container">
+  <app-page-header
+    title="Usuarios"
+    subtitle="Gestión de usuarios en la plataforma"
+    actionLabel="Crear Usuario"
+    actionIcon="add-outline"
+    (actionClick)="onCreateUser()"
+  />
+
+  <app-data-toolbar
+    [filterOptions]="filterOptions"
+    searchPlaceholder="Buscar usuarios..."
+    [showViewToggle]="true"
+    (filterChange)="onFilterChange($event)"
+    (searchChange)="onQuickFilterChange($event)"
+  />
+
+  <div class="grid-container">
+    <ag-grid-angular
+      class="ag-theme-quartz"
+      [rowData]="filteredUsers()"
+      [columnDefs]="columnDefs"
+      [gridOptions]="gridOptions"
+      [quickFilterText]="quickFilterText()"
+      (gridReady)="onGridReady($event)"
+    ></ag-grid-angular>
+  </div>
+
+  <ion-modal 
+    [isOpen]="showUserWizard()" 
+    (didDismiss)="onWizardClose()">
+    <ng-template>
+      <app-form-user-wizard
+        [userId]="selectedUserId()"
+        (userSubmitted)="onUserCreated($event)"
+        (wizardCancelled)="onWizardClose()">
+      </app-form-user-wizard>
+    </ng-template>
+  </ion-modal>
+</div>

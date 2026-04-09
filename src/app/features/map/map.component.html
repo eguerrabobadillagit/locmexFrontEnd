@@ -1,5 +1,6 @@
 <div class="map-container">
   <google-map
+    #mapRef
     [center]="center"
     [zoom]="zoom"
     [options]="mapOptions"
@@ -15,6 +16,21 @@
       </map-marker>
     }
   </google-map>
+
+  <!-- Geofence Overlay Component -->
+  @if (googleMap?.googleMap) {
+    <app-geofence-overlay 
+      [map]="googleMap.googleMap!"
+      [showGeofences]="showGeofences()">
+    </app-geofence-overlay>
+  }
+
+  <!-- Floating Geofence Toggle Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="geofence-fab">
+    <ion-fab-button (click)="toggleGeofences()" [color]="showGeofences() ? 'success' : 'medium'">
+      <ion-icon [name]="showGeofences() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
   <!-- Vehicle Detail Panel -->
   @if (showVehicleDetail() && selectedVehicleDetail()) {
