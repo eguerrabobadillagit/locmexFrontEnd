@@ -14,8 +14,36 @@
       </button>
     </div>
   </div>
-
-  <p class="subtitle">Ver detalles completos</p>
+@switch (sidebarViewMode()) {
+  @case ('history') {
+    @switch (historySubViewMode()) {
+      @case ('route') {
+        <app-vehicle-history-route
+          [vehicleId]="selectedHistoryVehicle()?.id || ''"
+          [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
+          [fromDate]="getHistoryFromDate()"
+          [fromHour]="getHistoryFromHour()"
+          [fromMinute]="getHistoryFromMinute()"
+          [toDate]="getHistoryToDate()"
+          [toHour]="getHistoryToHour()"
+          [toMinute]="getHistoryToMinute()"
+          (closeRoute)="closeHistory()"
+          (backToForm)="onBackToHistoryForm()"
+          (pointSelect)="onHistoryPointSelect($event)"
+        />
+      }
+      @default {
+        <app-vehicle-history-form
+          [vehicleId]="selectedHistoryVehicle()?.id || ''"
+          [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
+          (closeForm)="closeHistory()"
+          (searchHistory)="onHistorySearch($event)"
+        />
+      }
+    }
+  }
+  @default {
+    <p class="subtitle">Ver detalles completos</p>
 
   <!-- Loading State -->
   @if (isLoading()) {
@@ -60,9 +88,14 @@
               <p class="driver">{{ vehicle.driver }}</p>
               <p class="model">{{ vehicle.model }}</p>
             </div>
-            <button class="view-btn">
-              <ion-icon name="eye-outline"></ion-icon>
-            </button>
+            <div class="card-actions">
+              <button class="history-btn" (click)="openHistory(vehicle, $event)" title="Ver recorrido histórico">
+                <ion-icon name="analytics-outline"></ion-icon>
+              </button>
+              <button class="view-btn">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+            </div>
           </div>
 
           <!-- Status -->
@@ -96,4 +129,6 @@
       }
     </div>
   }
+}
+}
 </div>

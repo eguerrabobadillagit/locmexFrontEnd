@@ -37,7 +37,7 @@
 
     ion-fab-button {
       --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      
+
       ion-icon {
         font-size: 24px;
       }
@@ -52,10 +52,179 @@
 
     ion-fab-button {
       --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      
+
       ion-icon {
         font-size: 24px;
       }
+    }
+  }
+}
+
+// Mobile Bottom Sheet – shown only on small screens
+@media (max-width: 768px) {
+  .map-container {
+    .mobile-sheet {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1500;
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      max-height: 280px; // collapsed: header + player controls only (ajustado para el player)
+      overflow: hidden;
+
+      &.mobile-sheet--expanded {
+        max-height: 70vh;
+
+        .sheet-points-list {
+          flex: 1;
+          overflow-y: auto;
+          max-height: none;
+        }
+      }
+
+      // Player is always visible and stays at the top
+      .sheet-player {
+        flex-shrink: 0;
+        display: block;
+      }
+
+      // Points list hidden by default, shown when expanded
+      .sheet-points-list {
+        overflow: hidden;
+        max-height: 0;
+        flex-shrink: 0;
+        transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .sheet-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 16px 6px;
+        cursor: pointer;
+        flex-shrink: 0;
+        user-select: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+
+        .sheet-drag-handle {
+          width: 36px;
+          height: 4px;
+          border-radius: 2px;
+          background: rgba(0, 0, 0, 0.15);
+          margin-bottom: 8px;
+        }
+
+        .sheet-header-content {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          width: 100%;
+
+          .sheet-icon {
+            font-size: 16px;
+            color: var(--ion-color-medium, #666);
+            flex-shrink: 0;
+          }
+
+          .sheet-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--ion-color-dark, #333);
+            flex: 1;
+          }
+        }
+
+        .sheet-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          position: absolute;
+          right: 12px;
+          top: 16px;
+
+          button {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+
+            ion-icon {
+              font-size: 18px;
+              color: var(--ion-color-dark, #333);
+            }
+
+            &.sheet-close-btn ion-icon {
+              color: var(--ion-color-danger, #eb445a);
+            }
+          }
+        }
+      }
+
+      // Points list – shown when expanded, hidden by default
+      // Note: base styles are defined in the .mobile-sheet block above
+      .sheet-points-list {
+        .sheet-point-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 16px;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          cursor: pointer;
+          transition: background 0.15s;
+
+          &:active,
+          &.active {
+            background: rgba(56, 128, 255, 0.08);
+          }
+
+          .point-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ion-color-dark, #333);
+            min-width: 60px;
+          }
+
+          .point-speed {
+            font-size: 12px;
+            color: var(--ion-color-medium, #666);
+            min-width: 56px;
+          }
+
+          .point-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.06);
+            color: var(--ion-color-medium, #666);
+
+            &.moving {
+              background: rgba(45, 211, 111, 0.15);
+              color: #2dd36f;
+            }
+          }
+        }
+      }
+
+    }
+
+    // FABs only shift up when sheet is present
+    .geofence-fab.sheet-active {
+      bottom: calc(280px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .tracking-fab.sheet-active {
+      bottom: calc(350px + env(safe-area-inset-bottom, 0px)) !important;
     }
   }
 }
@@ -67,7 +236,7 @@
   .gm-style-mtc {
     display: none !important;
   }
-  
+
   // Ocultar el overlay de "For development purposes only"
   .gm-style > div:first-child > div:last-child > div:first-child {
     display: none !important;

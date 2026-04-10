@@ -1,0 +1,53 @@
+<div class="playback-controls">
+  <div class="control-buttons">
+    <button (click)="goToFirst.emit()" [disabled]="currentPointIndex() === 0">
+      <ion-icon name="play-skip-back-outline"></ion-icon>
+    </button>
+    <button (click)="goToPrevious.emit()" [disabled]="currentPointIndex() === 0">
+      <ion-icon name="play-back-outline"></ion-icon>
+    </button>
+    <button class="play-btn" (click)="togglePlayback.emit()">
+      @if (isPlaying()) {
+        <ion-icon name="pause-outline"></ion-icon>
+      } @else {
+        <ion-icon name="play-outline"></ion-icon>
+      }
+    </button>
+    <button (click)="goToNext.emit()" [disabled]="currentPointIndex() === formattedPoints().length - 1">
+      <ion-icon name="play-forward-outline"></ion-icon>
+    </button>
+    <button (click)="goToLast.emit()" [disabled]="currentPointIndex() === formattedPoints().length - 1">
+      <ion-icon name="play-skip-forward-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="speed-controls">
+    <span class="speed-label">
+      <ion-icon name="speedometer-outline"></ion-icon>
+      Velocidad:
+    </span>
+    @for (speed of speedOptions; track speed) {
+      <button
+        class="speed-btn"
+        [class.active]="playbackSpeed() === speed"
+        (click)="speedChange.emit(speed)"
+      >
+        {{ speed }}x
+      </button>
+    }
+  </div>
+
+  <!-- Progress Slider -->
+  <div class="progress-section">
+    <span class="progress-time">{{ formattedPoints()[0]?.time }}</span>
+    <span class="progress-text">{{ currentPointIndex() + 1 }} / {{ formattedPoints().length }}</span>
+    <span class="progress-time">{{ formattedPoints()[formattedPoints().length - 1]?.time }}</span>
+  </div>
+  <ion-range
+    [min]="0"
+    [max]="formattedPoints().length - 1"
+    [value]="currentPointIndex()"
+    (ionChange)="onSliderChange($event)"
+    class="progress-slider"
+  ></ion-range>
+</div>

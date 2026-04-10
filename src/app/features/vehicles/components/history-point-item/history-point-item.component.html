@@ -1,0 +1,18 @@
+<div class="point-time">{{ point.time }}</div>
+<div class="point-details">
+  <div class="point-location">
+    <ion-icon name="location-outline"></ion-icon>
+    <span>{{ point.location }}</span>
+  </div>
+  <div class="point-metrics">
+    <span class="speed-badge" [class]="speedColorClass">
+      {{ point.speedKph }} km/h
+    </span>
+    <span class="status-text" [class.moving]="point.status === 'moving'">
+      {{ statusLabel }}
+    </span>
+  </div>
+</div>
+@if (isActive) {
+  <div class="current-indicator"></div>
+}

@@ -1,0 +1,92 @@
+:host {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.point-time {
+  font-size: 13px;
+  color: var(--ion-color-medium, #666);
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+.point-details {
+  flex: 1;
+  min-width: 0;
+
+  .point-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+
+    ion-icon {
+      font-size: 14px;
+      color: var(--ion-color-primary, #3880ff);
+      flex-shrink: 0;
+    }
+
+    span {
+      font-size: 13px;
+      color: var(--ion-color-dark, #333);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .point-metrics {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .speed-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+
+      &.speed-gray {
+        background: rgba(var(--ion-color-medium-rgb, 102, 102, 102), 0.2);
+        color: var(--ion-color-medium, #666);
+      }
+
+      &.speed-orange {
+        background: rgba(var(--ion-color-warning-rgb, 255, 153, 0), 0.2);
+        color: var(--ion-color-warning, #ff9900);
+      }
+
+      &.speed-green {
+        background: rgba(var(--ion-color-success-rgb, 45, 211, 111), 0.2);
+        color: var(--ion-color-success, #2dd36f);
+      }
+
+      &.speed-blue {
+        background: rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.2);
+        color: var(--ion-color-primary, #3880ff);
+      }
+    }
+
+    .status-text {
+      font-size: 12px;
+      color: var(--ion-color-medium, #666);
+
+      &.moving {
+        color: var(--ion-color-success, #2dd36f);
+      }
+    }
+  }
+}
+
+.current-indicator {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ion-color-dark, #1a1a2e);
+}
