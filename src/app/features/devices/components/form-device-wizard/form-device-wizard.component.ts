@@ -453,7 +453,6 @@ export class FormDeviceWizardComponent implements OnInit {
       
       this.deviceService.updateDevice(this.deviceId()!, updateRequest).subscribe({
         next: (response) => {
-          console.log('Dispositivo actualizado exitosamente:', response);
           this.isSubmitting.set(false);
           this.deviceSubmitted.emit(response);
         },
@@ -469,7 +468,6 @@ export class FormDeviceWizardComponent implements OnInit {
       
       this.deviceService.createDevice(createRequest).subscribe({
         next: (response) => {
-          console.log('Dispositivo creado exitosamente:', response);
           this.isSubmitting.set(false);
           this.deviceSubmitted.emit(response);
         },

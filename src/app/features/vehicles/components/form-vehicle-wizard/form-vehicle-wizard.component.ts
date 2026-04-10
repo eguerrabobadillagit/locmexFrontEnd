@@ -514,17 +514,13 @@ export class FormVehicleWizardComponent implements OnInit {
       deviceId: this.selectedDevice()?.id || null,  // Enviar el ID del dispositivo GPS seleccionado
       driverId: this.selectedDriver()?.id || null  // Enviar el ID del conductor (opcional)
     };
-    
-    console.log('=== DATOS DEL VEHÍCULO A GUARDAR ===');
-    console.log(JSON.stringify(vehiclePayload, null, 2));
-    console.log('====================================');
-    
+
     // Emitir evento según el modo (crear o actualizar)
     if (this.vehicleId) {
-      console.log('Modo edición - vehicleId:', this.vehicleId);
+
       this.vehicleUpdated.emit({ id: this.vehicleId, ...vehiclePayload });
     } else {
-      console.log('Modo creación');
+
       this.vehicleCreated.emit(vehiclePayload);
     }
     // No cerrar el wizard aquí - se cerrará desde vehicles.page.ts solo si es exitoso

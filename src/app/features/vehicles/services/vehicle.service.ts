@@ -89,6 +89,7 @@ export class VehicleService {
 
 export interface SidebarUnit {
   deviceId: string;
+  vehicleId?: string;
   unitLabel: string;
   plate: string;
   driverName: string;

@@ -39,7 +39,6 @@ export class VehicleWebSocketSimulatorService {
       });
     }, intervalMs);
 
-    console.log('WebSocket simulation started');
   }
 
   stopSimulation(): void {
@@ -47,7 +46,7 @@ export class VehicleWebSocketSimulatorService {
       clearInterval(this.intervalId);
       this.intervalId = null;
       this.isRunning.set(false);
-      console.log('WebSocket simulation stopped');
+
     }
   }
 

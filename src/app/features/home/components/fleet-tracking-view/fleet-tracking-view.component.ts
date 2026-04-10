@@ -1,10 +1,12 @@
-import { Component, OnInit, output, signal, inject } from '@angular/core';
+import { Component, OnInit, output, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonCard, IonCardContent, IonSpinner, MenuController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { carOutline, speedometerOutline, batteryHalfOutline, powerOutline, eyeOutline, listOutline, gridOutline, closeOutline } from 'ionicons/icons';
 import { VehicleSelectionService } from '../../../services/vehicle-selection';
 import { VehicleService, SidebarUnit } from '../../../vehicles/services/vehicle.service';
+import { VehicleWebSocketService } from '../../../map/service/vehicle-websocket.service';
+import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
 
 interface Vehicle {
   id: string;
@@ -30,13 +32,35 @@ export class FleetTrackingViewComponent implements OnInit {
   closeView = output<void>();
   viewMode: 'list' | 'grid' = 'list';
   
-  vehicles = signal<Vehicle[]>([]);
+  // Signal para datos iniciales de sidebar-units
+  sidebarUnits = signal<Vehicle[]>([]);
+  
+  // Computed que combina datos iniciales con actualizaciones del socket
+  vehicles = computed(() => {
+    const sidebar = this.sidebarUnits();
+    const socketVehicles = this.wsService.vehiclesList();
+    
+    // Si no hay datos del socket, retornar sidebar
+    if (socketVehicles.length === 0) {
+      return sidebar;
+    }
+    
+    // Combinar: usar datos del socket si existen, sino usar sidebar
+    return sidebar.map(sidebarVehicle => {
+      const socketVehicle = socketVehicles.find(v => v.id === sidebarVehicle.id);
+      return socketVehicle 
+        ? this.mapSocketVehicleToSidebarFormat(socketVehicle, sidebarVehicle)
+        : sidebarVehicle;
+    });
+  });
+  
   isLoading = signal<boolean>(false);
   error = signal<string | null>(null);
 
   private readonly menuController = inject(MenuController);
   private readonly vehicleSelectionService = inject(VehicleSelectionService);
   private readonly vehicleService = inject(VehicleService);
+  private readonly wsService = inject(VehicleWebSocketService);
 
   constructor() {
     addIcons({
@@ -53,6 +77,11 @@ export class FleetTrackingViewComponent implements OnInit {
 
   ngOnInit() {
     this.loadVehicles();
+    
+    // Conectar al WebSocket si no está conectado
+    if (this.wsService.connectionStatus() !== 'connected') {
+      this.wsService.connect();
+    }
   }
 
   loadVehicles(): void {
@@ -62,7 +91,17 @@ export class FleetTrackingViewComponent implements OnInit {
     this.vehicleService.getSidebarUnits().subscribe({
       next: (response: SidebarUnit[]) => {
         const mappedVehicles = response.map(v => this.mapSidebarUnit(v));
-        this.vehicles.set(mappedVehicles);
+        this.sidebarUnits.set(mappedVehicles);
+        
+        // Inicializar vehículos en el WebSocket service si no están
+        const socketVehicles = this.wsService.vehiclesList();
+        if (socketVehicles.length === 0) {
+          const vehicleDetails = response
+            .filter(unit => unit.latitude !== null && unit.longitude !== null)
+            .map(unit => this.mapSidebarUnitToVehicleDetail(unit));
+          this.wsService.initializeVehicles(vehicleDetails);
+        }
+        
         this.isLoading.set(false);
       },
       error: (err: any) => {
@@ -73,10 +112,31 @@ export class FleetTrackingViewComponent implements OnInit {
     });
   }
 
+  private mapSidebarUnitToVehicleDetail(unit: SidebarUnit): VehicleDetail {
+    return {
+      id: unit.vehicleId || unit.deviceId,
+      plate: unit.plate,
+      status: unit.statusCode,
+      model: unit.unitLabel,
+      driver: unit.driverName || 'Sin asignar',
+      imei: unit.deviceId,
+      speed: unit.speedKph || 0,
+      fuel: unit.batteryLevel || 0,
+      heading: 0,
+      motorHours: 0,
+      latitude: unit.latitude!,
+      longitude: unit.longitude!,
+      satellites: 0,
+      altitude: 0,
+      odometer: 0,
+      lastReport: unit.lastMessageAtUtc
+    };
+  }
+
   private mapSidebarUnit(unit: SidebarUnit): Vehicle {
     const status = this.getStatusFromCode(unit.statusCode, unit.ignitionOn);
     return {
-      id: unit.deviceId,
+      id: unit.vehicleId || unit.deviceId,
       plate: unit.plate,
       driver: unit.driverName || 'Sin asignar',
       model: unit.unitLabel,
@@ -87,6 +147,30 @@ export class FleetTrackingViewComponent implements OnInit {
       battery: unit.batteryLevel || 0,
       motorOn: unit.ignitionOn
     };
+  }
+
+  private mapSocketVehicleToSidebarFormat(socketVehicle: VehicleDetail, sidebarVehicle: Vehicle): Vehicle {
+    // Determinar status basado en velocidad y estado del socket
+    const status = this.getStatusFromSocketData(socketVehicle.status, socketVehicle.speed);
+    
+    return {
+      id: socketVehicle.id,
+      plate: socketVehicle.plate,
+      driver: sidebarVehicle.driver, // Mantener driver del sidebar (no viene en socket)
+      model: sidebarVehicle.model, // Mantener modelo del sidebar
+      status: status,
+      statusText: this.getStatusText(status),
+      lastUpdate: this.getRelativeTime(socketVehicle.lastReport),
+      speed: socketVehicle.speed,
+      battery: socketVehicle.fuel, // fuel del socket = battery del sidebar
+      motorOn: socketVehicle.speed > 0 || socketVehicle.status === 'moving' // Inferir motor ON
+    };
+  }
+
+  private getStatusFromSocketData(statusCode: string, speed: number): 'moving' | 'stopped' | 'no-signal' {
+    if (statusCode === 'offline' || statusCode === 'no-signal') return 'no-signal';
+    if (speed > 0 || statusCode === 'moving' || statusCode === 'In_route') return 'moving';
+    return 'stopped';
   }
 
   private getStatusFromCode(statusCode: string, ignitionOn: boolean): 'moving' | 'stopped' | 'no-signal' {
@@ -112,7 +196,7 @@ export class FleetTrackingViewComponent implements OnInit {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return 'Hace Ahora';
+    if (diffMins < 1) return 'Ahora';
     if (diffMins < 60) return `Hace ${diffMins} min`;
     if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
     return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;

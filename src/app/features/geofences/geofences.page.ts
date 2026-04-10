@@ -116,7 +116,6 @@ export class GeofencesPage implements OnInit {
             // User confirmed, proceed with deletion
             this.geofenceService.deleteGeofence(geofenceId).subscribe({
               next: () => {
-                console.log('Geocerca eliminada exitosamente');
                 this.toastService.success('Geocerca eliminada exitosamente', 'Éxito');
                 this.loadGeofences();
               },

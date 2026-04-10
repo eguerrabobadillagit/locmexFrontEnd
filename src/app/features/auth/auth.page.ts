@@ -59,7 +59,6 @@ export class AuthPage {
       password: this.password()
     }).subscribe({
       next: (response) => {
-        console.log('Login exitoso:', response);
         this.isLoading.set(false);
         this.router.navigate(['/home']);
       },

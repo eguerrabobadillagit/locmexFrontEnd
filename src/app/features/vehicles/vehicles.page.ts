@@ -68,7 +68,7 @@ export class VehiclesPage implements AfterViewInit {
           const button = target.classList.contains('delete-btn') ? target : target.closest('.delete-btn');
           const vehicleId = button?.getAttribute('data-vehicle-id');
           if (vehicleId) {
-            console.log('Delete vehicle:', vehicleId);
+
             // TODO: Implementar eliminación
           }
         }
@@ -118,8 +118,7 @@ export class VehiclesPage implements AfterViewInit {
   }
 
   private async sendLinkSMS(vehicleId: string) {
-    console.log('Sending link SMS for vehicle:', vehicleId);
-    
+
     // Buscar el vehículo para obtener su deviceId
     const vehicle = this.vehicles().find(v => v.id === vehicleId);
     
@@ -146,8 +145,7 @@ export class VehiclesPage implements AfterViewInit {
     // Enviar comando al dispositivo
     this.deviceService.sendCommand(vehicle.deviceId, command).subscribe({
       next: async (response) => {
-        console.log('Command sent successfully:', response);
-        
+
         const toast = await this.toastController.create({
           message: 'SMS enviado exitosamente para enlazar el GPS',
           duration: 3000,
@@ -178,8 +176,7 @@ export class VehiclesPage implements AfterViewInit {
   }
 
   onVehicleUpdated(vehicleData: any) {
-    console.log('Vehicle data to update:', vehicleData);
-    
+
     const { id, ...payload } = vehicleData;
     
     // Mapear el payload del wizard al formato de la API
@@ -198,12 +195,10 @@ export class VehiclesPage implements AfterViewInit {
       driverId: payload.driverId
     };
 
-    console.log('Updating vehicle with ID:', id);
-    console.log('Sending to API:', vehicleRequest);
 
     this.vehicleService.updateVehicle(id, vehicleRequest).subscribe({
       next: async (response) => {
-        console.log('Vehicle updated successfully:', response);
+
         this.showVehicleWizard.set(false);
         this.selectedVehicleId.set(undefined);
         
@@ -237,8 +232,7 @@ export class VehiclesPage implements AfterViewInit {
   }
 
   onVehicleCreated(vehicleData: any) {
-    console.log('Vehicle data from wizard:', vehicleData);
-    
+
     // Mapear el payload del wizard al formato de la API
     const vehicleRequest: CreateVehicleRequest = {
       plate: vehicleData.plates,
@@ -255,11 +249,9 @@ export class VehiclesPage implements AfterViewInit {
       driverId: vehicleData.driverId
     };
 
-    console.log('Sending to API:', vehicleRequest);
-
     this.vehicleService.createVehicle(vehicleRequest).subscribe({
       next: async (response) => {
-        console.log('Vehicle created successfully:', response);
+
         this.showVehicleWizard.set(false);
         
         // Mostrar toast de éxito
@@ -298,17 +290,17 @@ export class VehiclesPage implements AfterViewInit {
   }
 
   onFilterChange(filterValue: string | number) {
-    console.log('Filter:', filterValue);
+
   }
 
   onViewChange(view: 'list' | 'grid') {
-    console.log('View changed:', view);
+
   }
 
   private loadVehicles(): void {
     this.vehicleService.getVehicles().subscribe({
       next: (vehicles) => {
-        console.log('Vehicles loaded:', vehicles);
+
         this.vehicles.set(vehicles as any);
         this.filteredVehicles.set(vehicles as any);
       },

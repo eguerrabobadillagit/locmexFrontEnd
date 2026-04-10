@@ -53,23 +53,19 @@ export class VehicleWebSocketService {
         .build();
 
       this.connection.on('telemetry:position', (msg: any) => {
-        console.log('[Realtime]', msg);
         this.handleTelemetryMessage(msg);
       });
 
       this.connection.onreconnecting(() => {
-        console.log('SignalR reconnecting...');
         this.connectionStatus.set('connecting');
       });
 
       this.connection.onreconnected(() => {
-        console.log('SignalR reconnected');
         this.connectionStatus.set('connected');
         this.error.set(null);
       });
 
       this.connection.onclose((error) => {
-        console.log('SignalR disconnected', error);
         this.connectionStatus.set('disconnected');
         if (error) {
           this.error.set(error.message || 'Connection closed with error');
@@ -77,7 +73,6 @@ export class VehicleWebSocketService {
       });
 
       await this.connection.start();
-      console.log('SignalR connected');
       this.connectionStatus.set('connected');
       this.error.set(null);
     } catch (err: any) {
@@ -102,15 +97,15 @@ export class VehicleWebSocketService {
     // }
 
     const update: VehicleUpdate = {
-      id: msg.vehicleId || msg.id || msg.imei,
+      id: msg.vehicleId || msg.deviceId || msg.id || msg.imei,
       latitude: msg.latitude || msg.lat,
       longitude: msg.longitude || msg.lng || msg.lon,
-      speed: msg.speed || 0,
+      speed: msg.speedKph || msg.speed || 0,
       heading: msg.heading || msg.course || 0,
       fuel: msg.fuel,
       satellites: msg.satellites || msg.sat,
       altitude: msg.altitude || msg.alt,
-      timestamp: msg.timestamp || msg.dateTime || new Date().toISOString()
+      timestamp: msg.fixTimeUtc || msg.timestamp || msg.dateTime || new Date().toISOString()
     };
     
     this.handleVehicleUpdate(update);

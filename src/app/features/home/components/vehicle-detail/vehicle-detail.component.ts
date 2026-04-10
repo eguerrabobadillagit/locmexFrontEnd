@@ -11,19 +11,6 @@ import {
   IonCard,
   IonCardContent
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { 
-  closeOutline, 
-  createOutline, 
-  locationOutline, 
-  shareOutline, 
-  expandOutline,
-  speedometerOutline,
-  waterOutline,
-  compassOutline,
-  timeOutline,
-  eyeOutline
-} from 'ionicons/icons';
 import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
 
 @Component({
@@ -48,39 +35,24 @@ export class VehicleDetailComponent {
   vehicle = input<VehicleDetail | null>(null);
   close = output<void>();
 
-  constructor() {
-    addIcons({
-      'close-outline': closeOutline,
-      'create-outline': createOutline,
-      'location-outline': locationOutline,
-      'share-outline': shareOutline,
-      'expand-outline': expandOutline,
-      'speedometer-outline': speedometerOutline,
-      'water-outline': waterOutline,
-      'compass-outline': compassOutline,
-      'time-outline': timeOutline,
-      'eye-outline': eyeOutline
-    });
-  }
-
   onClose() {
     this.close.emit();
   }
 
   onEdit() {
-    console.log('Editar vehículo:', this.vehicle()?.id);
+    // TODO: Implementar edición de vehículo
   }
 
   onLocate() {
-    console.log('Ubicar vehículo:', this.vehicle()?.id);
+    // TODO: Implementar ubicación de vehículo
   }
 
   onShare() {
-    console.log('Compartir vehículo:', this.vehicle()?.id);
+    // TODO: Implementar compartir vehículo
   }
 
   onExpand() {
-    console.log('Ampliar vehículo:', this.vehicle()?.id);
+    // TODO: Implementar ampliar vehículo
   }
 
   getStatusClass(): string {

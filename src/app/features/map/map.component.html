@@ -32,6 +32,13 @@
     </ion-fab-button>
   </ion-fab>
 
+  <!-- Floating Auto-Tracking Toggle Button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="tracking-fab">
+    <ion-fab-button (click)="toggleAutoTracking()" [color]="autoTrackingEnabled() ? 'primary' : 'medium'">
+      <ion-icon [name]="autoTrackingEnabled() ? 'navigate' : 'navigate-outline'"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
   <!-- Vehicle Detail Panel -->
   @if (showVehicleDetail() && selectedVehicleDetail()) {
     <div class="vehicle-detail-panel">

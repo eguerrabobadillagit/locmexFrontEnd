@@ -158,8 +158,7 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
 
     // Listen to finish event (when drawing is completed)
     this.draw.on('finish', (id) => {
-      console.log('Drawing finished:', id);
-      
+
       // Get all features
       const snapshot = this.draw!.getSnapshot();
       
@@ -172,8 +171,7 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
         
         // Delete old features
         this.draw!.removeFeatures(featuresToDelete);
-        
-        console.log('Dibujos anteriores eliminados. Solo se permite una geocerca a la vez.');
+
       }
       
       this.onGeofenceDrawn(id);
@@ -187,13 +185,9 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
     const feature = snapshot.find(f => f.id === id);
     
     if (feature) {
-      console.log('New geofence drawn (complete):', feature);
-      console.log('Coordinates:', feature.geometry?.coordinates);
-      
       // Save the last drawn geofence
       this.lastDrawnGeofence.set(feature);
-      
-      console.log('Geocerca lista para guardar. Presiona el botón "Guardar".');
+
     }
   }
 
@@ -231,13 +225,11 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
       alertOnEnter: true,
       alertOnExit: true
     };
-    
-    console.log('Guardando geocerca:', geofenceData);
-    
+
     // Send to backend
     this.geofenceService.createGeofence(geofenceData).subscribe({
       next: (response) => {
-        console.log('Geocerca guardada exitosamente:', response);
+
         this.toastService.success('Geocerca guardada exitosamente', 'Éxito');
         
         // Clear the drawing
@@ -317,12 +309,10 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
         isActive: formData.isActive,
         vehicleId: formData.vehicleIds && formData.vehicleIds.length > 0 ? formData.vehicleIds[0] : undefined
       };
-      
-      console.log('Actualizando geocerca:', updateData);
-      
+
       this.geofenceService.updateGeofence(geofenceToEdit.id, updateData).subscribe({
         next: (response) => {
-          console.log('Geocerca actualizada exitosamente:', response);
+
           this.toastService.success('Geocerca actualizada exitosamente', 'Éxito');
           
           // Close map and return to grid
@@ -371,12 +361,10 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
         alertOnExit: formData.alertOnExit,
         vehicleId: formData.vehicleIds && formData.vehicleIds.length > 0 ? formData.vehicleIds[0] : undefined
       };
-      
-      console.log('Creando geocerca:', geofenceData);
-      
+
       this.geofenceService.createGeofence(geofenceData).subscribe({
         next: (response) => {
-          console.log('Geocerca creada exitosamente:', response);
+
           this.toastService.success('Geocerca creada exitosamente', 'Éxito');
           
           // Clear the drawing
@@ -454,8 +442,7 @@ export class GeofenceMapComponent implements OnInit, AfterViewInit {
       
       // Store as last drawn geofence
       this.lastDrawnGeofence.set(feature);
-      
-      console.log('Geocerca cargada para edición:', geofence.name);
+
     } catch (error) {
       console.error('Error al cargar geocerca para edición:', error);
       this.toastService.danger('Error al cargar la geocerca para edición', 'Error');

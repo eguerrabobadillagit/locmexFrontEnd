@@ -51,14 +51,11 @@ export class GeofenceOverlayComponent implements OnDestroy {
 
   private renderGeofences(map: google.maps.Map): void {
     const geofences = this.geofenceService.geofences();
-    
-    console.log(`Renderizando ${geofences.length} geocercas`);
 
     geofences.forEach(geofence => {
       try {
         const geoJson = JSON.parse(geofence.geoJson);
-        console.log('Geocerca:', geofence.name, 'Tipo:', geofence.geometryType, 'GeoJSON type:', geoJson.type);
-        
+
         if (geofence.geometryType === 'circle' && geoJson.type === 'Point') {
           // Render circle
           const circle = new google.maps.Circle({
@@ -72,7 +69,7 @@ export class GeofenceOverlayComponent implements OnDestroy {
             map: map
           });
           this.geofenceOverlays.push(circle);
-          console.log('Círculo renderizado:', geofence.name);
+
         } else if (geoJson.type === 'Polygon' || geoJson.type === 'MultiPolygon') {
           // Render polygon or multipolygon
           let coordinates;
@@ -100,7 +97,7 @@ export class GeofenceOverlayComponent implements OnDestroy {
             map: map
           });
           this.geofenceOverlays.push(polygon);
-          console.log('Polígono renderizado:', geofence.name);
+
         } else {
           console.warn('Tipo de geocerca no soportado:', geoJson.type);
         }
@@ -108,8 +105,7 @@ export class GeofenceOverlayComponent implements OnDestroy {
         console.error('Error al renderizar geocerca:', geofence.name, error);
       }
     });
-    
-    console.log(`Total de overlays renderizados: ${this.geofenceOverlays.length}`);
+
   }
 
   private clearGeofences(): void {

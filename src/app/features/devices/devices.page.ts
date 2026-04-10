@@ -147,7 +147,6 @@ export class DevicesPage implements OnInit, AfterViewInit {
   }
 
   async onDeviceCreated(deviceData: CreateDeviceResponse): Promise<void> {
-    console.log('Dispositivo creado:', deviceData);
     this.showDeviceWizard.set(false);
     
     await this.presentToast('Dispositivo creado exitosamente', 'success');
@@ -201,6 +200,6 @@ export class DevicesPage implements OnInit, AfterViewInit {
   }
 
   onViewChange(view: 'list' | 'grid'): void {
-    console.log('Vista cambiada a:', view);
+    // TODO: Implementar cambio de vista
   }
 }

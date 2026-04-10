@@ -1,15 +1,16 @@
-import { Component, OnInit, ViewChild, OnDestroy, computed, signal, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, computed, signal, inject, effect } from '@angular/core';
 import { GoogleMap, MapMarker } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { VehicleSelectionService } from '../services/vehicle-selection';
 import { VehicleDetailComponent } from '../home/components/vehicle-detail/vehicle-detail.component';
 import { VehicleWebSocketService } from './service/vehicle-websocket.service';
-import { VehicleWebSocketSimulatorService } from './service/vehicle-websocket-simulator.service';
 import { VehicleAnimationService } from './service/vehicle-animation.service';
 import { VehicleService, SidebarUnit } from '../vehicles/services/vehicle.service';
 import { GeofenceOverlayComponent } from './components/geofence-overlay/geofence-overlay.component';
 import { Subscription } from 'rxjs';
+import { calculateDistance } from './utils/map.utils';
+import { createVehicleMarkerIcon } from './utils/vehicle-marker-icon.util';
 
 import { VehicleDetail } from './interfaces/vehicle-detail.interface';
 
@@ -29,11 +30,16 @@ interface VehicleMarker {
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
-  private useSimulator = false;
+  private isAutoZooming = false;
+  private lastMapMoveTimestamp = 0;
+  private readonly MAP_UPDATE_INTERVAL_MS = 5000; // 5 segundos entre movimientos
+  private readonly MIN_DISTANCE_TO_MOVE_METERS = 50; // Mover solo si se movió más de 50 metros
   
   selectedVehicleId = signal<string | null>(null);
   showVehicleDetail = signal<boolean>(false);
   showGeofences = signal<boolean>(false);
+  autoTrackingEnabled = signal<boolean>(false);
+  trackedVehicleId = signal<string | null>(null);
   
   center: google.maps.LatLngLiteral = {
     lat: 23.2494,
@@ -47,46 +53,6 @@ export class MapComponent implements OnInit, OnDestroy {
     if (!id) return null;
     return this.wsService.getVehicleById(id) || null;
   });
-
-  private getColorByStatus(status: string): { stroke: string; fill: string; filterId: string } {
-    switch (status) {
-      case 'In_route':
-      case 'moving':
-        return { stroke: '#4CAF50', fill: '#4CAF50', filterId: 'shadowGreen' };
-      case 'stopped':
-      case 'idle':
-        return { stroke: '#FF9800', fill: '#FF9800', filterId: 'shadowOrange' };
-      case 'no-signal':
-      case 'offline':
-        return { stroke: '#F44336', fill: '#F44336', filterId: 'shadowRed' };
-      default:
-        return { stroke: '#9E9E9E', fill: '#9E9E9E', filterId: 'shadowGray' };
-    }
-  }
-
-  private createRotatedIcon(heading: number, status: string): google.maps.Icon {
-    const colors = this.getColorByStatus(status);
-    
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-        <defs>
-          <filter id="${colors.filterId}" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
-          </filter>
-        </defs>
-        <g transform="rotate(${heading} 32 32)" filter="url(#${colors.filterId})">
-          <circle cx="32" cy="32" r="28" fill="#ffffff" stroke="${colors.stroke}" stroke-width="4"/>
-          <path d="M20 18 L46 32 L20 46 L26 32 Z" fill="${colors.fill}"/>
-        </g>
-      </svg>
-    `;
-
-    return {
-      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-      scaledSize: new google.maps.Size(44, 44),
-      anchor: new google.maps.Point(22, 22)
-    };
-  }
 
   markers = computed(() => {
     const animatedPositions = this.animationService.animatedPositions();
@@ -104,7 +70,7 @@ export class MapComponent implements OnInit, OnDestroy {
         id: vehicle.id,
         position,
         title: vehicle.plate,
-        icon: this.createRotatedIcon(heading, vehicle.status)
+        icon: createVehicleMarkerIcon(heading, vehicle.status)
       };
     });
   });
@@ -123,24 +89,32 @@ export class MapComponent implements OnInit, OnDestroy {
   constructor(
     private vehicleSelectionService: VehicleSelectionService,
     private wsService: VehicleWebSocketService,
-    private simulator: VehicleWebSocketSimulatorService,
     private animationService: VehicleAnimationService
-  ) { }
+  ) {
+    // Effect para auto-tracking del vehículo
+    effect(() => {
+      const vehicles = this.wsService.vehiclesList();
+      const isTrackingEnabled = this.autoTrackingEnabled();
+      const trackedId = this.trackedVehicleId();
+      
+      if (isTrackingEnabled && trackedId && vehicles.length > 0) {
+        this.centerOnTrackedVehicle();
+      }
+    });
+  }
 
   ngOnInit() {
     this.subscription.add(
       this.vehicleSelectionService.vehicleSelected$.subscribe(vehicleId => {
         this.focusOnVehicle(vehicleId);
+        // Abrir panel de detalles
+        this.selectedVehicleId.set(vehicleId);
+        this.showVehicleDetail.set(true);
       })
     );
 
     this.loadVehiclesFromSidebar();
-    
-    if (this.useSimulator) {
-      this.startSimulation();
-    } else {
-      this.connectToSignalR();
-    }
+    this.connectToSignalR();
   }
 
   ngOnDestroy() {
@@ -157,19 +131,16 @@ export class MapComponent implements OnInit, OnDestroy {
           .map(unit => this.mapSidebarUnitToVehicleDetail(unit));
         
         this.wsService.initializeVehicles(vehicles);
-        console.log(`Cargados ${vehicles.length} vehículos desde sidebar-units`);
       },
       error: (error) => {
         console.error('Error al cargar vehículos desde sidebar-units:', error);
-        // Fallback a datos iniciales si falla
-        this.initializeVehicles();
       }
     });
   }
 
   private mapSidebarUnitToVehicleDetail(unit: SidebarUnit): VehicleDetail {
     return {
-      id: unit.deviceId,
+      id: unit.vehicleId || unit.deviceId,
       plate: unit.plate,
       status: unit.statusCode,
       model: unit.unitLabel,
@@ -188,71 +159,9 @@ export class MapComponent implements OnInit, OnDestroy {
     };
   }
 
-  private initializeVehicles(): void {
-    const initialVehicles: VehicleDetail[] = [
-      {
-        id: '1',
-        plate: 'ABC-123-CD',
-        status: 'In_route',
-        model: 'Mercedes Sprinter 2022',
-        driver: 'Juan Pérez',
-        imei: '867584036912345',
-        speed: 45,
-        fuel: 85,
-        heading: 90,
-        motorHours: 987.0,
-        latitude: 23.2494,
-        longitude: -106.4111,
-        satellites: 10,
-        altitude: 8,
-        odometer: 32145,
-        lastReport: new Date().toISOString()
-      },
-      {
-        id: '2',
-        plate: 'DEF-456-GH',
-        status: 'In_route',
-        model: 'Ford Transit 2021',
-        driver: 'María García',
-        imei: '867584036912346',
-        speed: 65,
-        fuel: 62,
-        heading: 180,
-        motorHours: 1234.5,
-        latitude: 23.2594,
-        longitude: -106.4211,
-        satellites: 12,
-        altitude: 10,
-        odometer: 45678,
-        lastReport: new Date().toISOString()
-      },
-      {
-        id: '3',
-        plate: 'IJK-789-LM',
-        status: 'In_route',
-        model: 'Chevrolet Express 2023',
-        driver: 'Carlos López',
-        imei: '867584036912347',
-        speed: 30,
-        fuel: 45,
-        heading: 270,
-        motorHours: 567.8,
-        latitude: 23.2394,
-        longitude: -106.4011,
-        satellites: 8,
-        altitude: 5,
-        odometer: 15234,
-        lastReport: new Date().toISOString()
-      }
-    ];
-
-    this.wsService.initializeVehicles(initialVehicles);
-  }
-
   private async connectToSignalR(): Promise<void> {
     try {
       await this.wsService.connect();
-      console.log('Conectado a SignalR Hub de Telemetría');
       
       this.setupTelemetryListener();
     } catch (error) {
@@ -304,49 +213,6 @@ export class MapComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
-  private startSimulation(): void {
-    this.simulator.startSimulation((update) => {
-      const existingVehicle = this.wsService.getVehicleById(update.id);
-      if (existingVehicle) {
-        const currentPosition = {
-          latitude: existingVehicle.latitude,
-          longitude: existingVehicle.longitude,
-          heading: existingVehicle.heading
-        };
-
-        const targetPosition = {
-          latitude: update.latitude,
-          longitude: update.longitude,
-          heading: update.heading
-        };
-
-        this.animationService.startAnimation(
-          update.id,
-          currentPosition,
-          targetPosition,
-          2000
-        );
-
-        this.wsService.vehicles.update(vehiclesMap => {
-          const newMap = new Map(vehiclesMap);
-          const updatedVehicle: VehicleDetail = {
-            ...existingVehicle,
-            latitude: update.latitude,
-            longitude: update.longitude,
-            speed: update.speed,
-            heading: update.heading,
-            fuel: update.fuel ?? existingVehicle.fuel,
-            satellites: update.satellites ?? existingVehicle.satellites,
-            altitude: update.altitude ?? existingVehicle.altitude,
-            lastReport: update.timestamp
-          };
-          newMap.set(update.id, updatedVehicle);
-          return newMap;
-        });
-      }
-    }, 2000);
-  }
-
   focusOnVehicle(vehicleId: string) {
     const marker = this.markers().find((m: VehicleMarker) => m.id === vehicleId);
     if (marker && this.googleMap && this.googleMap.googleMap) {
@@ -372,6 +238,92 @@ export class MapComponent implements OnInit, OnDestroy {
   toggleGeofences() {
     const newState = !this.showGeofences();
     this.showGeofences.set(newState);
+  }
+
+  toggleAutoTracking() {
+    const newState = !this.autoTrackingEnabled();
+    this.autoTrackingEnabled.set(newState);
+    
+    if (newState) {
+      // Al activar, rastrear el primer vehículo disponible
+      const vehicles = this.wsService.vehiclesList();
+      if (vehicles.length > 0) {
+        this.trackedVehicleId.set(vehicles[0].id);
+        this.centerOnTrackedVehicle();
+        this.setupMapInteractionListeners();
+      }
+    } else {
+      this.trackedVehicleId.set(null);
+    }
+  }
+
+  private centerOnTrackedVehicle() {
+    const trackedId = this.trackedVehicleId();
+    if (!trackedId || !this.googleMap?.googleMap) return;
+    
+    const vehicle = this.wsService.getVehicleById(trackedId);
+    if (!vehicle) return;
+    
+    const now = Date.now();
+    const timeSinceLastMove = now - this.lastMapMoveTimestamp;
+    
+    // Throttle: solo mover si han pasado X segundos desde el último movimiento
+    if (timeSinceLastMove < this.MAP_UPDATE_INTERVAL_MS) {
+      return;
+    }
+    
+    const map = this.googleMap.googleMap;
+    const currentCenter = map.getCenter();
+    
+    if (currentCenter) {
+      // Calcular distancia entre posición actual del mapa y nueva posición del vehículo
+      const distance = calculateDistance(
+        currentCenter.lat(),
+        currentCenter.lng(),
+        vehicle.latitude,
+        vehicle.longitude
+      );
+      
+      // Solo mover si el vehículo se ha movido una distancia significativa
+      if (distance < this.MIN_DISTANCE_TO_MOVE_METERS) {
+        return;
+      }
+    }
+    
+    const newCenter = { lat: vehicle.latitude, lng: vehicle.longitude };
+    
+    // Usar panTo para movimiento suave
+    map.panTo(newCenter);
+    
+    // Actualizar timestamp del último movimiento
+    this.lastMapMoveTimestamp = now;
+  }
+
+  private setupMapInteractionListeners() {
+    if (!this.googleMap?.googleMap) return;
+    
+    const map = this.googleMap.googleMap;
+    
+    // Desactivar auto-tracking cuando el usuario interactúa con el mapa
+    const dragListener = map.addListener('dragstart', () => {
+      if (this.autoTrackingEnabled()) {
+        this.autoTrackingEnabled.set(false);
+      }
+    });
+    
+    const zoomListener = map.addListener('zoom_changed', () => {
+      // Solo desactivar si el usuario cambió el zoom manualmente
+      // (no si fue por auto-tracking)
+      if (this.autoTrackingEnabled() && !this.isAutoZooming) {
+        this.autoTrackingEnabled.set(false);
+      }
+    });
+    
+    // Limpiar listeners al destruir
+    this.subscription.add(() => {
+      google.maps.event.removeListener(dragListener);
+      google.maps.event.removeListener(zoomListener);
+    });
   }
 
 }

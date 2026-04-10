@@ -44,6 +44,14 @@ import {
   squareOutline,
   eyeOutline,
   eyeOffOutline,
+  navigate,
+  navigateOutline,
+  locationOutline,
+  shareOutline,
+  expandOutline,
+  waterOutline,
+  compassOutline,
+  timeOutline
 } from 'ionicons/icons';
 
 import { bootstrapApplication } from '@angular/platform-browser';
@@ -97,7 +105,15 @@ addIcons({
   'checkmark-outline': checkmarkOutline,
   'square-outline': squareOutline,
   'eye-outline': eyeOutline,
-  'eye-off-outline': eyeOffOutline
+  'eye-off-outline': eyeOffOutline,
+  'navigate': navigate,
+  'navigate-outline': navigateOutline,
+  'location-outline': locationOutline,
+  'share-outline': shareOutline,
+  'expand-outline': expandOutline,
+  'water-outline': waterOutline,
+  'compass-outline': compassOutline,
+  'time-outline': timeOutline
 });
 
 bootstrapApplication(AppComponent, {
