@@ -8,8 +8,12 @@ import { VehicleWebSocketService } from './service/vehicle-websocket.service';
 import { VehicleAnimationService } from './service/vehicle-animation.service';
 import { VehicleService, SidebarUnit } from '../vehicles/services/vehicle.service';
 import { GeofenceOverlayComponent } from './components/geofence-overlay/geofence-overlay.component';
+import { RoutePlaybackService } from './service/route-playback.service';
+import { MapRouteOverlayService } from './service/map-route-overlay.service';
+import { MapUtilsService } from './service/map-utils.service';
 import { Subscription } from 'rxjs';
 import { calculateDistance } from './utils/map.utils';
+
 import { createVehicleMarkerIcon } from './utils/vehicle-marker-icon.util';
 
 import { VehicleDetail } from './interfaces/vehicle-detail.interface';
@@ -34,13 +38,13 @@ export class MapComponent implements OnInit, OnDestroy {
   private lastMapMoveTimestamp = 0;
   private readonly MAP_UPDATE_INTERVAL_MS = 5000; // 5 segundos entre movimientos
   private readonly MIN_DISTANCE_TO_MOVE_METERS = 50; // Mover solo si se movió más de 50 metros
-  
+
   selectedVehicleId = signal<string | null>(null);
   showVehicleDetail = signal<boolean>(false);
   showGeofences = signal<boolean>(false);
   autoTrackingEnabled = signal<boolean>(false);
   trackedVehicleId = signal<string | null>(null);
-  
+
   center: google.maps.LatLngLiteral = {
     lat: 23.2494,
     lng: -106.4111
@@ -56,16 +60,16 @@ export class MapComponent implements OnInit, OnDestroy {
 
   markers = computed(() => {
     const animatedPositions = this.animationService.animatedPositions();
-    
+
     return this.wsService.vehiclesList().map(vehicle => {
       const animatedPos = animatedPositions.get(vehicle.id);
-      
-      const position = animatedPos 
+
+      const position = animatedPos
         ? { lat: animatedPos.latitude, lng: animatedPos.longitude }
         : { lat: vehicle.latitude, lng: vehicle.longitude };
-      
+
       const heading = animatedPos ? animatedPos.heading : vehicle.heading;
-      
+
       return {
         id: vehicle.id,
         position,
@@ -85,20 +89,43 @@ export class MapComponent implements OnInit, OnDestroy {
   @ViewChild(GoogleMap) googleMap!: GoogleMap;
 
   private readonly vehicleService = inject(VehicleService);
+  private readonly routePlayback = inject(RoutePlaybackService);
+  private readonly routeOverlay = inject(MapRouteOverlayService);
+  private readonly mapUtils = inject(MapUtilsService);
+  private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private readonly wsService = inject(VehicleWebSocketService);
+  private readonly animationService = inject(VehicleAnimationService);
 
-  constructor(
-    private vehicleSelectionService: VehicleSelectionService,
-    private wsService: VehicleWebSocketService,
-    private animationService: VehicleAnimationService
-  ) {
+  constructor() {
     // Effect para auto-tracking del vehículo
     effect(() => {
       const vehicles = this.wsService.vehiclesList();
       const isTrackingEnabled = this.autoTrackingEnabled();
       const trackedId = this.trackedVehicleId();
-      
+
       if (isTrackingEnabled && trackedId && vehicles.length > 0) {
         this.centerOnTrackedVehicle();
+      }
+    });
+
+    // Effect para Route Playback - sincronizar puntos de ruta
+    effect(() => {
+      const points = this.routePlayback.routePoints();
+      const map = this.googleMap?.googleMap;
+      if (points.length === 0) {
+        this.routeOverlay.clearRouteOverlays();
+      } else if (map) {
+        this.routeOverlay.renderRoutePolyline(map, points);
+      }
+    });
+
+    // Effect para Route Playback - sincronizar punto actual
+    effect(() => {
+      const point = this.routePlayback.currentPoint();
+      const map = this.googleMap?.googleMap;
+      if (point && map) {
+        this.routeOverlay.updateVehicleMarker(map, point.latitude, point.longitude, point.heading ?? 0, point.status);
+        map.panTo({ lat: point.latitude, lng: point.longitude });
       }
     });
   }
@@ -121,15 +148,16 @@ export class MapComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
     this.wsService.disconnect();
     this.animationService.stopAllAnimations();
+    this.routeOverlay.clearRouteOverlays();
   }
 
   private loadVehiclesFromSidebar(): void {
     this.vehicleService.getSidebarUnits().subscribe({
-      next: (sidebarUnits: SidebarUnit[]) => {
-        const vehicles: VehicleDetail[] = sidebarUnits
+      next: (sidebarUnits) => {
+        const vehicles = sidebarUnits
           .filter(unit => unit.latitude !== null && unit.longitude !== null)
-          .map(unit => this.mapSidebarUnitToVehicleDetail(unit));
-        
+          .map(unit => this.mapUtils.mapSidebarUnitToVehicleDetail(unit));
+
         this.wsService.initializeVehicles(vehicles);
       },
       error: (error) => {
@@ -162,55 +190,10 @@ export class MapComponent implements OnInit, OnDestroy {
   private async connectToSignalR(): Promise<void> {
     try {
       await this.wsService.connect();
-      
-      this.setupTelemetryListener();
+      this.mapUtils.startTelemetryListener();
     } catch (error) {
       console.error('Error conectando a SignalR:', error);
     }
-  }
-
-  private setupTelemetryListener(): void {
-    const vehiclesSignal = this.wsService.vehicles;
-    
-    let previousVehicles = new Map<string, VehicleDetail>();
-    
-    setInterval(() => {
-      const currentVehicles = vehiclesSignal();
-      
-      currentVehicles.forEach((vehicle, id) => {
-        const previousVehicle = previousVehicles.get(id);
-        
-        if (previousVehicle) {
-          const hasPositionChanged = 
-            previousVehicle.latitude !== vehicle.latitude ||
-            previousVehicle.longitude !== vehicle.longitude ||
-            previousVehicle.heading !== vehicle.heading;
-          
-          if (hasPositionChanged) {
-            const currentPosition = {
-              latitude: previousVehicle.latitude,
-              longitude: previousVehicle.longitude,
-              heading: previousVehicle.heading
-            };
-
-            const targetPosition = {
-              latitude: vehicle.latitude,
-              longitude: vehicle.longitude,
-              heading: vehicle.heading
-            };
-
-            this.animationService.startAnimation(
-              id,
-              currentPosition,
-              targetPosition,
-              1500
-            );
-          }
-        }
-      });
-      
-      previousVehicles = new Map(currentVehicles);
-    }, 100);
   }
 
   focusOnVehicle(vehicleId: string) {
@@ -243,7 +226,7 @@ export class MapComponent implements OnInit, OnDestroy {
   toggleAutoTracking() {
     const newState = !this.autoTrackingEnabled();
     this.autoTrackingEnabled.set(newState);
-    
+
     if (newState) {
       // Al activar, rastrear el primer vehículo disponible
       const vehicles = this.wsService.vehiclesList();
@@ -260,21 +243,21 @@ export class MapComponent implements OnInit, OnDestroy {
   private centerOnTrackedVehicle() {
     const trackedId = this.trackedVehicleId();
     if (!trackedId || !this.googleMap?.googleMap) return;
-    
+
     const vehicle = this.wsService.getVehicleById(trackedId);
     if (!vehicle) return;
-    
+
     const now = Date.now();
     const timeSinceLastMove = now - this.lastMapMoveTimestamp;
-    
+
     // Throttle: solo mover si han pasado X segundos desde el último movimiento
     if (timeSinceLastMove < this.MAP_UPDATE_INTERVAL_MS) {
       return;
     }
-    
+
     const map = this.googleMap.googleMap;
     const currentCenter = map.getCenter();
-    
+
     if (currentCenter) {
       // Calcular distancia entre posición actual del mapa y nueva posición del vehículo
       const distance = calculateDistance(
@@ -283,34 +266,34 @@ export class MapComponent implements OnInit, OnDestroy {
         vehicle.latitude,
         vehicle.longitude
       );
-      
+
       // Solo mover si el vehículo se ha movido una distancia significativa
       if (distance < this.MIN_DISTANCE_TO_MOVE_METERS) {
         return;
       }
     }
-    
+
     const newCenter = { lat: vehicle.latitude, lng: vehicle.longitude };
-    
+
     // Usar panTo para movimiento suave
     map.panTo(newCenter);
-    
+
     // Actualizar timestamp del último movimiento
     this.lastMapMoveTimestamp = now;
   }
 
   private setupMapInteractionListeners() {
     if (!this.googleMap?.googleMap) return;
-    
+
     const map = this.googleMap.googleMap;
-    
+
     // Desactivar auto-tracking cuando el usuario interactúa con el mapa
     const dragListener = map.addListener('dragstart', () => {
       if (this.autoTrackingEnabled()) {
         this.autoTrackingEnabled.set(false);
       }
     });
-    
+
     const zoomListener = map.addListener('zoom_changed', () => {
       // Solo desactivar si el usuario cambió el zoom manualmente
       // (no si fue por auto-tracking)
@@ -318,7 +301,7 @@ export class MapComponent implements OnInit, OnDestroy {
         this.autoTrackingEnabled.set(false);
       }
     });
-    
+
     // Limpiar listeners al destruir
     this.subscription.add(() => {
       google.maps.event.removeListener(dragListener);

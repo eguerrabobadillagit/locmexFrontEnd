@@ -1,0 +1,142 @@
+<div class="vehicle-history-form-container">
+  <!-- Header -->
+  <div class="history-header">
+    <button class="back-btn" (click)="goBack()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <div class="header-title">
+      <ion-icon name="analytics-outline" class="title-icon"></ion-icon>
+      <span>Opciones de Recorrido</span>
+    </div>
+    <button class="close-btn" (click)="onClose()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <div class="header-separator"></div>
+
+  <!-- Form Section -->
+  <div class="form-section">
+    <!-- Selected Unit -->
+    <div class="selected-unit">
+      <div class="unit-card">
+        <label class="unit-label">Unidad Seleccionada</label>
+        <div class="unit-value">{{ vehiclePlate }}</div>
+      </div>
+    </div>
+
+    <!-- From Date/Time -->
+    <div class="datetime-section">
+      <div class="section-header">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <label class="section-label-bold">Fecha y Hora Inicial</label>
+      </div>
+      <div class="date-input-wrapper" id="from-date-trigger">
+        <div class="date-display">{{ formatDateDisplay(fromDate()) }}</div>
+        <ion-icon name="chevron-forward-outline" class="date-chevron"></ion-icon>
+      </div>
+      <ion-popover trigger="from-date-trigger" [keepContentsMounted]="true" [showBackdrop]="false" class="date-popover">
+        <ng-template>
+          <ion-datetime
+            presentation="date"
+            locale="es-MX"
+            [value]="fromDatetime()"
+            [max]="todayStr"
+            (ionChange)="onFromDatetimeChange($event.detail.value)"
+            [firstDayOfWeek]="1"
+          ></ion-datetime>
+        </ng-template>
+      </ion-popover>
+      <div class="time-row">
+        <ion-icon name="time-outline" class="time-icon"></ion-icon>
+        <div class="time-inputs">
+          <ion-select [(ngModel)]="fromHour" interface="popover" class="time-select" [interfaceOptions]="{ cssClass: 'compact-popover' }" (ngModelChange)="onFromHourChange($event)">
+            @for (h of fromAvailableHours; track h) {
+              <ion-select-option [value]="h" toggle-icon="chevron-down-outline">{{ h }}</ion-select-option>
+            }
+          </ion-select>
+          <span class="time-separator">:</span>
+          <ion-select [(ngModel)]="fromMinute" interface="popover" class="time-select" [interfaceOptions]="{ cssClass: 'compact-popover' }">
+            @for (m of fromAvailableMinutes; track m) {
+              <ion-select-option [value]="m" toggle-icon="chevron-down-outline">{{ m }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- To Date/Time -->
+    <div class="datetime-section">
+      <div class="section-header">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <label class="section-label-bold">Fecha y Hora Final</label>
+      </div>
+      <div class="date-input-wrapper" id="to-date-trigger">
+        <div class="date-display">{{ formatDateDisplay(toDate()) }}</div>
+        <ion-icon name="chevron-forward-outline" class="date-chevron"></ion-icon>
+      </div>
+      <ion-popover trigger="to-date-trigger" [keepContentsMounted]="true" [showBackdrop]="false" class="date-popover">
+        <ng-template>
+          <ion-datetime
+            presentation="date"
+            locale="es-MX"
+            [value]="toDatetime()"
+            [max]="todayStr"
+            (ionChange)="onToDatetimeChange($event.detail.value)"
+            [firstDayOfWeek]="1"
+          ></ion-datetime>
+        </ng-template>
+      </ion-popover>
+      <div class="time-row">
+        <ion-icon name="time-outline" class="time-icon"></ion-icon>
+        <div class="time-inputs">
+          <ion-select [(ngModel)]="toHour" interface="popover" class="time-select" [interfaceOptions]="{ cssClass: 'compact-popover' }" (ngModelChange)="onToHourChange($event)">
+            @for (h of toAvailableHours; track h) {
+              <ion-select-option [value]="h">{{ h }}</ion-select-option>
+            }
+          </ion-select>
+          <span class="time-separator">:</span>
+          <ion-select [(ngModel)]="toMinute" interface="popover" class="time-select" [interfaceOptions]="{ cssClass: 'compact-popover' }">
+            @for (m of toAvailableMinutes; track m) {
+              <ion-select-option [value]="m">{{ m }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Message -->
+    <div class="info-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>Selecciona el rango de fecha y hora para ver el recorrido histórico de la unidad en el mapa.</p>
+    </div>
+
+    <!-- Error Message -->
+    @if (error()) {
+      <div class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error() }}</p>
+      </div>
+    }
+
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="form-actions">
+    <button class="btn-cancel" (click)="onClose()">
+      Cancelar
+    </button>
+    <button
+      class="btn-primary"
+      (click)="onSearch()"
+      [disabled]="isLoading() || !isFormValid"
+    >
+      @if (isLoading()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon name="play-outline"></ion-icon>
+        Ver Recorrido
+      }
+    </button>
+  </div>
+</div>

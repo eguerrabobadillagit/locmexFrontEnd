@@ -1,0 +1,335 @@
+// Vehicle History Form Component Styles
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.vehicle-history-form-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff;
+}
+
+.header-separator {
+  height: 1px;
+  background: var(--ion-color-light, #e0e0e0);
+  flex-shrink: 0;
+}
+
+// Header
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #ffffff;
+
+  .back-btn,
+  .close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: var(--ion-color-light, #f0f0f0);
+    }
+
+    ion-icon {
+      font-size: 20px;
+      color: var(--ion-color-dark, #333);
+    }
+  }
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ion-color-dark, #333);
+
+    .title-icon {
+      font-size: 20px;
+      color: var(--ion-color-dark, #1a1a2e);
+    }
+  }
+}
+
+// Form Section
+.form-section {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #ffffff;
+
+  .selected-unit {
+    margin-bottom: 20px;
+
+    .unit-card {
+      padding: 16px 20px;
+      background: #fafafa;
+      border-radius: 12px;
+      border: 1px solid #f0f0f0;
+
+      .unit-label {
+        display: block;
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 6px;
+      }
+
+      .unit-value {
+        font-weight: 700;
+        font-size: 20px;
+        color: #1a1a2e;
+      }
+    }
+  }
+
+  .datetime-section {
+    margin-bottom: 20px;
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+
+      ion-icon {
+        color: #1a1a2e;
+        font-size: 20px;
+      }
+
+      .section-label-bold {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a1a2e;
+      }
+    }
+
+    .date-input-wrapper {
+      position: relative;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      background: #f2f2f7;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:active {
+        background: #e5e5ea;
+      }
+
+      .date-display {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 400;
+        color: #000000;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      }
+
+      .date-chevron {
+        font-size: 16px;
+        color: #1a1a2e;
+        flex-shrink: 0;
+        margin-inline-start: auto;
+      }
+    }
+
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .time-icon {
+        font-size: 20px;
+        color: #666;
+        flex-shrink: 0;
+      }
+
+      .time-inputs {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .time-select {
+          flex: 1;
+          --background: #f2f2f7;
+          --border-color: transparent;
+          --border-radius: 8px;
+          --border-width: 0;
+          --padding-start: 10px;
+          --padding-end: 28px;
+          --padding-top: 6px;
+          --padding-bottom: 6px;
+          font-size: 15px;
+          font-weight: 400;
+          color: #000000;
+          min-height: 36px;
+          max-height: 36px;
+          border-radius: 8px;
+          cursor: pointer;
+
+          &::part(icon) {
+            color: #1a1a2e;
+            opacity: 1;
+          }
+
+          &::part(label) {
+            color: #000000;
+          }
+        }
+
+        .time-separator {
+          font-weight: 600;
+          font-size: 17px;
+          color: #000000;
+        }
+      }
+    }
+  }
+
+  ::ng-deep .compact-popover {
+    --width: 120px;
+
+    .popover-content {
+      max-height: 240px !important;
+      overflow-y: auto;
+    }
+
+    ion-select-popover ion-item {
+      --min-height: 36px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      font-size: 15px;
+    }
+  }
+
+  .info-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #e8f0fe;
+    border-radius: 12px;
+    margin-bottom: 20px;
+
+    ion-icon {
+      font-size: 20px;
+      color: #1a73e8;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: #1a73e8;
+      line-height: 1.4;
+    }
+  }
+
+  .error-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(var(--ion-color-danger-rgb, 235, 68, 90), 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    ion-icon {
+      font-size: 20px;
+      color: var(--ion-color-danger, #eb445a);
+      flex-shrink: 0;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--ion-color-danger, #eb445a);
+      line-height: 1.4;
+    }
+  }
+}
+
+// Form Actions
+.form-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #ffffff;
+  border-top: 1px solid var(--ion-color-light, #e0e0e0);
+  flex-shrink: 0;
+
+  .btn-cancel,
+  .btn-primary {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+  }
+
+  .btn-cancel {
+    background: var(--ion-color-light, #f5f5f5);
+    color: var(--ion-color-dark, #333);
+
+    &:hover {
+      background: var(--ion-color-medium, #e0e0e0);
+    }
+  }
+
+  .btn-primary {
+    background: var(--ion-color-dark, #1a1a2e);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: var(--ion-color-dark-shade, #151525);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    ion-icon {
+      font-size: 16px;
+    }
+
+    ion-spinner {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .form-actions {
+    flex-direction: column;
+
+    .btn-cancel,
+    .btn-primary {
+      width: 100%;
+    }
+  }
+}

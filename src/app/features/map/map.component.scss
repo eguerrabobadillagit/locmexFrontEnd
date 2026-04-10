@@ -52,7 +52,7 @@
 
     ion-fab-button {
       --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      
+
       ion-icon {
         font-size: 24px;
       }
@@ -67,7 +67,7 @@
   .gm-style-mtc {
     display: none !important;
   }
-  
+
   // Ocultar el overlay de "For development purposes only"
   .gm-style > div:first-child > div:last-child > div:first-child {
     display: none !important;

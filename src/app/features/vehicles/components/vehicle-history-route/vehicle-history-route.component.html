@@ -1,0 +1,159 @@
+<div class="vehicle-history-route-container">
+  <!-- Header -->
+  <div class="history-header">
+    <button class="back-btn" (click)="onBackToForm()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="header-title">
+      <ion-icon name="analytics-outline" class="title-icon"></ion-icon>
+        <div>
+          <h4 class="vehicle-plate">{{ vehiclePlate }}</h4>
+          <span class="subtitle">Recorrido histórico</span>
+        </div>
+    </div>
+    <button class="close-btn" (click)="onClose()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section">
+    <!-- Summary Card -->
+    <ion-card class="summary-card">
+      <ion-card-content>
+        <div class="date-range">
+          <div class="date-box">
+            <label>Desde</label>
+            <span>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ getFormattedFromDate() }} {{ fromHour }}:{{ fromMinute }}
+            </span>
+          </div>
+          <div class="date-box">
+            <label>Hasta</label>
+            <span>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ getFormattedToDate() }} {{ toHour }}:{{ toMinute }}
+            </span>
+          </div>
+        </div>
+
+        <button class="btn-search-again" (click)="onBackToForm()">
+          <ion-icon name="search-outline"></ion-icon>
+          Buscar recorrido
+        </button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando recorrido...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="error-state">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error() }}</p>
+      </div>
+    }
+
+    <!-- Playback Controls -->
+    @if (formattedPoints().length > 0 && !isLoading()) {
+      <div class="playback-content">
+      <div class="playback-controls">
+        <div class="control-buttons">
+          <button (click)="goToFirst()" [disabled]="currentPointIndex() === 0">
+            <ion-icon name="play-skip-back-outline"></ion-icon>
+          </button>
+          <button (click)="goToPrevious()" [disabled]="currentPointIndex() === 0">
+            <ion-icon name="play-back-outline"></ion-icon>
+          </button>
+          <button class="play-btn" (click)="togglePlayback()">
+            @if (isPlaying()) {
+              <ion-icon name="pause-outline"></ion-icon>
+            } @else {
+              <ion-icon name="play-outline"></ion-icon>
+            }
+          </button>
+          <button (click)="goToNext()" [disabled]="currentPointIndex() === formattedPoints().length - 1">
+            <ion-icon name="play-forward-outline"></ion-icon>
+          </button>
+          <button (click)="goToLast()" [disabled]="currentPointIndex() === formattedPoints().length - 1">
+            <ion-icon name="play-skip-forward-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="speed-controls">
+          <span class="speed-label">
+            <ion-icon name="speedometer-outline"></ion-icon>
+            Velocidad:
+          </span>
+          @for (speed of speedOptions; track speed) {
+            <button
+              class="speed-btn"
+              [class.active]="playbackSpeed() === speed"
+              (click)="setPlaybackSpeed(speed)"
+            >
+              {{ speed }}x
+            </button>
+          }
+        </div>
+
+        <!-- Progress Slider -->
+        <div class="progress-section">
+          <span class="progress-time">{{ formattedPoints()[0]?.time }}</span>
+          <span class="progress-text">{{ currentPointIndex() + 1 }} / {{ formattedPoints().length }}</span>
+          <span class="progress-time">{{ formattedPoints()[formattedPoints().length - 1]?.time }}</span>
+        </div>
+        <ion-range
+          [min]="0"
+          [max]="formattedPoints().length - 1"
+          [value]="currentPointIndex()"
+          (ionChange)="onSliderChange($event)"
+          class="progress-slider"
+        ></ion-range>
+      </div>
+
+      <!-- History Points List -->
+      <div class="points-list">
+        @for (point of formattedPoints(); track point.index) {
+          <div
+            class="point-item"
+            [class.active]="currentPointIndex() === point.index"
+            (click)="onPointClick(point)"
+          >
+            <app-history-point-item
+              [point]="point"
+              [isActive]="currentPointIndex() === point.index"
+            ></app-history-point-item>
+          </div>
+        }
+      </div>
+
+      <!-- Footer Summary -->
+      <div class="footer-summary">
+        <div class="summary-item">
+          <span class="label">Distancia total:</span>
+          <span class="value">{{ totalDistance() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Duración:</span>
+          <span class="value">{{ totalDuration() }}</span>
+        </div>
+      </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (formattedPoints().length === 0 && !isLoading() && !error()) {
+      <div class="empty-state">
+        <ion-icon name="trail-sign-outline"></ion-icon>
+        <p>No se encontraron registros en el rango seleccionado</p>
+      </div>
+    }
+  </div>
+</div>

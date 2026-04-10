@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { CreateVehicleRequest, VehicleResponse } from '../interfaces/vehicle-request.interface';
+import { SidebarUnit } from '../interfaces/sidebar-unit.interface';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -87,18 +88,4 @@ export class VehicleService {
   }
 }
 
-export interface SidebarUnit {
-  deviceId: string;
-  vehicleId?: string;
-  unitLabel: string;
-  plate: string;
-  driverName: string;
-  statusCode: string;
-  statusSinceUtc: string;
-  lastMessageAtUtc: string;
-  ignitionOn: boolean;
-  speedKph: number | null;
-  batteryLevel: number | null;
-  latitude: number | null;
-  longitude: number | null;
-}
+export { SidebarUnit } from '../interfaces/sidebar-unit.interface';
