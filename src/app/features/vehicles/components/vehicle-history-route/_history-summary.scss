@@ -1,0 +1,129 @@
+// Footer Summary and Cards
+
+.summary-card {
+  margin: 0px;
+  border-radius: 12px;
+  box-shadow: none;
+  flex-shrink: 0;
+
+  ion-card-content {
+    padding: 16px;
+  }
+
+  .summary-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .unit-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      ion-icon {
+        font-size: 32px;
+        color: var(--ion-color-medium, #666);
+      }
+
+      h4 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--ion-color-dark, #333);
+      }
+
+      .subtitle {
+        font-size: 13px;
+        color: var(--ion-color-medium, #666);
+      }
+    }
+  }
+
+  .date-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .date-box {
+      padding: 12px;
+      background: var(--ion-color-light, #f5f5f5);
+      border-radius: 8px;
+
+      label {
+        display: block;
+        font-size: 11px;
+        color: var(--ion-color-medium, #666);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        color: var(--ion-color-dark, #000);
+
+        ion-icon {
+          font-size: 14px;
+          color: var(--ion-color-dark, #000);
+        }
+      }
+    }
+  }
+
+  .btn-search-again {
+    width: 100%;
+    padding: 12px;
+    background: var(--ion-color-dark, #1a1a2e);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: var(--ion-color-dark-shade, #151525);
+    }
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+.footer-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--ion-background-color, #ffffff);
+  border-top: 1px solid var(--ion-color-light, #e0e0e0);
+  flex-shrink: 0;
+
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .label {
+      font-size: 13px;
+      color: var(--ion-color-medium, #666);
+    }
+
+    .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-color-dark, #333);
+    }
+  }
+}

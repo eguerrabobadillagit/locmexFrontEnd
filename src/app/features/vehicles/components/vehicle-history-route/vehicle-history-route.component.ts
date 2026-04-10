@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import {
   IonIcon,
   IonCard,
-  IonCardContent,
-  IonRange
+  IonCardContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -12,18 +11,12 @@ import {
   arrowBackOutline,
   analyticsOutline,
   calendarOutline,
-  playOutline,
-  pauseOutline,
-  playBackOutline,
-  playForwardOutline,
-  playSkipBackOutline,
-  playSkipForwardOutline,
-  speedometerOutline,
   locationOutline,
   searchOutline,
   trailSignOutline, carOutline, alertCircleOutline } from 'ionicons/icons';
 import { VehicleHistoryService } from '../../services/vehicle-history.service';
 import { HistoryPointItemComponent } from '../history-point-item/history-point-item.component';
+import { RoutePlaybackPlayerComponent } from '../../../../features/map/components/route-playback-player/route-playback-player.component';
 import { RoutePlaybackService } from '../../../../features/map/service/route-playback.service';
 import {
   VehicleHistoryPoint,
@@ -42,8 +35,8 @@ import { calculateHistorySummary, formatHistoryTime } from '../../utils/vehicle-
     IonIcon,
     IonCard,
     IonCardContent,
-    IonRange,
-    HistoryPointItemComponent
+    HistoryPointItemComponent,
+    RoutePlaybackPlayerComponent
   ]
 })
 export class VehicleHistoryRouteComponent implements OnInit {
@@ -76,8 +69,6 @@ export class VehicleHistoryRouteComponent implements OnInit {
   totalDuration = signal<string>('0h 0m');
   totalPoints = signal<number>(0);
 
-  readonly speedOptions: PlaybackSpeed[] = [0.5, 1, 2, 4];
-
   constructor() {
     addIcons({
       arrowBackOutline,
@@ -87,13 +78,6 @@ export class VehicleHistoryRouteComponent implements OnInit {
       calendarOutline,
       searchOutline,
       alertCircleOutline,
-      playSkipBackOutline,
-      playBackOutline,
-      pauseOutline,
-      playOutline,
-      playForwardOutline,
-      playSkipForwardOutline,
-      speedometerOutline,
       locationOutline,
       trailSignOutline,
     });

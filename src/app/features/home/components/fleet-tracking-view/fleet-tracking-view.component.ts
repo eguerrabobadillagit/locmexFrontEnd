@@ -32,7 +32,13 @@ import { HistoryDateHelperService } from '../../../vehicles/services/history-dat
 })
 export class FleetTrackingViewComponent implements OnInit {
   closeView = output<void>();
+  mobileSidebarClose = output<void>();
+  mobileSidebarOpen = output<void>();
   viewMode: 'list' | 'grid' = 'list';
+
+  private get isMobile(): boolean {
+    return window.innerWidth <= 768;
+  }
 
   // Signal para datos iniciales de sidebar-units
   sidebarUnits = signal<Vehicle[]>([]);
@@ -235,6 +241,9 @@ export class FleetTrackingViewComponent implements OnInit {
 
   onVehicleClick(vehicleId: string) {
     this.vehicleSelectionService.selectVehicle(vehicleId);
+    if (this.isMobile) {
+      this.mobileSidebarClose.emit();
+    }
   }
 
   openHistory(vehicle: Vehicle, event: Event) {
@@ -250,15 +259,24 @@ export class FleetTrackingViewComponent implements OnInit {
     this.sidebarViewMode.set('list');
     this.selectedHistoryVehicle.set(null);
     this.historyRequestData.set(null);
+    if (this.isMobile) {
+      this.mobileSidebarOpen.emit();
+    }
   }
 
   onHistorySearch(request: VehicleHistoryRequest) {
     this.historyRequestData.set(request);
     this.historySubViewMode.set('route');
+    if (this.isMobile) {
+      this.mobileSidebarClose.emit();
+    }
   }
 
   onBackToHistoryForm() {
     this.historySubViewMode.set('form');
+    if (this.isMobile) {
+      this.mobileSidebarOpen.emit();
+    }
   }
 
   onHistoryPointSelect(point: FormattedHistoryPoint) {

@@ -1,12 +1,12 @@
-import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, effect } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
-import { 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonMenu, 
-  IonButtons, 
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonMenu,
+  IonButtons,
   IonMenuButton,
   IonSplitPane,
   IonFooter,
@@ -16,6 +16,7 @@ import { NavbarComponent } from './components/navbar/navbar.component';
 import { FleetTrackingViewComponent } from './components/fleet-tracking-view/fleet-tracking-view.component';
 import { UserMenuComponent } from '../../core/components/user-menu/user-menu.component';
 import { AuthService } from '../auth/services/auth.service';
+import { RoutePlaybackService } from '../map/service/route-playback.service';
 import { Subscription, filter } from 'rxjs';
 
 @Component({
@@ -23,12 +24,12 @@ import { Subscription, filter } from 'rxjs';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonContent, 
-    IonMenu, 
-    IonButtons, 
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonMenu,
+    IonButtons,
     IonMenuButton,
     IonSplitPane,
     IonFooter,
@@ -42,15 +43,27 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly menuController = inject(MenuController);
+  private readonly routePlayback = inject(RoutePlaybackService);
   private routerSubscription?: Subscription;
-  
+
+  constructor() {
+    effect(() => {
+      if (this.routePlayback.requestSidebarOpen()) {
+        this.routePlayback.consumeSidebarRequest();
+        this.showFleetPanel.set(true);
+        this.fleetPanelEverOpened.set(true);
+      }
+    });
+  }
+
   selectedMenu = signal<string>('dashboard');
   showFleetPanel = signal<boolean>(false);
+  fleetPanelEverOpened = signal<boolean>(false);
 
   ngOnInit() {
     // Sincronizar con la ruta actual al iniciar
     this.updateSelectedMenuFromUrl(this.router.url);
-    
+
     // Escuchar cambios de ruta
     this.routerSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -67,26 +80,28 @@ export class HomePage implements OnInit, OnDestroy {
     // Extraer el último segmento de la URL (ej: /home/map-view -> map-view)
     const segments = url.split('/').filter(s => s);
     const lastSegment = segments[segments.length - 1];
-    
+
     // Si es una ruta válida del menú, actualizar
     if (lastSegment && lastSegment !== 'home') {
       this.selectedMenu.set(lastSegment);
-      
+
       // Mostrar panel de flota si es map-view
       if (lastSegment === 'map-view') {
         this.showFleetPanel.set(true);
+        this.fleetPanelEverOpened.set(true);
       }
     }
   }
 
   async selectMenu(id: string) {
     this.selectedMenu.set(id);
-    
+
     // Cerrar el menú en dispositivos móviles
     await this.menuController.close();
-    
+
     if (id === 'map-view') {
       this.showFleetPanel.set(true);
+      this.fleetPanelEverOpened.set(true);
       this.router.navigate(['/home', id]);
     } else {
       this.router.navigate(['/home', id]);
@@ -95,6 +110,15 @@ export class HomePage implements OnInit, OnDestroy {
 
   closeFleetPanel() {
     this.showFleetPanel.set(false);
+  }
+
+  onMobileSidebarClose() {
+    this.showFleetPanel.set(false);
+  }
+
+  onMobileSidebarOpen() {
+    this.showFleetPanel.set(true);
+    this.fleetPanelEverOpened.set(true);
   }
 
   onLogout() {

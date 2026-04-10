@@ -26,16 +26,16 @@
   }
 
   <!-- Floating Geofence Toggle Button -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="geofence-fab">
+  <ion-fab class="geofence-fab" [class.sheet-active]="showMobilePlayer()">
     <ion-fab-button (click)="toggleGeofences()" [color]="showGeofences() ? 'success' : 'medium'">
-      <ion-icon [name]="showGeofences() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+      <ion-icon [name]="geofenceIcon()"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
   <!-- Floating Auto-Tracking Toggle Button -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="tracking-fab">
+  <ion-fab class="tracking-fab" [class.sheet-active]="showMobilePlayer()">
     <ion-fab-button (click)="toggleAutoTracking()" [color]="autoTrackingEnabled() ? 'primary' : 'medium'">
-      <ion-icon [name]="autoTrackingEnabled() ? 'navigate' : 'navigate-outline'"></ion-icon>
+      <ion-icon [name]="trackingIcon()"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 
@@ -46,6 +46,67 @@
         [vehicle]="selectedVehicleDetail()!"
         (close)="onCloseVehicleDetail()">
       </app-vehicle-detail>
+    </div>
+  }
+
+  <!-- Mobile Bottom Sheet Player -->
+  @if (showMobilePlayer()) {
+    <div class="mobile-sheet" [class.mobile-sheet--expanded]="sheetExpanded()">
+
+      <!-- Sheet Header: drag handle + title + actions -->
+      <div class="sheet-header" (click)="toggleSheet()">
+        <div class="sheet-drag-handle"></div>
+        <div class="sheet-header-content">
+          <ion-icon name="location-outline" class="sheet-icon"></ion-icon>
+          <span class="sheet-title">
+            {{ mobileCurrentPointIndex() + 1 }} / {{ mobilePlaybackPoints().length }}
+            &nbsp;·&nbsp;
+            {{ mobilePlaybackPoints()[mobileCurrentPointIndex()]?.time }}
+          </span>
+        </div>
+        <div class="sheet-header-actions">
+          <button class="sheet-expand-btn" (click)="toggleSheet(); $event.stopPropagation()">
+            <ion-icon [name]="sheetExpanded() ? 'chevron-down-outline' : 'chevron-up-outline'"></ion-icon>
+          </button>
+          <button class="sheet-close-btn" (click)="mobileCloseRoute(); $event.stopPropagation()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Playback controls – always visible right after header -->
+      <app-route-playback-player
+        class="sheet-player"
+        [formattedPoints]="mobilePlaybackPoints()"
+        [currentPointIndex]="mobileCurrentPointIndex()"
+        [isPlaying]="isPlaybackPlaying()"
+        [playbackSpeed]="playbackSpeed()"
+        (togglePlayback)="mobileTogglePlayback()"
+        (speedChange)="mobileSetSpeed($event)"
+        (sliderChange)="mobileOnSliderChange($event)"
+        (goToFirst)="mobileGoToFirst()"
+        (goToPrevious)="mobileGoToPrevious()"
+        (goToNext)="mobileGoToNext()"
+        (goToLast)="mobileGoToLast()"
+      ></app-route-playback-player>
+
+      <!-- Points list – expands below player when dragging up -->
+      <div class="sheet-points-list">
+        @for (point of mobilePlaybackPoints(); track point.index) {
+          <div
+            class="sheet-point-item"
+            [class.active]="mobileCurrentPointIndex() === point.index"
+            (click)="onMobilePointClick(point)"
+          >
+            <span class="point-time">{{ point.time }}</span>
+            <span class="point-speed">{{ point.speedKph | number:'1.0-0' }} km/h</span>
+            <span class="point-status" [class.moving]="point.status === 'moving'">
+              {{ point.status === 'moving' ? 'En movimiento' : 'Detenido' }}
+            </span>
+          </div>
+        }
+      </div>
+
     </div>
   }
 </div>
