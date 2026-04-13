@@ -34,7 +34,7 @@ export class FleetTrackingViewComponent implements OnInit {
   closeView = output<void>();
   mobileSidebarClose = output<void>();
   mobileSidebarOpen = output<void>();
-  viewMode: 'list' | 'grid' = 'list';
+  viewMode = signal<'card' | 'list'>('card');
 
   private get isMobile(): boolean {
     return window.innerWidth <= 768;
@@ -115,14 +115,10 @@ export class FleetTrackingViewComponent implements OnInit {
         const mappedVehicles = response.map(v => this.mapSidebarUnit(v));
         this.sidebarUnits.set(mappedVehicles);
 
-        // Inicializar vehículos en el WebSocket service si no están
-        const socketVehicles = this.wsService.vehiclesList();
-        if (socketVehicles.length === 0) {
-          const vehicleDetails = response
-            .filter(unit => unit.latitude !== null && unit.longitude !== null)
-            .map(unit => this.mapSidebarUnitToVehicleDetail(unit));
-          this.wsService.initializeVehicles(vehicleDetails);
-        }
+        // Inicializar TODOS los vehículos del sidebar en wsService
+        // Esto asegura que vehículos offline también estén disponibles para el panel de detalles
+        const vehicleDetails = response.map(unit => this.mapSidebarUnitToVehicleDetail(unit));
+        this.wsService.initializeVehicles(vehicleDetails);
 
         this.isLoading.set(false);
       },
@@ -148,8 +144,8 @@ export class FleetTrackingViewComponent implements OnInit {
       fuel: unit.batteryLevel || 0,
       heading: 0,
       motorHours: 0,
-      latitude: unit.latitude!,
-      longitude: unit.longitude!,
+      latitude: unit.latitude ?? 0,
+      longitude: unit.longitude ?? 0,
       satellites: 0,
       altitude: 0,
       odometer: 0,
@@ -232,7 +228,7 @@ export class FleetTrackingViewComponent implements OnInit {
   }
 
   toggleViewMode() {
-    this.viewMode = this.viewMode === 'list' ? 'grid' : 'list';
+    this.viewMode.set(this.viewMode() === 'list' ? 'card' : 'list');
   }
 
   onClose() {

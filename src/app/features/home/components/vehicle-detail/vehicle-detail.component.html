@@ -33,6 +33,21 @@
       </button>
     </div>
 
+    <!-- Recent Location Address -->
+    <div class="info-section">
+      <label>Ubicación reciente</label>
+      <p class="info-value address-text">
+        <ion-icon name="location-outline" class="location-icon"></ion-icon>
+        {{ address() }}
+      </p>
+    </div>
+
+    <!-- Last Report -->
+    <div class="info-section">
+      <label>Último Reporte</label>
+      <p class="info-value">{{ vehicle()?.lastReport }}</p>
+    </div>
+
     <!-- Status -->
     <div class="info-section">
       <label>Estado</label>
@@ -108,12 +123,6 @@
     <div class="info-section">
       <label>Odómetro</label>
       <p class="info-value">{{ vehicle()?.odometer | number:'1.0-0' }} km</p>
-    </div>
-
-    <!-- Last Report -->
-    <div class="info-section">
-      <label>Último Reporte</label>
-      <p class="info-value">{{ vehicle()?.lastReport }}</p>
     </div>
   </ion-content>
 

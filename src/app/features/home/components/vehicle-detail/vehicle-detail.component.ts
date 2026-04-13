@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, effect, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   IonHeader, 
@@ -12,6 +12,7 @@ import {
   IonCardContent
 } from '@ionic/angular/standalone';
 import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
+import { GeocodingService } from '../../../map/service/geocoding.service';
 
 @Component({
   selector: 'app-vehicle-detail',
@@ -32,8 +33,41 @@ import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface'
   ]
 })
 export class VehicleDetailComponent {
+  private geocodingService = inject(GeocodingService);
+  
   vehicle = input<VehicleDetail | null>(null);
   close = output<void>();
+  
+  address = signal<string>('Cargando ubicación...');
+
+  constructor() {
+    effect(() => {
+      const v = this.vehicle();
+      if (v && v.latitude && v.longitude) {
+        this.loadAddress(v.latitude, v.longitude);
+      } else {
+        this.address.set('Ubicación no disponible');
+      }
+    });
+  }
+
+  private async loadAddress(lat: number, lng: number): Promise<void> {
+    if (lat === 0 && lng === 0) {
+      this.address.set('Sin ubicación GPS');
+      return;
+    }
+
+    try {
+      const result = await this.geocodingService.getAddressFromCoordinates(lat, lng);
+      if (result) {
+        this.address.set(result.formattedAddress);
+      } else {
+        this.address.set('Ubicación disponible en el mapa');
+      }
+    } catch (error) {
+      this.address.set('Ubicación disponible en el mapa');
+    }
+  }
 
   onClose() {
     this.close.emit();

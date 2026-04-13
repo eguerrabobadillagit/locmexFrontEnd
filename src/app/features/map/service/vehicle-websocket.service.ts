@@ -152,7 +152,8 @@ export class VehicleWebSocketService {
   }
 
   initializeVehicles(vehicles: VehicleDetail[]): void {
-    const vehiclesMap = new Map<string, VehicleDetail>();
+    // Fusionar con vehículos existentes para mantener los que están offline
+    const vehiclesMap = new Map(this.vehicles());
     vehicles.forEach(vehicle => {
       vehiclesMap.set(vehicle.id, vehicle);
     });

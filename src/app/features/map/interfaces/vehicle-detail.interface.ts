@@ -15,4 +15,5 @@ export interface VehicleDetail {
   altitude: number;
   odometer: number;
   lastReport: string;
+  address?: string;
 }

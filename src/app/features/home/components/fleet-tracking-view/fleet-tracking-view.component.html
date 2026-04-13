@@ -7,7 +7,7 @@
     </div>
     <div class="header-right">
       <button class="view-toggle" (click)="toggleViewMode()">
-        <ion-icon [name]="viewMode === 'list' ? 'grid-outline' : 'list-outline'"></ion-icon>
+        <ion-icon [name]="viewMode() === 'list' ? 'grid-outline' : 'list-outline'"></ion-icon>
       </button>
       <button class="close-btn" (click)="onClose()">
         <ion-icon name="close-outline"></ion-icon>
@@ -72,62 +72,106 @@
     </div>
   }
 
-  <!-- Vehicle Cards -->
+  <!-- Vehicle Cards/List -->
   @else {
-    <div class="vehicles-container">
-      @for (vehicle of vehicles(); track vehicle.id) {
-      <ion-card class="vehicle-card" (click)="onVehicleClick(vehicle.id)">
-        <ion-card-content>
-          <!-- Header de la card -->
-          <div class="card-header">
-            <div class="vehicle-icon">
-              <ion-icon name="car-outline"></ion-icon>
+    <!-- CARD VIEW (Expandida) -->
+    @if (viewMode() === 'card') {
+      <div class="vehicles-container">
+        @for (vehicle of vehicles(); track vehicle.id) {
+        <ion-card class="vehicle-card" (click)="onVehicleClick(vehicle.id)">
+          <ion-card-content>
+            <!-- Header de la card -->
+            <div class="card-header">
+              <div class="vehicle-icon">
+                <ion-icon name="car-outline"></ion-icon>
+              </div>
+              <div class="vehicle-info">
+                <h3>{{ vehicle.plate }}</h3>
+                <p class="driver">{{ vehicle.driver }}</p>
+                <p class="model">{{ vehicle.model }}</p>
+              </div>
+              <div class="card-actions">
+                <button class="history-btn" (click)="openHistory(vehicle, $event)" title="Ver recorrido histórico">
+                  <ion-icon name="analytics-outline"></ion-icon>
+                </button>
+                <button class="view-btn">
+                  <ion-icon name="eye-outline"></ion-icon>
+                </button>
+              </div>
             </div>
-            <div class="vehicle-info">
-              <h3>{{ vehicle.plate }}</h3>
-              <p class="driver">{{ vehicle.driver }}</p>
-              <p class="model">{{ vehicle.model }}</p>
-            </div>
-            <div class="card-actions">
-              <button class="history-btn" (click)="openHistory(vehicle, $event)" title="Ver recorrido histórico">
-                <ion-icon name="analytics-outline"></ion-icon>
-              </button>
-              <button class="view-btn">
-                <ion-icon name="eye-outline"></ion-icon>
-              </button>
-            </div>
-          </div>
 
-          <!-- Status -->
-          <div class="status-badge" [ngClass]="getStatusClass(vehicle.status)">
-            <ion-icon name="speedometer-outline"></ion-icon>
-            <div class="status-info">
+            <!-- Status -->
+            <div class="status-badge" [ngClass]="getStatusClass(vehicle.status)">
+              <ion-icon name="speedometer-outline"></ion-icon>
+              <div class="status-info">
+                <span class="status-text">{{ vehicle.statusText }}</span>
+                <span class="status-time">{{ vehicle.lastUpdate }}</span>
+              </div>
+            </div>
+
+            <!-- Metrics -->
+            <div class="metrics">
+              <div class="metric">
+                <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
+                <span>{{ vehicle.speed }} km/h</span>
+              </div>
+              <div class="metric">
+                <ion-icon name="battery-half-outline" class="metric-icon"></ion-icon>
+                <span>{{ vehicle.battery }}%</span>
+              </div>
+            </div>
+
+            <!-- Motor Status -->
+            <div class="motor-status" [class.motor-on]="vehicle.motorOn">
+              <ion-icon name="power-outline"></ion-icon>
+              <span>Motor {{ vehicle.motorOn ? 'ON' : 'OFF' }}</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+        }
+      </div>
+    }
+    
+    <!-- LIST VIEW (Compacta) -->
+    @else {
+      <div class="vehicles-list-compact">
+        @for (vehicle of vehicles(); track vehicle.id) {
+        <div class="list-item" (click)="onVehicleClick(vehicle.id)">
+          <div class="vehicle-icon-compact">
+            <ion-icon name="car-outline"></ion-icon>
+          </div>
+          
+          <div class="vehicle-main-info">
+            <div class="vehicle-info-compact">
+              <span class="vehicle-name">{{ vehicle.plate }}</span>
+              <span class="driver-name">{{ vehicle.driver }}</span>
+            </div>
+            
+            <div class="status-badge-compact" [ngClass]="getStatusClass(vehicle.status)">
               <span class="status-text">{{ vehicle.statusText }}</span>
               <span class="status-time">{{ vehicle.lastUpdate }}</span>
             </div>
           </div>
-
-          <!-- Metrics -->
-          <div class="metrics">
-            <div class="metric">
-              <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
+          
+          <div class="vehicle-metrics-compact">
+            <div class="metric-item">
+              <ion-icon name="speedometer-outline"></ion-icon>
               <span>{{ vehicle.speed }} km/h</span>
             </div>
-            <div class="metric">
-              <ion-icon name="battery-half-outline" class="metric-icon"></ion-icon>
-              <span>{{ vehicle.battery }}%</span>
-            </div>
           </div>
-
-          <!-- Motor Status -->
-          <div class="motor-status" [class.motor-on]="vehicle.motorOn">
-            <ion-icon name="power-outline"></ion-icon>
-            <span>Motor {{ vehicle.motorOn ? 'ON' : 'OFF' }}</span>
+          
+          <div class="list-actions">
+            <button class="action-icon" (click)="openHistory(vehicle, $event)" title="Ver recorrido">
+              <ion-icon name="analytics-outline"></ion-icon>
+            </button>
+            <button class="action-icon">
+              <ion-icon name="eye-outline"></ion-icon>
+            </button>
           </div>
-        </ion-card-content>
-      </ion-card>
-      }
-    </div>
+        </div>
+        }
+      </div>
+    }
   }
 }
 }
