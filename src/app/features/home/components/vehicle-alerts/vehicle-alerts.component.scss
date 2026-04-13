@@ -1,0 +1,152 @@
+.alerts-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.alerts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid #E5E7EB;
+
+  .alerts-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #374151;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+
+  .unresolved-badge {
+    background: #FEE2E2;
+    color: #DC2626;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.alerts-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.alert-row {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &.unread {
+    // Las no leídas mantienen opacidad completa
+  }
+
+  &:not(.unread) {
+    opacity: 0.7;
+  }
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.alert-content {
+  display: flex;
+  gap: 12px;
+}
+
+.alert-icon-wrapper {
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 24px;
+    background-color: #FFFFFF;
+    border-radius: 50%;
+    padding: 4px;
+    border: 0.5px solid;
+  }
+}
+
+.alert-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.alert-type {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.alert-time {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.alert-message {
+  font-size: 14px;
+  color: #374151;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.alert-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6B7280;
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.no-alerts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+
+  ion-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+}
+
+// Estado de carga
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+
+  ion-spinner {
+    margin-bottom: 12px;
+  }
+}
+
+// Estado de error
+.error-state {
+  padding: 20px;
+  text-align: center;
+  color: #DC2626;
+}

@@ -1,0 +1,55 @@
+<div class="alerts-container">
+  <!-- Header -->
+  <div class="alerts-header">
+    <div class="alerts-count">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <span>{{ totalCount() }} alertas recientes</span>
+    </div>
+    @if (unresolvedCount() > 0) {
+      <span class="unresolved-badge">{{ unresolvedCount() }} sin resolver</span>
+    }
+  </div>
+
+  <!-- Lista de alertas como filas pegadas -->
+  <div class="alerts-list">
+    @for (alert of alerts(); track $index) {
+      <div
+        class="alert-row"
+        (click)="markAsRead(alert.alertId)"
+        [class.unread]="!alert.isRead"
+        [style.background-color]="getAlertConfig(alert.alertType).backgroundColor"
+      >
+        <div class="alert-content">
+          <!-- Icono según severity -->
+          <div class="alert-icon-wrapper">
+            <ion-icon
+              [name]="getSeverityConfig(alert.severity).icon"
+              [style.color]="getSeverityConfig(alert.severity).color"
+              [style.border-color]="getAlertConfig(alert.alertType).textColor + '40'"
+            ></ion-icon>
+          </div>
+
+          <!-- Info de la alerta -->
+          <div class="alert-info">
+            <div class="alert-header-row">
+              <span class="alert-type" [style.color]="getAlertConfig(alert.alertType).textColor">
+                {{ getAlertConfig(alert.alertType).label }}
+              </span>
+              <span class="alert-time">{{ getRelativeTime(alert.createdAtUtc) }}</span>
+            </div>
+            <p class="alert-message">{{ alert.message }}</p>
+            <div class="alert-timestamp">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ getExactTime(alert.createdAtUtc) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="no-alerts">
+        <ion-icon name="notifications-off-outline"></ion-icon>
+        <p>No hay alertas para este vehículo</p>
+      </div>
+    }
+  </div>
+</div>

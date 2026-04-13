@@ -11,27 +11,46 @@
     </ion-toolbar>
   </ion-header>
 
+  <!-- Tabs Navigation -->
+  <div class="custom-tabs">
+    <button
+      class="tab-button"
+      [class.active]="activeSegment === 'info'"
+      (click)="onSegmentChange('info')">
+      Información
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeSegment === 'alertas'"
+      (click)="onSegmentChange('alertas')">
+      Alertas
+    </button>
+  </div>
+
   <!-- Content -->
   <ion-content>
-    <!-- Action Buttons -->
-    <div class="action-buttons">
-      <button class="action-btn" (click)="onEdit()">
-        <ion-icon name="create-outline"></ion-icon>
-        <span>Editar</span>
-      </button>
-      <button class="action-btn" (click)="onLocate()">
-        <ion-icon name="location-outline"></ion-icon>
-        <span>Ubicar</span>
-      </button>
-      <button class="action-btn" (click)="onShare()">
-        <ion-icon name="share-outline"></ion-icon>
-        <span>Compartir</span>
-      </button>
-      <button class="action-btn" (click)="onExpand()">
-        <ion-icon name="expand-outline"></ion-icon>
-        <span>Ampliar</span>
-      </button>
-    </div>
+    @switch (activeSegment) {
+      @case ('info') {
+        <!-- Contenido actual del vehículo -->
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="action-btn" (click)="onEdit()">
+            <ion-icon name="create-outline"></ion-icon>
+            <span>Editar</span>
+          </button>
+          <button class="action-btn" (click)="onLocate()">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>Ubicar</span>
+          </button>
+          <button class="action-btn" (click)="onShare()">
+            <ion-icon name="share-outline"></ion-icon>
+            <span>Compartir</span>
+          </button>
+          <button class="action-btn" (click)="onExpand()">
+            <ion-icon name="expand-outline"></ion-icon>
+            <span>Ampliar</span>
+          </button>
+        </div>
 
     <!-- Recent Location Address -->
     <div class="info-section">
@@ -48,82 +67,91 @@
       <p class="info-value">{{ vehicle()?.lastReport }}</p>
     </div>
 
-    <!-- Status -->
-    <div class="info-section">
-      <label>Estado</label>
-      <div class="status-badge" [ngClass]="getStatusClass()">
-        {{ getStatusText() }}
-      </div>
-    </div>
+        <!-- Status -->
+        <div class="info-section">
+          <label>Estado</label>
+          <div class="status-badge" [ngClass]="getStatusClass()">
+            {{ getStatusText() }}
+          </div>
+        </div>
 
-    <!-- Model -->
-    <div class="info-section">
-      <label>Modelo</label>
-      <p class="info-value">{{ vehicle()?.model }}</p>
-    </div>
+        <!-- Model -->
+        <div class="info-section">
+          <label>Modelo</label>
+          <p class="info-value">{{ vehicle()?.model }}</p>
+        </div>
 
-    <!-- Driver -->
-    <div class="info-section">
-      <label>Conductor</label>
-      <p class="info-value">{{ vehicle()?.driver }}</p>
-    </div>
+        <!-- Driver -->
+        <div class="info-section">
+          <label>Conductor</label>
+          <p class="info-value">{{ vehicle()?.driver }}</p>
+        </div>
 
-    <!-- IMEI -->
-    <div class="info-section">
-      <label>IMEI</label>
-      <p class="info-value">{{ vehicle()?.imei }}</p>
-    </div>
+        <!-- IMEI -->
+        <div class="info-section">
+          <label>IMEI</label>
+          <p class="info-value">{{ vehicle()?.imei }}</p>
+        </div>
 
-    <!-- Real Time Information -->
-    <div class="info-section">
-      <label>Información en Tiempo Real</label>
-      <div class="metrics-grid">
-        <ion-card class="metric-card">
-          <ion-card-content>
-            <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
-            <span class="metric-label">Velocidad</span>
-            <span class="metric-value">{{ vehicle()?.speed }} km/h</span>
-          </ion-card-content>
-        </ion-card>
+        <!-- Real Time Information -->
+        <div class="info-section">
+          <label>Información en Tiempo Real</label>
+          <div class="metrics-grid">
+            <ion-card class="metric-card">
+              <ion-card-content>
+                <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
+                <span class="metric-label">Velocidad</span>
+                <span class="metric-value">{{ vehicle()?.speed }} km/h</span>
+              </ion-card-content>
+            </ion-card>
 
-        <ion-card class="metric-card">
-          <ion-card-content>
-            <ion-icon name="water-outline" class="metric-icon"></ion-icon>
-            <span class="metric-label">Combustible</span>
-            <span class="metric-value">{{ vehicle()?.fuel }}%</span>
-          </ion-card-content>
-        </ion-card>
+            <ion-card class="metric-card">
+              <ion-card-content>
+                <ion-icon name="water-outline" class="metric-icon"></ion-icon>
+                <span class="metric-label">Combustible</span>
+                <span class="metric-value">{{ vehicle()?.fuel }}%</span>
+              </ion-card-content>
+            </ion-card>
 
-        <ion-card class="metric-card">
-          <ion-card-content>
-            <ion-icon name="compass-outline" class="metric-icon"></ion-icon>
-            <span class="metric-label">Rumbo</span>
-            <span class="metric-value">{{ vehicle()?.heading }}°</span>
-          </ion-card-content>
-        </ion-card>
+            <ion-card class="metric-card">
+              <ion-card-content>
+                <ion-icon name="compass-outline" class="metric-icon"></ion-icon>
+                <span class="metric-label">Rumbo</span>
+                <span class="metric-value">{{ vehicle()?.heading }}°</span>
+              </ion-card-content>
+            </ion-card>
 
-        <ion-card class="metric-card">
-          <ion-card-content>
-            <ion-icon name="time-outline" class="metric-icon"></ion-icon>
-            <span class="metric-label">Hrs Motor</span>
-            <span class="metric-value">{{ vehicle()?.motorHours }} h</span>
-          </ion-card-content>
-        </ion-card>
-      </div>
-    </div>
+            <ion-card class="metric-card">
+              <ion-card-content>
+                <ion-icon name="time-outline" class="metric-icon"></ion-icon>
+                <span class="metric-label">Hrs Motor</span>
+                <span class="metric-value">{{ vehicle()?.motorHours }} h</span>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        </div>
 
-    <!-- GPS Location -->
-    <div class="info-section">
-      <label>Ubicación GPS</label>
-      <p class="info-value">{{ vehicle()?.latitude }}, {{ vehicle()?.longitude }}</p>
-      <p class="info-subtitle">Satélites: {{ vehicle()?.satellites }} | Altitud: {{ vehicle()?.altitude }}m</p>
-    </div>
+        <!-- GPS Location -->
+        <div class="info-section">
+          <label>Ubicación GPS</label>
+          <p class="info-value">{{ vehicle()?.latitude }}, {{ vehicle()?.longitude }}</p>
+          <p class="info-subtitle">Satélites: {{ vehicle()?.satellites }} | Altitud: {{ vehicle()?.altitude }}m</p>
+        </div>
 
-    <!-- Odometer -->
-    <div class="info-section">
-      <label>Odómetro</label>
-      <p class="info-value">{{ vehicle()?.odometer | number:'1.0-0' }} km</p>
-    </div>
+        <!-- Odometer -->
+        <div class="info-section">
+          <label>Odómetro</label>
+          <p class="info-value">{{ vehicle()?.odometer | number:'1.0-0' }} km</p>
+        </div>
+      }
+
+      @case ('alertas') {
+        <!-- Usar el componente standalone de alertas -->
+        @if (vehicle(); as v) {
+          <app-vehicle-alerts [vehicleId]="v.id" />
+        }
+      }
+    }
   </ion-content>
 
   <!-- Footer with Monitor Button -->
