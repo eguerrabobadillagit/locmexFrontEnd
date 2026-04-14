@@ -44,6 +44,9 @@ export class FleetTrackingViewComponent implements OnInit {
   // Computed para contar seleccionados
   selectedCount = computed(() => this.selectedVehicles().size);
   
+  // Signal para el vehículo actualmente seleccionado (para mostrar detalles)
+  selectedVehicleId = signal<string | null>(null);
+  
   // Bandera para controlar la selección inicial
   private initialSelectionDone = false;
 
@@ -127,6 +130,11 @@ export class FleetTrackingViewComponent implements OnInit {
     if (this.wsService.connectionStatus() !== 'connected') {
       this.wsService.connect();
     }
+
+    // Suscribirse a la selección de vehículos para resaltar la card activa
+    this.vehicleSelectionService.vehicleSelected$.subscribe(vehicleId => {
+      this.selectedVehicleId.set(vehicleId);
+    });
   }
 
   loadVehicles(): void {

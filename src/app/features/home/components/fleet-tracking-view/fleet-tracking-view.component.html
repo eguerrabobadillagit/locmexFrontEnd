@@ -93,7 +93,7 @@
     @if (viewMode() === 'card') {
       <div class="vehicles-container">
         @for (vehicle of vehicles(); track vehicle.id) {
-        <ion-card class="vehicle-card" (click)="onVehicleClick(vehicle.id)">
+        <ion-card class="vehicle-card" [class.selected]="selectedVehicleId() === vehicle.id" (click)="onVehicleClick(vehicle.id)">
           <ion-card-content>
             <!-- Header de la card -->
             <div class="card-header">
@@ -154,7 +154,7 @@
     @else {
       <div class="vehicles-list-compact">
         @for (vehicle of vehicles(); track vehicle.id) {
-        <div class="list-item" (click)="onVehicleClick(vehicle.id)">
+        <div class="list-item" [class.selected]="selectedVehicleId() === vehicle.id" (click)="onVehicleClick(vehicle.id)">
           <div class="vehicle-icon-compact">
             <ion-icon name="car-outline"></ion-icon>
           </div>

@@ -157,6 +157,12 @@ app-vehicle-history-form {
     transform: translateY(-2px);
   }
 
+  &.selected {
+    border-left: 4px solid #3880ff;
+    background: #f0f7ff;
+    box-shadow: 0 2px 12px rgba(56, 128, 255, 0.2);
+  }
+
   ion-card-content {
     padding: 12px;
   }
@@ -475,6 +481,12 @@ app-vehicle-history-form {
       background: #ffffff;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transform: translateY(-2px);
+    }
+
+    &.selected {
+      border-left: 4px solid #3880ff;
+      background: #f0f7ff;
+      box-shadow: 0 2px 12px rgba(56, 128, 255, 0.2);
     }
 
     .vehicle-icon-compact {
