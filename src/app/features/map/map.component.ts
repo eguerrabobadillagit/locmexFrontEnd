@@ -1,8 +1,9 @@
 import { Component, OnInit, ViewChild, OnDestroy, computed, signal, inject, effect } from '@angular/core';
 import { GoogleMap, MapMarker } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
-import { IonFab, IonFabButton, IonIcon } from '@ionic/angular/standalone';
+import { IonFab, IonFabButton, IonFabList, IonIcon } from '@ionic/angular/standalone';
 import { VehicleSelectionService } from '../services/vehicle-selection';
+import { VehicleVisibilityService } from '../services/vehicle-visibility.service';
 import { VehicleDetailComponent } from '../home/components/vehicle-detail/vehicle-detail.component';
 import { VehicleWebSocketService } from './service/vehicle-websocket.service';
 import { VehicleAnimationService } from './service/vehicle-animation.service';
@@ -18,7 +19,7 @@ import { Subscription } from 'rxjs';
 
 import { createVehicleMarkerIcon } from './utils/vehicle-marker-icon.util';
 import { addIcons } from 'ionicons';
-import { chevronUpOutline, chevronDownOutline, closeOutline, locationOutline, eyeOutline, eyeOffOutline, navigate, navigateOutline } from 'ionicons/icons';
+import { chevronUpOutline, chevronDownOutline, closeOutline, locationOutline, eyeOutline, eyeOffOutline, navigate, navigateOutline, layersOutline, mapOutline, globeOutline, earthOutline } from 'ionicons/icons';
 
 import { VehicleDetail } from './interfaces/vehicle-detail.interface';
 
@@ -34,7 +35,7 @@ interface VehicleMarker {
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, IonFab, IonFabButton, IonIcon, GeofenceOverlayComponent, RoutePlaybackPlayerComponent]
+  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, IonFab, IonFabButton, IonFabList, IonIcon, GeofenceOverlayComponent, RoutePlaybackPlayerComponent]
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
@@ -45,6 +46,7 @@ export class MapComponent implements OnInit, OnDestroy {
   selectedVehicleId = signal<string | null>(null);
   showVehicleDetail = signal<boolean>(false);
   showGeofences = signal<boolean>(false);
+  currentMapType = signal<string>('roadmap');
   isMobileScreen = signal<boolean>(window.innerWidth <= 768);
   private resizeListener = () => this.isMobileScreen.set(window.innerWidth <= 768);
 
@@ -83,23 +85,26 @@ export class MapComponent implements OnInit, OnDestroy {
     if (this.routePlayback.routePoints().length > 0) return [];
 
     const animatedPositions = this.animationService.animatedPositions();
+    const visibleVehicleIds = this.vehicleVisibilityService.selectedVehicleIds();
 
-    return this.wsService.vehiclesList().map(vehicle => {
-      const animatedPos = animatedPositions.get(vehicle.id);
+    return this.wsService.vehiclesList()
+      .filter(vehicle => visibleVehicleIds.has(vehicle.id))  // Filtrar solo vehículos visibles
+      .map(vehicle => {
+        const animatedPos = animatedPositions.get(vehicle.id);
 
-      const position = animatedPos
-        ? { lat: animatedPos.latitude, lng: animatedPos.longitude }
-        : { lat: vehicle.latitude, lng: vehicle.longitude };
+        const position = animatedPos
+          ? { lat: animatedPos.latitude, lng: animatedPos.longitude }
+          : { lat: vehicle.latitude, lng: vehicle.longitude };
 
-      const heading = animatedPos ? animatedPos.heading : vehicle.heading;
+        const heading = animatedPos ? animatedPos.heading : vehicle.heading;
 
-      return {
-        id: vehicle.id,
-        position,
-        title: vehicle.plate,
-        icon: createVehicleMarkerIcon(heading, vehicle.status)
-      };
-    });
+        return {
+          id: vehicle.id,
+          position,
+          title: vehicle.plate,
+          icon: createVehicleMarkerIcon(heading, vehicle.status)
+        };
+      });
   });
 
   mapOptions: google.maps.MapOptions = {
@@ -116,13 +121,14 @@ export class MapComponent implements OnInit, OnDestroy {
   private readonly routeOverlay = inject(MapRouteOverlayService);
   private readonly mapUtils = inject(MapUtilsService);
   private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
   private readonly wsService = inject(VehicleWebSocketService);
   private readonly animationService = inject(VehicleAnimationService);
   private readonly mobilePlaybackService = inject(MapPlaybackMobileService);
   private readonly autoTrackingService = inject(MapAutoTrackingService);
 
   constructor() {
-    addIcons({ chevronUpOutline, chevronDownOutline, closeOutline, locationOutline, eyeOutline, eyeOffOutline, navigate, navigateOutline });
+    addIcons({ chevronUpOutline, chevronDownOutline, closeOutline, locationOutline, eyeOutline, eyeOffOutline, navigate, navigateOutline, layersOutline, mapOutline, globeOutline, earthOutline });
 
     // Effect para auto-tracking del vehículo
     effect(() => {
@@ -261,6 +267,13 @@ export class MapComponent implements OnInit, OnDestroy {
   toggleGeofences() {
     const newState = !this.showGeofences();
     this.showGeofences.set(newState);
+  }
+
+  changeMapType(mapType: 'roadmap' | 'satellite' | 'hybrid' | 'terrain') {
+    if (this.googleMap?.googleMap) {
+      this.googleMap.googleMap.setMapTypeId(mapType);
+      this.currentMapType.set(mapType);
+    }
   }
 
   toggleAutoTracking() {

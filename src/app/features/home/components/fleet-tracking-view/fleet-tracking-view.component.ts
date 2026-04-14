@@ -1,10 +1,11 @@
-import { Component, OnInit, output, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, output, signal, inject, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IonIcon, IonCard, IonCardContent, IonSpinner, MenuController } from '@ionic/angular/standalone';
+import { IonIcon, IonCard, IonCardContent, IonSpinner, IonCheckbox, MenuController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { carOutline, speedometerOutline, batteryHalfOutline, powerOutline, eyeOutline, listOutline, gridOutline, closeOutline, analyticsOutline, alertCircleOutline } from 'ionicons/icons';
 import { VehicleSelectionService } from '../../../services/vehicle-selection';
+import { VehicleVisibilityService } from '../../../services/vehicle-visibility.service';
 import { VehicleService, SidebarUnit } from '../../../vehicles/services/vehicle.service';
 import { VehicleWebSocketService } from '../../../map/service/vehicle-websocket.service';
 import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
@@ -26,6 +27,7 @@ import { HistoryDateHelperService } from '../../../vehicles/services/history-dat
     IonCard,
     IonCardContent,
     IonSpinner,
+    IonCheckbox,
     VehicleHistoryFormComponent,
     VehicleHistoryRouteComponent,
   ],
@@ -35,6 +37,15 @@ export class FleetTrackingViewComponent implements OnInit {
   mobileSidebarClose = output<void>();
   mobileSidebarOpen = output<void>();
   viewMode = signal<'card' | 'list'>('card');
+  
+  // Signal para vehículos seleccionados
+  selectedVehicles = signal<Set<string>>(new Set());
+  
+  // Computed para contar seleccionados
+  selectedCount = computed(() => this.selectedVehicles().size);
+  
+  // Bandera para controlar la selección inicial
+  private initialSelectionDone = false;
 
   private get isMobile(): boolean {
     return window.innerWidth <= 768;
@@ -77,6 +88,7 @@ export class FleetTrackingViewComponent implements OnInit {
 
   private readonly menuController = inject(MenuController);
   private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
   private readonly vehicleService = inject(VehicleService);
   private readonly wsService = inject(VehicleWebSocketService);
   private readonly routePlayback = inject(RoutePlaybackService);
@@ -94,6 +106,17 @@ export class FleetTrackingViewComponent implements OnInit {
       powerOutline,
       listOutline,
       gridOutline,
+    });
+
+    // Effect para seleccionar todos los vehículos por defecto cuando se cargan (solo una vez)
+    effect(() => {
+      const vehicles = this.vehicles();
+      if (vehicles.length > 0 && !this.initialSelectionDone) {
+        const allVehicleIds = vehicles.map(v => v.id);
+        this.selectedVehicles.set(new Set(allVehicleIds));
+        this.vehicleVisibilityService.showAll(allVehicleIds);
+        this.initialSelectionDone = true;
+      }
     });
   }
 
@@ -229,6 +252,43 @@ export class FleetTrackingViewComponent implements OnInit {
 
   toggleViewMode() {
     this.viewMode.set(this.viewMode() === 'list' ? 'card' : 'list');
+  }
+
+  toggleVehicleSelection(vehicleId: string, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const currentSelection = new Set(this.selectedVehicles());
+    
+    if (currentSelection.has(vehicleId)) {
+      currentSelection.delete(vehicleId);
+      this.vehicleVisibilityService.hideVehicle(vehicleId);
+    } else {
+      currentSelection.add(vehicleId);
+      this.vehicleVisibilityService.showVehicle(vehicleId);
+    }
+    
+    this.selectedVehicles.set(currentSelection);
+  }
+
+  toggleSelectAll(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    const allVehicleIds = this.vehicles().map(v => v.id);
+    const currentSelection = this.selectedVehicles();
+    
+    // Si todos están seleccionados, deseleccionar todos
+    if (currentSelection.size === allVehicleIds.length) {
+      this.selectedVehicles.set(new Set());
+      this.vehicleVisibilityService.hideAll();
+    } else {
+      // Seleccionar todos
+      this.selectedVehicles.set(new Set(allVehicleIds));
+      this.vehicleVisibilityService.showAll(allVehicleIds);
+    }
   }
 
   onClose() {

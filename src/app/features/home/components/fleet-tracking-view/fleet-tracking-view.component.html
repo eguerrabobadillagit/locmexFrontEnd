@@ -45,6 +45,21 @@
   @default {
     <p class="subtitle">Ver detalles completos</p>
 
+    <!-- Select All Section -->
+    @if (!isLoading() && !error() && vehicles().length > 0) {
+      <div class="select-all-section">
+        <div (click)="$event.stopPropagation()">
+          <ion-checkbox 
+            [checked]="selectedCount() === vehicles().length && vehicles().length > 0"
+            [indeterminate]="selectedCount() > 0 && selectedCount() < vehicles().length"
+            (ionChange)="toggleSelectAll($event)">
+          </ion-checkbox>
+        </div>
+        <span class="select-all-text">Seleccionar todas</span>
+        <span class="selection-count">{{ selectedCount() }} de {{ vehicles().length }}</span>
+      </div>
+    }
+
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="loading-container">
@@ -94,9 +109,12 @@
                 <button class="history-btn" (click)="openHistory(vehicle, $event)" title="Ver recorrido histórico">
                   <ion-icon name="analytics-outline"></ion-icon>
                 </button>
-                <button class="view-btn">
-                  <ion-icon name="eye-outline"></ion-icon>
-                </button>
+                <div (click)="$event.stopPropagation()">
+                  <ion-checkbox 
+                    [checked]="selectedVehicles().has(vehicle.id)"
+                    (ionChange)="toggleVehicleSelection(vehicle.id, $event)">
+                  </ion-checkbox>
+                </div>
               </div>
             </div>
 
@@ -146,11 +164,6 @@
               <span class="vehicle-name">{{ vehicle.plate }}</span>
               <span class="driver-name">{{ vehicle.driver }}</span>
             </div>
-            
-            <div class="status-badge-compact" [ngClass]="getStatusClass(vehicle.status)">
-              <span class="status-text">{{ vehicle.statusText }}</span>
-              <span class="status-time">{{ vehicle.lastUpdate }}</span>
-            </div>
           </div>
           
           <div class="vehicle-metrics-compact">
@@ -164,9 +177,12 @@
             <button class="action-icon" (click)="openHistory(vehicle, $event)" title="Ver recorrido">
               <ion-icon name="analytics-outline"></ion-icon>
             </button>
-            <button class="action-icon">
-              <ion-icon name="eye-outline"></ion-icon>
-            </button>
+            <div (click)="$event.stopPropagation()">
+              <ion-checkbox 
+                [checked]="selectedVehicles().has(vehicle.id)"
+                (ionChange)="toggleVehicleSelection(vehicle.id, $event)">
+              </ion-checkbox>
+            </div>
           </div>
         </div>
         }

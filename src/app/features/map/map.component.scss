@@ -58,6 +58,31 @@
       }
     }
   }
+
+  .map-type-fab {
+    position: absolute;
+    bottom: 160px;
+    left: 20px;
+    z-index: 999;
+
+    ion-fab-button {
+      --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+
+    ion-fab-list {
+      ion-fab-button {
+        --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
 }
 
 // Mobile Bottom Sheet – shown only on small screens
@@ -225,6 +250,10 @@
 
     .tracking-fab.sheet-active {
       bottom: calc(350px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .map-type-fab.sheet-active {
+      bottom: calc(420px + env(safe-area-inset-bottom, 0px)) !important;
     }
   }
 }

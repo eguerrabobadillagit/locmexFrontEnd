@@ -39,6 +39,27 @@
     </ion-fab-button>
   </ion-fab>
 
+  <!-- Floating Map Type Selector -->
+  <ion-fab class="map-type-fab" [class.sheet-active]="showMobilePlayer()">
+    <ion-fab-button color="medium">
+      <ion-icon name="layers-outline"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button (click)="changeMapType('roadmap')" title="Mapa" color="light">
+        <ion-icon name="map-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="changeMapType('satellite')" title="Satélite" color="light">
+        <ion-icon name="globe-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="changeMapType('hybrid')" title="Híbrido" color="light">
+        <ion-icon name="layers-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="changeMapType('terrain')" title="Terreno" color="light">
+        <ion-icon name="earth-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+
   <!-- Vehicle Detail Panel -->
   @if (showVehicleDetail() && selectedVehicleDetail()) {
     <div class="vehicle-detail-panel">
