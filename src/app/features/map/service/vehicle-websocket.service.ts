@@ -24,7 +24,7 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'er
 export class VehicleWebSocketService {
   private readonly authService = inject(AuthService);
   private connection: signalR.HubConnection | null = null;
-  private readonly hubUrl = `${environment.apiUrl.replace('/api', '')}/hubs/telemetry`;
+  private readonly hubUrl = `${environment.hubUrl}/hubs/telemetry`;
 
   connectionStatus = signal<ConnectionStatus>('disconnected');
   

@@ -1,0 +1,47 @@
+.public-tracking-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .loading-container,
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+    text-align: center;
+
+    ion-spinner {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+
+    .error-icon {
+      font-size: 64px;
+      color: #F44336;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      font-size: 16px;
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  app-public-map {
+    width: 100%;
+    height: 100%;
+  }
+}

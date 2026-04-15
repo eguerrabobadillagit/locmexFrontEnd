@@ -1,0 +1,66 @@
+<div class="public-map-container">
+  <!-- Google Map -->
+  <google-map
+    [options]="mapOptions"
+    width="100%"
+    height="100%">
+    
+    <!-- Marcador del vehículo -->
+    @if (marker()) {
+      <map-marker
+        [position]="marker()!.position"
+        [title]="marker()!.title"
+        [options]="{ icon: marker()!.icon }">
+      </map-marker>
+    }
+  </google-map>
+
+  <!-- Botón para centrar en el vehículo -->
+  <ion-fab class="center-fab" vertical="bottom" horizontal="start" slot="fixed">
+    <ion-fab-button (click)="centerOnVehicle()" color="primary" size="small">
+      <ion-icon name="locate-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Botón para cambiar tipo de mapa -->
+  <ion-fab class="map-type-fab" vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="medium" size="small">
+      <ion-icon name="layers-outline"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button (click)="changeMapType('roadmap')" title="Mapa" color="light" size="small">
+        <ion-icon name="map-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="changeMapType('satellite')" title="Satélite" color="light" size="small">
+        <ion-icon name="globe-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="changeMapType('hybrid')" title="Híbrido" color="light" size="small">
+        <ion-icon name="layers-outline"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="changeMapType('terrain')" title="Terreno" color="light" size="small">
+        <ion-icon name="earth-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
+
+  <!-- Información del vehículo -->
+  @if (vehicleData()) {
+    <div class="vehicle-info-card">
+      <h3>{{ vehicleData()!.plate }}</h3>
+      <div class="info-row">
+        <span class="label">Velocidad:</span>
+        <span class="value">{{ vehicleData()!.speed }} km/h</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Estado:</span>
+        <span class="value" [class]="'status-' + vehicleData()!.status">
+          {{ vehicleData()!.status === 'moving' ? 'En movimiento' : vehicleData()!.status === 'stopped' ? 'Detenido' : 'Sin señal' }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="label">Última actualización:</span>
+        <span class="value">{{ vehicleData()!.lastUpdate }}</span>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,25 @@
+<ion-content [fullscreen]="true">
+  <div class="public-tracking-container">
+    <!-- Loading State -->
+    @if (trackingService.isLoading()) {
+      <div class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando información del vehículo...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @else if (trackingService.error()) {
+      <div class="error-container">
+        <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+        <h2>Error</h2>
+        <p>{{ trackingService.error() }}</p>
+      </div>
+    }
+
+    <!-- Map View -->
+    @else if (trackingService.vehicleData()) {
+      <app-public-map [vehicleData]="trackingService.vehicleData()"></app-public-map>
+    }
+  </div>
+</ion-content>

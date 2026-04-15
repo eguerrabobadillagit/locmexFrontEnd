@@ -1,0 +1,130 @@
+<!-- Loading -->
+@if (isLoading()) {
+  <div class="loading-overlay">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando información del vehículo...</p>
+  </div>
+}
+
+<!-- Error -->
+@if (error()) {
+  <div class="error-overlay">
+    <ion-icon name="close-circle-outline" color="danger"></ion-icon>
+    <h2>Error</h2>
+    <p>{{ error() }}</p>
+  </div>
+}
+
+<!-- Mapa Fullscreen -->
+@if (!isLoading() && !error() && currentPosition()) {
+  <div class="map-container">
+    <google-map
+      [options]="mapOptions"
+      [width]="'100%'"
+      [height]="'100%'">
+      @if (markerPosition()) {
+        <map-marker
+          [position]="markerPosition()!"
+          [options]="markerOptions">
+        </map-marker>
+      }
+    </google-map>
+
+    <!-- Botón flotante para abrir panel -->
+    <button class="info-fab" (click)="togglePanel()">
+      <ion-icon name="information-circle-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Panel lateral deslizable -->
+  <div class="side-panel" [class.open]="isPanelOpen()">
+    <div class="panel-content">
+      
+      <!-- Header del panel -->
+      <div class="panel-header">
+        <h2>Unidad: {{ currentPosition()!.plate }}</h2>
+        <button class="close-btn" (click)="togglePanel()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Contenido scrolleable -->
+      <div class="panel-body">
+        
+        <!-- Ubicación reciente -->
+        <div class="info-section">
+          <label>Ubicación reciente</label>
+          <p class="info-value address-text">
+            <ion-icon name="location-outline" class="location-icon"></ion-icon>
+            Lat: {{ currentPosition()!.latitude }}, Lng: {{ currentPosition()!.longitude }}
+          </p>
+        </div>
+
+        <!-- Último Reporte -->
+        <div class="info-section">
+          <label>Último Reporte</label>
+          <p class="info-value">{{ formatDate(currentPosition()!.lastMessageAtUtc) }}</p>
+          <p class="info-subtitle">{{ getTimeAgo(currentPosition()!.lastMessageAtUtc) }}</p>
+        </div>
+
+        <!-- Estado -->
+        <div class="info-section">
+          <label>Estado</label>
+          <div class="status-badge" [class.status-online]="currentPosition()!.isOnline" [class.status-offline]="!currentPosition()!.isOnline">
+            {{ currentPosition()!.isOnline ? 'En Línea' : 'Sin Señal' }}
+          </div>
+        </div>
+
+        <!-- Modelo/Vehículo -->
+        <div class="info-section">
+          <label>Vehículo</label>
+          <p class="info-value">{{ currentPosition()!.vehicleLabel }}</p>
+        </div>
+
+        <!-- Información en Tiempo Real -->
+        <div class="info-section">
+          <label>Información en Tiempo Real</label>
+          <div class="metrics-grid">
+            
+            <!-- Velocidad -->
+            <div class="metric-card">
+              <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
+              <span class="metric-label">Velocidad</span>
+              <span class="metric-value">{{ currentPosition()!.speedKph }} km/h</span>
+            </div>
+
+            <!-- Motor -->
+            <div class="metric-card">
+              <ion-icon name="power-outline" class="metric-icon" [class.active]="currentPosition()!.ignitionOn"></ion-icon>
+              <span class="metric-label">Motor</span>
+              <span class="metric-value">{{ currentPosition()!.ignitionOn ? 'Encendido' : 'Apagado' }}</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Hora GPS -->
+        <div class="info-section">
+          <label>Hora GPS</label>
+          <p class="info-value">{{ formatDate(currentPosition()!.fixTimeUtc) }}</p>
+        </div>
+
+        <!-- Info de expiración -->
+        @if (trackingInfo()) {
+          <div class="info-section expiry-section">
+            <ion-icon name="time-outline" class="expiry-icon"></ion-icon>
+            <p class="expiry-text">
+              Este enlace expira el {{ formatDate(trackingInfo()!.expiresAtUtc) }}
+            </p>
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay para cerrar panel en mobile -->
+  @if (isPanelOpen()) {
+    <div class="panel-overlay" (click)="togglePanel()"></div>
+  }
+}

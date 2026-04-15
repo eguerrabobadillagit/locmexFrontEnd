@@ -14,6 +14,7 @@ import {
 import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
 import { GeocodingService } from '../../../map/service/geocoding.service';
 import { VehicleAlertsComponent } from '../vehicle-alerts/vehicle-alerts.component';
+import { GenerateLinkModalComponent } from '../../../public-tracking/components/generate-link-modal/generate-link-modal.component';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -58,7 +59,8 @@ addIcons({
     IonButtons,
     IonCard,
     IonCardContent,
-    VehicleAlertsComponent
+    VehicleAlertsComponent,
+    GenerateLinkModalComponent
   ]
 })
 export class VehicleDetailComponent {
@@ -68,6 +70,9 @@ export class VehicleDetailComponent {
   close = output<void>();
 
   address = signal<string>('Cargando ubicación...');
+  
+  // Signals para el modal de compartir
+  showShareModal = signal<boolean>(false);
 
   constructor() {
     effect(() => {
@@ -122,7 +127,11 @@ export class VehicleDetailComponent {
   }
 
   onShare() {
-    // TODO: Implementar compartir vehículo
+    this.showShareModal.set(true);
+  }
+
+  onCloseShareModal() {
+    this.showShareModal.set(false);
   }
 
   onExpand() {

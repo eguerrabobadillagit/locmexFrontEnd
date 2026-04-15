@@ -162,3 +162,13 @@
     </ion-button>
   </div>
 </div>
+
+<!-- Modal para generar link de tracking -->
+@if (vehicle()) {
+  <app-generate-link-modal
+    [isOpen]="showShareModal()"
+    [vehicleId]="vehicle()!.id"
+    [vehiclePlate]="vehicle()!.plate"
+    (close)="onCloseShareModal()">
+  </app-generate-link-modal>
+}

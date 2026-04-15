@@ -1,0 +1,145 @@
+<ion-modal [isOpen]="isOpen()" (didDismiss)="onClose()" class="tracking-modal">
+  <ng-template>
+    <ion-header class="modal-header">
+      <ion-toolbar>
+        <div class="header-content">
+          <div class="header-icon">
+            <ion-icon name="share-outline"></ion-icon>
+          </div>
+          <div class="header-text">
+            <h2>Generar Link de Tracking</h2>
+          </div>
+          <ion-buttons slot="end">
+            <ion-button (click)="onClose()" class="close-btn">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </div>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content>
+      <div class="modal-content">
+        <!-- Banner informativo -->
+        <ion-card class="info-banner">
+          <ion-card-content>
+            <div class="banner-content">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <div class="banner-text">
+                <h3>Vehículo: {{ vehiclePlate() }}</h3>
+                <p>Genera un link único para compartir la ubicación en tiempo real de este vehículo.</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Formulario -->
+        @if (!generatedLink()) {
+          <form [formGroup]="linkForm">
+            <!-- Fecha/Hora Desde -->
+            <ion-item>
+              <ion-label position="stacked">
+                <ion-icon name="calendar-outline"></ion-icon>
+                Fecha y Hora Desde
+              </ion-label>
+              <ion-datetime-button datetime="startDatetime"></ion-datetime-button>
+              
+              <ion-modal [keepContentsMounted]="true" class="datetime-modal">
+                <ng-template>
+                  <ion-datetime
+                    id="startDatetime"
+                    presentation="date-time"
+                    formControlName="startDate"
+                    [min]="minStartDate"
+                    locale="es-MX"
+                    [showDefaultButtons]="true"
+                    cancelText="Cancelar"
+                    doneText="Aceptar">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </ion-item>
+
+            <!-- Fecha/Hora Hasta -->
+            <ion-item>
+              <ion-label position="stacked">
+                <ion-icon name="calendar-outline"></ion-icon>
+                Fecha y Hora Hasta
+              </ion-label>
+              <ion-datetime-button datetime="endDatetime"></ion-datetime-button>
+              
+              <ion-modal [keepContentsMounted]="true" class="datetime-modal">
+                <ng-template>
+                  <ion-datetime
+                    id="endDatetime"
+                    presentation="date-time"
+                    formControlName="endDate"
+                    [min]="minEndDate"
+                    locale="es-MX"
+                    [showDefaultButtons]="true"
+                    cancelText="Cancelar"
+                    doneText="Aceptar">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </ion-item>
+          </form>
+        }
+
+        <!-- Link generado -->
+        @if (generatedLink()) {
+          <div class="generated-link-container">
+            <div class="success-message">
+              <ion-icon name="checkmark-outline" color="success"></ion-icon>
+              <h4>¡Link generado exitosamente!</h4>
+            </div>
+
+            <ion-item>
+              <ion-label position="stacked">Link de Tracking</ion-label>
+              <ion-textarea 
+                [value]="generatedLink()!.publicUrl" 
+                [readonly]="true"
+                [autoGrow]="true"
+                rows="3">
+              </ion-textarea>
+            </ion-item>
+
+            <div class="link-info">
+              <p><strong>Válido hasta:</strong> {{ generatedLink()!.expiresAtUtc | date:'medium' }}</p>
+            </div>
+
+            <div class="link-actions">
+              <ion-button 
+                expand="block" 
+                (click)="copyLink()">
+                <ion-icon [name]="linkCopied() ? 'checkmark-outline' : 'copy-outline'" slot="start"></ion-icon>
+                {{ linkCopied() ? '¡Copiado!' : 'Copiar Link' }}
+              </ion-button>
+
+              <ion-button expand="block" fill="outline" (click)="onClose()">
+                Cerrar
+              </ion-button>
+            </div>
+          </div>
+        }
+      </div>
+    </ion-content>
+
+    <!-- Footer con botón Generar Link -->
+    @if (!generatedLink()) {
+      <ion-footer>
+        <ion-toolbar>
+          <ion-button 
+            slot="end"
+            [disabled]="linkForm.invalid || isGenerating()" 
+            (click)="generateLink()">
+            @if (isGenerating()) {
+              <ion-spinner name="crescent"></ion-spinner>
+            }
+            Generar Link
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
+    }
+  </ng-template>
+</ion-modal>
