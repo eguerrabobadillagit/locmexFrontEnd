@@ -1,0 +1,137 @@
+<div class="geofences-view">
+  <!-- Header Compacto -->
+  <div class="geofences-header-compact">
+    <div class="header-left-compact">
+      <ion-icon name="shield-outline" class="header-icon-compact"></ion-icon>
+      <h2>Geocercas <span class="count-badge">({{ totalCount }})</span></h2>
+    </div>
+    <div class="header-right-compact">
+      <span class="active-count-badge-compact">{{ activeCount }} activas</span>
+      <button class="new-btn-compact" (click)="onCreate()">
+        <ion-icon name="add-outline"></ion-icon>
+        <span class="btn-text">Nueva</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Bar Compacta -->
+  <div class="search-container-compact">
+    <ion-searchbar
+      [value]="searchQuery()"
+      placeholder="Buscar geocerca..."
+      (ionInput)="onSearch($event)"
+      class="geofence-searchbar-compact">
+    </ion-searchbar>
+  </div>
+
+  <!-- Sub-tabs Pills -->
+  <div class="sub-tabs-pills">
+    <button
+      class="pill-btn"
+      [class.active]="filterTab() === 'todas'"
+      (click)="onFilterChange('todas')">
+      Todas
+    </button>
+    <button
+      class="pill-btn"
+      [class.active]="filterTab() === 'activas'"
+      (click)="onFilterChange('activas')">
+      Activas
+    </button>
+    <button
+      class="pill-btn"
+      [class.active]="filterTab() === 'inactivas'"
+      (click)="onFilterChange('inactivas')">
+      Inactivas
+    </button>
+  </div>
+
+  <!-- Select All Section -->
+  @if (!geofenceService.isLoading() && filteredGeofences.length > 0) {
+    <div class="select-all-section">
+      <div class="select-all-left" (click)="$event.stopPropagation()">
+        <ion-checkbox
+          [checked]="selectedCount() === filteredGeofences.length && filteredGeofences.length > 0"
+          [indeterminate]="selectedCount() > 0 && selectedCount() < filteredGeofences.length"
+          (ionChange)="toggleSelectAll($event)">
+        </ion-checkbox>
+        <span class="select-all-text">Seleccionar todas</span>
+      </div>
+      <span class="selection-count">{{ selectedCount() }} de {{ filteredGeofences.length }}</span>
+    </div>
+  }
+
+  <!-- Geofences List -->
+  <div class="geofences-list-container">
+    @if (geofenceService.isLoading()) {
+      <div class="loading-container">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando geocercas...</p>
+      </div>
+    } @else if (filteredGeofences.length === 0) {
+      <div class="empty-container">
+        <ion-icon name="shield-outline" class="empty-icon"></ion-icon>
+        <p class="empty-message">
+          @if (searchQuery()) {
+            No se encontraron geocercas
+          } @else {
+            No hay geocercas registradas
+          }
+        </p>
+      </div>
+    } @else {
+      <div class="geofences-list">
+        @for (geofence of filteredGeofences; track geofence.id) {
+          <div class="geofence-item-modern" [class.selected]="selectedGeofenceId() === geofence.id" (click)="onCardClick(geofence)">
+            <!-- Icono con badge abajo -->
+            <div class="geofence-icon-section">
+              <div class="geofence-icon-modern"
+                [style.background]="(geofence.color || getIconColor(geofence)) + '22'"
+                [style.borderColor]="geofence.color || getIconColor(geofence)">
+                <ion-icon [name]="getIconName(geofence)"
+                  [style.color]="geofence.color || getIconColor(geofence)"></ion-icon>
+              </div>
+              <span class="status-badge-modern" [class.active]="geofence.isActive" [class.inactive]="!geofence.isActive">
+                {{ geofence.isActive ? 'Activa' : 'Inactiva' }}
+              </span>
+            </div>
+
+            <!-- Info principal -->
+            <div class="geofence-content-modern">
+              <!-- Nombre -->
+              <div class="geofence-title-row-modern">
+                <span class="geofence-name-modern">{{ geofence.name }}</span>
+              </div>
+              <!-- Tipo -->
+              <div class="geofence-meta-row-modern">
+                <span class="geofence-type-modern">{{ getTypeLabel(geofence) }}</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="geofence-actions-modern">
+              <button class="action-btn-modern" (click)="onView(geofence, $event)" title="Ver">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+              <button class="action-btn-modern" (click)="onEdit(geofence, $event)" title="Editar">
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+              <button class="action-btn-modern delete" (click)="onDelete(geofence, $event)" title="Eliminar">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+
+            <!-- Checkbox de selección -->
+            <div class="geofence-checkbox-wrapper" (click)="$event.stopPropagation()">
+              <ion-checkbox
+                [checked]="isGeofenceSelected(geofence.id)"
+                (ionChange)="toggleGeofenceSelection(geofence.id, $event)"
+                title="Mostrar/Ocultar en mapa">
+              </ion-checkbox>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

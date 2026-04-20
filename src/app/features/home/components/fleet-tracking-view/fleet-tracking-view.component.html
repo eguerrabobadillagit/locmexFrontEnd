@@ -1,194 +1,64 @@
-<div class="vehicle-list-container">
-  <!-- Header -->
-  <div class="list-header">
-    <div class="header-left">
-      <ion-icon name="car-outline" class="header-icon"></ion-icon>
-      <h2>Unidades ({{ vehicles().length }})</h2>
-    </div>
-    <div class="header-right">
-      <button class="view-toggle" (click)="toggleViewMode()">
-        <ion-icon [name]="viewMode() === 'list' ? 'grid-outline' : 'list-outline'"></ion-icon>
-      </button>
-      <button class="close-btn" (click)="onClose()">
-        <ion-icon name="close-outline"></ion-icon>
-      </button>
-    </div>
-  </div>
-@switch (sidebarViewMode()) {
-  @case ('history') {
-    @switch (historySubViewMode()) {
-      @case ('route') {
-        <app-vehicle-history-route
-          [vehicleId]="selectedHistoryVehicle()?.id || ''"
-          [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
-          [fromDate]="getHistoryFromDate()"
-          [fromHour]="getHistoryFromHour()"
-          [fromMinute]="getHistoryFromMinute()"
-          [toDate]="getHistoryToDate()"
-          [toHour]="getHistoryToHour()"
-          [toMinute]="getHistoryToMinute()"
-          (closeRoute)="closeHistory()"
-          (backToForm)="onBackToHistoryForm()"
-          (pointSelect)="onHistoryPointSelect($event)"
-        />
-      }
-      @default {
-        <app-vehicle-history-form
-          [vehicleId]="selectedHistoryVehicle()?.id || ''"
-          [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
-          (closeForm)="closeHistory()"
-          (searchHistory)="onHistorySearch($event)"
-        />
-      }
-    }
-  }
-  @default {
-    <p class="subtitle">Ver detalles completos</p>
-
-    <!-- Select All Section -->
-    @if (!isLoading() && !error() && vehicles().length > 0) {
-      <div class="select-all-section">
-        <div (click)="$event.stopPropagation()">
-          <ion-checkbox 
-            [checked]="selectedCount() === vehicles().length && vehicles().length > 0"
-            [indeterminate]="selectedCount() > 0 && selectedCount() < vehicles().length"
-            (ionChange)="toggleSelectAll($event)">
-          </ion-checkbox>
-        </div>
-        <span class="select-all-text">Seleccionar todas</span>
-        <span class="selection-count">{{ selectedCount() }} de {{ vehicles().length }}</span>
-      </div>
-    }
-
-  <!-- Loading State -->
-  @if (isLoading()) {
-    <div class="loading-container">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>Cargando vehículos...</p>
-    </div>
-  }
-
-  <!-- Error State -->
-  @else if (error()) {
-    <div class="error-container">
-      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
-      <p class="error-message">{{ error() }}</p>
-      <button class="retry-btn" (click)="loadVehicles()">
-        Reintentar
-      </button>
-    </div>
-  }
-
-  <!-- Empty State -->
-  @else if (vehicles().length === 0) {
-    <div class="empty-container">
-      <ion-icon name="car-outline" class="empty-icon"></ion-icon>
-      <p class="empty-message">No hay vehículos registrados</p>
-    </div>
-  }
-
-  <!-- Vehicle Cards/List -->
-  @else {
-    <!-- CARD VIEW (Expandida) -->
-    @if (viewMode() === 'card') {
-      <div class="vehicles-container">
-        @for (vehicle of vehicles(); track vehicle.id) {
-        <ion-card class="vehicle-card" [class.selected]="selectedVehicleId() === vehicle.id" (click)="onVehicleClick(vehicle.id)">
-          <ion-card-content>
-            <!-- Header de la card -->
-            <div class="card-header">
-              <div class="vehicle-icon">
-                <ion-icon name="car-outline"></ion-icon>
-              </div>
-              <div class="vehicle-info">
-                <h3>{{ vehicle.plate }}</h3>
-                <p class="driver">{{ vehicle.driver }}</p>
-                <p class="model">{{ vehicle.model }}</p>
-              </div>
-              <div class="card-actions">
-                <button class="history-btn" (click)="openHistory(vehicle, $event)" title="Ver recorrido histórico">
-                  <ion-icon name="analytics-outline"></ion-icon>
-                </button>
-                <div (click)="$event.stopPropagation()">
-                  <ion-checkbox 
-                    [checked]="selectedVehicles().has(vehicle.id)"
-                    (ionChange)="toggleVehicleSelection(vehicle.id, $event)">
-                  </ion-checkbox>
-                </div>
-              </div>
+<div class="fleet-tracking-container">
+  @switch (sidebarViewMode()) {
+    @case ('history') {
+      @switch (historySubViewMode()) {
+        @case ('route') {
+          @if (isLoadingHistory()) {
+            <div class="history-loading">
+              <div class="spinner"></div>
+              <p>Cargando recorrido...</p>
             </div>
+          }
 
-            <!-- Status -->
-            <div class="status-badge" [ngClass]="getStatusClass(vehicle.status)">
-              <ion-icon name="speedometer-outline"></ion-icon>
-              <div class="status-info">
-                <span class="status-text">{{ vehicle.statusText }}</span>
-                <span class="status-time">{{ vehicle.lastUpdate }}</span>
-              </div>
+          @if (historyError()) {
+            <div class="history-error">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <p>{{ historyError() }}</p>
+              <button class="retry-btn" (click)="onBackToHistoryForm()">Volver</button>
             </div>
+          }
 
-            <!-- Metrics -->
-            <div class="metrics">
-              <div class="metric">
-                <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
-                <span>{{ vehicle.speed }} km/h</span>
-              </div>
-              <div class="metric">
-                <ion-icon name="battery-half-outline" class="metric-icon"></ion-icon>
-                <span>{{ vehicle.battery }}%</span>
-              </div>
-            </div>
-
-            <!-- Motor Status -->
-            <div class="motor-status" [class.motor-on]="vehicle.motorOn">
-              <ion-icon name="power-outline"></ion-icon>
-              <span>Motor {{ vehicle.motorOn ? 'ON' : 'OFF' }}</span>
-            </div>
-          </ion-card-content>
-        </ion-card>
+          @if (!isLoadingHistory() && !historyError()) {
+            <app-vehicle-history-route
+              [vehicleId]="selectedHistoryVehicle()?.id || ''"
+              [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
+              [fromDate]="getHistoryFromDate()"
+              [fromHour]="getHistoryFromHour()"
+              [fromMinute]="getHistoryFromMinute()"
+              [toDate]="getHistoryToDate()"
+              [toHour]="getHistoryToHour()"
+              [toMinute]="getHistoryToMinute()"
+              [historyPointsData]="historyPoints()"
+              [formattedPointsData]="formattedHistoryPoints()"
+              [totalDistance]="totalHistoryDistance()"
+              [totalDuration]="totalHistoryDuration()"
+              [totalPoints]="totalHistoryPoints()"
+              (closeRoute)="closeHistoryView()"
+              (backToForm)="onBackToHistoryForm()"
+              (pointSelect)="onHistoryPointSelect($event)" />
+          }
         }
-      </div>
-    }
-    
-    <!-- LIST VIEW (Compacta) -->
-    @else {
-      <div class="vehicles-list-compact">
-        @for (vehicle of vehicles(); track vehicle.id) {
-        <div class="list-item" [class.selected]="selectedVehicleId() === vehicle.id" (click)="onVehicleClick(vehicle.id)">
-          <div class="vehicle-icon-compact">
-            <ion-icon name="car-outline"></ion-icon>
-          </div>
-          
-          <div class="vehicle-main-info">
-            <div class="vehicle-info-compact">
-              <span class="vehicle-name">{{ vehicle.plate }}</span>
-              <span class="driver-name">{{ vehicle.driver }}</span>
-            </div>
-          </div>
-          
-          <div class="vehicle-metrics-compact">
-            <div class="metric-item">
-              <ion-icon name="speedometer-outline"></ion-icon>
-              <span>{{ vehicle.speed }} km/h</span>
-            </div>
-          </div>
-          
-          <div class="list-actions">
-            <button class="action-icon" (click)="openHistory(vehicle, $event)" title="Ver recorrido">
-              <ion-icon name="analytics-outline"></ion-icon>
-            </button>
-            <div (click)="$event.stopPropagation()">
-              <ion-checkbox 
-                [checked]="selectedVehicles().has(vehicle.id)"
-                (ionChange)="toggleVehicleSelection(vehicle.id, $event)">
-              </ion-checkbox>
-            </div>
-          </div>
-        </div>
+        @default {
+          <app-vehicle-history-form
+            [vehicleId]="selectedHistoryVehicle()?.id || ''"
+            [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
+            (closeForm)="closeHistoryView()"
+            (searchHistory)="onHistorySearch($event)" />
         }
-      </div>
+      }
+    }
+    @default {
+      <app-units-list
+        [vehicles]="vehicles()"
+        [isLoading]="isLoading()"
+        [error]="error()"
+        [viewMode]="viewMode()"
+        (vehicleClick)="onVehicleSelect($event)"
+        (viewModeToggle)="onViewModeToggle()"
+        (close)="closeView.emit()"
+        (retry)="onRetryLoad()"
+        (openHistory)="onOpenHistoryClicked($event)">
+      </app-units-list>
     }
   }
-}
-}
 </div>

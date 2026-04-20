@@ -28,6 +28,7 @@ export interface PublicVehicleData {
 export class PublicTrackingService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
+  private intervalId: any = null;
 
   // Signal para datos del vehículo
   vehicleData = signal<PublicVehicleData | null>(null);
@@ -82,9 +83,12 @@ export class PublicTrackingService {
    * Conecta al WebSocket para recibir actualizaciones en tiempo real
    */
   connectWebSocket(token: string): void {
+    // Limpiar intervalo anterior si existe para prevenir duplicados
+    this.disconnectWebSocket();
+
     // TODO: Implementar conexión WebSocket específica para tracking público
     // Por ahora, usaremos polling cada 5 segundos
-    setInterval(() => {
+    this.intervalId = setInterval(() => {
       this.getVehicleData(token).subscribe();
     }, 5000);
   }
@@ -93,7 +97,10 @@ export class PublicTrackingService {
    * Desconecta del WebSocket
    */
   disconnectWebSocket(): void {
-    // TODO: Implementar desconexión WebSocket
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 
   /**

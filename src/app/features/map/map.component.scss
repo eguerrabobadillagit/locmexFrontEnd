@@ -29,56 +29,146 @@
     overflow: hidden;
   }
 
-  .geofence-fab {
+  // Mobile vehicle detail overlay
+  app-vehicle-detail-mobile {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 999;
-
-    ion-fab-button {
-      --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-
-      ion-icon {
-        font-size: 24px;
-      }
-    }
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1500;
+    max-height: 85vh;
   }
 
-  .tracking-fab {
+  // Alerts FAB - Positioned top left
+  .alerts-fab {
     position: absolute;
-    bottom: 90px;
-    left: 20px;
+    top: 16px;
+    left: 16px;
     z-index: 999;
 
     ion-fab-button {
-      --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      --background: var(--ion-color-light);
+      --color: var(--ion-color-medium);
+      --border-radius: 8px;
+      width: 44px;
+      height: 44px;
+      --size: 44px;
+
+      &::part(native) {
+        border-radius: 8px;
+      }
 
       ion-icon {
-        font-size: 24px;
+        font-size: 20px;
       }
     }
+
+    .alerts-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ion-color-danger);
+      color: white;
+      padding: 0 5px;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    &.has-alerts {
+      ion-fab-button {
+        --background: var(--ion-color-warning);
+        --color: white;
+      }
+    }
+    // Alerts Popover Styles - Separación y ancho
   }
 
-  .map-type-fab {
+  // Map Controls Row - Positioned top left next to alerts
+  .map-controls-row {
     position: absolute;
-    bottom: 160px;
-    left: 20px;
+    top: 72px;
+    left: 16px;
     z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
 
-    ion-fab-button {
-      --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    .control-button {
+      --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      --border-radius: 8px;
+      --padding-start: 0;
+      --padding-end: 0;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      width: 44px;
+      height: 44px;
+      margin: 0;
+
+      &::part(native) {
+        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+      }
 
       ion-icon {
-        font-size: 24px;
+        font-size: 20px;
       }
     }
 
-    ion-fab-list {
+    // Map type FAB styles
+    .control-fab {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+
       ion-fab-button {
         --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        
+        --border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        --size: 44px;
+        position: relative;
+
+        &::part(native) {
+          border-radius: 8px;
+        }
+
         ion-icon {
           font-size: 20px;
+        }
+      }
+
+      ion-fab-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 4px;
+        z-index: 1001;
+
+        ion-fab-button {
+          --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          margin: 4px 0;
+          width: 44px;
+          height: 44px;
+          --size: 44px;
+          position: relative;
+
+          &::part(native) {
+            border-radius: 8px;
+          }
         }
       }
     }
@@ -88,6 +178,11 @@
 // Mobile Bottom Sheet – shown only on small screens
 @media (max-width: 768px) {
   .map-container {
+    // Ocultar el panel lateral de vehicle-detail en mobile
+    .vehicle-detail-panel {
+      display: none !important;
+    }
+
     .mobile-sheet {
       display: flex;
       flex-direction: column;
@@ -196,9 +291,43 @@
         }
       }
 
+      // Loading state for mobile sheet
+      .mobile-sheet-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        background: var(--ion-background-color, #ffffff);
+
+        .mobile-spinner {
+          width: 36px;
+          height: 36px;
+          border: 3px solid var(--ion-color-light, #e0e0e0);
+          border-top-color: var(--ion-color-primary, #3880ff);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        p {
+          margin: 12px 0 0;
+          font-size: 14px;
+          color: var(--ion-color-medium, #666);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       // Points list – shown when expanded, hidden by default
       // Note: base styles are defined in the .mobile-sheet block above
       .sheet-points-list {
+        // Limitar altura máxima para que no sobrepase la pantalla
+        max-height: calc(70vh - 180px); // 70vh total menos espacio de header y player
+
         .sheet-point-item {
           display: flex;
           align-items: center;
@@ -243,17 +372,13 @@
 
     }
 
-    // FABs only shift up when sheet is present
-    .geofence-fab.sheet-active {
-      bottom: calc(280px + env(safe-area-inset-bottom, 0px)) !important;
-    }
+    // Map controls row shifts when sheet is present (moves above the sheet)
+    .map-controls-row {
+      transition: top 0.3s ease;
 
-    .tracking-fab.sheet-active {
-      bottom: calc(350px + env(safe-area-inset-bottom, 0px)) !important;
-    }
-
-    .map-type-fab.sheet-active {
-      bottom: calc(420px + env(safe-area-inset-bottom, 0px)) !important;
+      &.sheet-active {
+        top: calc(280px + 16px + env(safe-area-inset-bottom, 0px)) !important;
+      }
     }
   }
 }

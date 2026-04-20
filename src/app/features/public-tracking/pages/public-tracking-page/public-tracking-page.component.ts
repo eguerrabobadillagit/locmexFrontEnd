@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, signal, ViewChild, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { GoogleMap, MapMarker } from '@angular/google-maps';
 import { IonSpinner, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -31,6 +32,7 @@ export class PublicTrackingPageComponent implements OnInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute);
   private readonly trackingService = inject(PublicTrackingRealtimeService);
+  private positionSubscription: Subscription | null = null;
 
   // Estado
   token = signal<string>('');
@@ -105,7 +107,7 @@ export class PublicTrackingPageComponent implements OnInit, OnDestroy {
       this.isConnected.set(true);
 
       // 5. Escuchar actualizaciones en tiempo real
-      this.trackingService.position$.subscribe(newPosition => {
+      this.positionSubscription = this.trackingService.position$.subscribe(newPosition => {
         if (newPosition) {
           this.currentPosition.set(newPosition);
         }
@@ -141,6 +143,9 @@ export class PublicTrackingPageComponent implements OnInit, OnDestroy {
   }
 
   async ngOnDestroy() {
+    // Limpiar suscripción a actualizaciones de posición
+    this.positionSubscription?.unsubscribe();
+
     // Desconectar SignalR al salir
     await this.trackingService.disconnect();
   }

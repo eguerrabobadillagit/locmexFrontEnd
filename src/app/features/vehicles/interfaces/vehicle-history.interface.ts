@@ -14,6 +14,13 @@ export interface VehicleHistoryRequest {
   vehicleId: string;
   fromUtc: string;
   toUtc: string;
+  // Campos opcionales para mantener la referencia original
+  fromDate?: string;
+  fromHour?: string;
+  fromMinute?: string;
+  toDate?: string;
+  toHour?: string;
+  toMinute?: string;
 }
 
 export interface FormattedHistoryPoint {

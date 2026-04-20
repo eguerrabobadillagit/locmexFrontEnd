@@ -16,6 +16,8 @@ export class GeofenceService {
   readonly error = signal<string | null>(null);
   readonly geofences = signal<GeofenceResponse[]>([]);
   readonly lastCreatedGeofence = signal<GeofenceResponse | null>(null);
+  readonly selectedGeofenceToCenter = signal<GeofenceResponse | null>(null);
+  readonly returnUrl = signal<string | null>(null);
 
   getGeofences(): Observable<GeofenceResponse[]> {
     this.isLoading.set(true);
@@ -128,5 +130,27 @@ export class GeofenceService {
 
   clearLastCreatedGeofence(): void {
     this.lastCreatedGeofence.set(null);
+  }
+
+  selectGeofenceToCenter(geofence: GeofenceResponse): void {
+    this.selectedGeofenceToCenter.set(geofence);
+  }
+
+  clearSelectedGeofenceToCenter(): void {
+    this.selectedGeofenceToCenter.set(null);
+  }
+
+  setReturnUrl(url: string): void {
+    this.returnUrl.set(url);
+  }
+
+  getReturnUrl(): string | null {
+    const url = this.returnUrl();
+    this.returnUrl.set(null); // Limpiar después de obtener
+    return url;
+  }
+
+  clearReturnUrl(): void {
+    this.returnUrl.set(null);
   }
 }

@@ -1,0 +1,41 @@
+<div class="vehicle-selector">
+  <ion-accordion-group [multiple]="true" [value]="['vehicles']">
+    <ion-accordion value="vehicles">
+      <ion-item slot="header" class="accordion-header">
+        <div class="header-content">
+          <ion-icon name="car-outline" class="header-icon"></ion-icon>
+          <div class="header-text">
+            <span class="title">VEHÍCULOS VINCULADOS</span>
+            <span class="count">({{ selectedCount() }})</span>
+          </div>
+        </div>
+        <ion-icon name="chevron-down-outline" slot="end" class="chevron-icon"></ion-icon>
+      </ion-item>
+
+      <div slot="content" class="vehicles-list">
+        @for (vehicle of vehicles(); track vehicle.id) {
+          <ion-item class="vehicle-item" (click)="toggleVehicle(vehicle.id)">
+            <ion-checkbox 
+              [checked]="isSelected(vehicle.id)"
+              slot="start"
+              (click)="$event.stopPropagation()"
+              (ionChange)="toggleVehicle(vehicle.id)">
+            </ion-checkbox>
+            <ion-label>
+              <h3 class="vehicle-plate">{{ vehicle.plate }}</h3>
+              <p class="vehicle-subtitle">{{ getVehicleSubtitle(vehicle) }}</p>
+            </ion-label>
+          </ion-item>
+        }
+        
+        @if (vehicles().length === 0) {
+          <ion-item class="empty-item">
+            <ion-label>
+              <p class="empty-text">No hay vehículos disponibles</p>
+            </ion-label>
+          </ion-item>
+        }
+      </div>
+    </ion-accordion>
+  </ion-accordion-group>
+</div>

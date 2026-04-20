@@ -12,11 +12,13 @@ export class RoutePlaybackService {
   private readonly _currentPoint = signal<RoutePlaybackPoint | null>(null);
   private readonly _isPlaying = signal<boolean>(false);
   private readonly _requestSidebarOpen = signal<boolean>(false);
+  private readonly _isLoadingRoute = signal<boolean>(false);
 
   readonly routePoints = this._routePoints.asReadonly();
   readonly currentPoint = this._currentPoint.asReadonly();
   readonly isPlaying = this._isPlaying.asReadonly();
   readonly requestSidebarOpen = this._requestSidebarOpen.asReadonly();
+  readonly isLoadingRoute = this._isLoadingRoute.asReadonly();
 
   openSidebar(): void {
     this._requestSidebarOpen.set(true);
@@ -24,6 +26,11 @@ export class RoutePlaybackService {
 
   consumeSidebarRequest(): void {
     this._requestSidebarOpen.set(false);
+  }
+
+  setLoadingRoute(loading: boolean): void {
+    console.log('[RoutePlaybackService] setLoadingRoute:', loading);
+    this._isLoadingRoute.set(loading);
   }
 
   /** Timestamps reales (ms) de cada punto GPS */

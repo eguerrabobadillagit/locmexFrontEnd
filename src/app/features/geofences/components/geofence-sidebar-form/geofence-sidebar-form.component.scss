@@ -1,0 +1,473 @@
+.geofence-sidebar-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+
+  // Header
+  .form-header {
+    padding: 16px 16px 8px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .header-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+
+      .close-btn {
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        ion-icon {
+          font-size: 24px;
+          color: var(--ion-color-dark);
+        }
+      }
+
+      .header-text {
+        flex: 1;
+
+        .title {
+          font-size: 18px;
+          font-weight: 600;
+          color: var(--ion-color-dark);
+          margin: 0 0 4px 0;
+        }
+
+        .subtitle {
+          font-size: 13px;
+          color: var(--ion-color-medium);
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  // Instruction Banner
+  .instruction-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-radius: 10px;
+    border-left: 4px solid #2196f3;
+
+    .instruction-icon {
+      font-size: 20px;
+      color: #1976d2;
+      flex-shrink: 0;
+    }
+
+    .instruction-text {
+      font-size: 13px;
+      color: #1565c0;
+      font-weight: 500;
+    }
+  }
+
+  // Form Content
+  .form-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px 16px;
+
+    .form-field {
+      margin-bottom: 20px;
+
+      .field-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ion-color-medium);
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+
+    .custom-input {
+      --background: #f8f9fa;
+      --border-color: transparent;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-size: 14px;
+
+      &::part(native) {
+        background: #f8f9fa;
+      }
+    }
+
+    // Name input with border, white background, black text
+    .name-input {
+      --background: #ffffff;
+      --color: #1a1a1a;
+      --border-radius: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+      --padding-top: 10px;
+      --padding-bottom: 10px;
+      --placeholder-color: #aaa;
+      font-size: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      box-shadow: none;
+
+      &::part(native) {
+        background: #ffffff;
+        color: #1a1a1a;
+      }
+
+      &::part(input) {
+        color: #1a1a1a;
+      }
+    }
+    }
+
+    // Shape Segment
+    .shape-segment {
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 4px;
+      --background: transparent;
+
+      .shape-button {
+        --background: transparent;
+        --background-checked: var(--ion-color-dark);
+        --color: var(--ion-color-medium);
+        --color-checked: white;
+        --border-radius: 8px;
+        min-height: 56px;
+
+        &::part(indicator) {
+          display: none;
+        }
+
+        .shape-option {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 8px 4px;
+
+          .shape-icon {
+            font-size: 20px;
+          }
+
+          .shape-label {
+            font-size: 11px;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+
+    // Configuration Section
+    .configuration-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 8px;
+
+      .field-label {
+        margin-bottom: 12px;
+      }
+
+      .config-item {
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e0e0e0;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &.toggle-item {
+          justify-content: space-between;
+
+          .config-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ion-color-dark);
+          }
+
+          .custom-toggle {
+            --background: #e0e0e0;
+            --background-checked: var(--ion-color-dark);
+            --handle-background: white;
+            --handle-background-checked: white;
+          }
+        }
+
+        &.checkbox-item {
+          gap: 12px;
+
+          .custom-checkbox {
+            --size: 20px;
+            --checkbox-background-checked: var(--ion-color-dark);
+            --checkmark-color: white;
+            --border-color: var(--ion-color-medium);
+            --border-color-checked: var(--ion-color-dark);
+            --border-radius: 4px;
+          }
+
+          .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+
+            .alert-icon {
+              font-size: 18px;
+
+              &.enter {
+                color: #4caf50;
+              }
+
+              &.exit {
+                color: #ff9800;
+              }
+
+              &.stay {
+                color: #9c27b0;
+              }
+            }
+
+            .alert-label {
+              font-size: 14px;
+              color: var(--ion-color-dark);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Footer
+  .form-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid #f0f0f0;
+    background: white;
+
+    .cancel-btn {
+      flex: 1;
+      --border-radius: 8px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-weight: 500;
+      text-transform: none;
+    }
+
+    .save-btn {
+      flex: 1;
+      --border-radius: 8px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-weight: 500;
+      text-transform: none;
+      --background: #424242;
+      --background-activated: #212121;
+
+      &[disabled] {
+        --background: #bdbdbd;
+      }
+
+      ion-icon {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// Scrollbar styling
+.form-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.form-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-content::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
+
+.form-content::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
+}
+
+// Vehicle Autocomplete Styles
+.vehicle-field {
+  margin-top: 20px;
+
+  .autocomplete-wrapper {
+    position: relative;
+
+    .vehicle-input-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:focus-within {
+        border-color: var(--ion-color-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .vehicle-icon {
+        font-size: 20px;
+        color: var(--ion-color-medium);
+        flex-shrink: 0;
+      }
+
+      .vehicle-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        color: var(--ion-color-dark);
+        outline: none;
+
+        &::placeholder {
+          color: var(--ion-color-medium);
+        }
+      }
+
+      .clear-vehicle-btn {
+        background: none;
+        border: none;
+        padding: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        ion-icon {
+          font-size: 18px;
+          color: var(--ion-color-medium);
+        }
+      }
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+
+      .autocomplete-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #f5f5f5;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
+        ion-icon {
+          font-size: 20px;
+          color: var(--ion-color-medium);
+        }
+
+        .vehicle-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .vehicle-plate {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ion-color-dark);
+          }
+
+          .vehicle-details {
+            font-size: 12px;
+            color: var(--ion-color-medium);
+          }
+        }
+      }
+    }
+  }
+
+  .selected-vehicle-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: var(--ion-color-dark);
+    border-radius: 16px;
+
+    .chip-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: white;
+    }
+
+    .chip-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      ion-icon {
+        font-size: 14px;
+        color: white;
+      }
+    }
+  }
+}

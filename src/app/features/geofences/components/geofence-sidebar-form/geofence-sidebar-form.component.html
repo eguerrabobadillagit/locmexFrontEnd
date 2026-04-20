@@ -1,0 +1,179 @@
+<div class="geofence-sidebar-form">
+  <!-- Header -->
+  <div class="form-header">
+    <div class="header-content">
+      <button class="close-btn" (click)="onClose()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <div class="header-text">
+        <h2 class="title">{{ getHeaderTitle() }}</h2>
+        <p class="subtitle">El mapa está listo para dibujar</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instrucción -->
+  <div class="instruction-banner">
+    <ion-icon name="location-outline" class="instruction-icon"></ion-icon>
+    <span class="instruction-text">Toca el mapa para colocar el centro</span>
+  </div>
+
+  <!-- Form Content -->
+  <div class="form-content">
+    <!-- Nombre -->
+    <div class="form-field name-field">
+      <label class="field-label">NOMBRE</label>
+      <ion-input
+        [(ngModel)]="name"
+        placeholder="Ej: Zona Centro"
+        class="name-input"
+        fill="solid">
+      </ion-input>
+    </div>
+
+    <!-- Tipo de Zona -->
+    <div class="form-field">
+      <label class="field-label">TIPO DE ZONA</label>
+      <ion-segment
+        [value]="shapeType()"
+        (ionChange)="onShapeTypeChange($any($event.detail.value))"
+        class="shape-segment">
+        <ion-segment-button value="circular" class="shape-button">
+          <div class="shape-option">
+            <ion-icon name="radio-button-on-outline" class="shape-icon"></ion-icon>
+            <span class="shape-label">Círculo</span>
+          </div>
+        </ion-segment-button>
+        <ion-segment-button value="polygon" class="shape-button">
+          <div class="shape-option">
+            <ion-icon name="shapes-outline" class="shape-icon"></ion-icon>
+            <span class="shape-label">Polígono</span>
+          </div>
+        </ion-segment-button>
+        <ion-segment-button value="rectangle" class="shape-button">
+          <div class="shape-option">
+            <ion-icon name="square-outline" class="shape-icon"></ion-icon>
+            <span class="shape-label">Rect.</span>
+          </div>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Configuración -->
+    <div class="form-field configuration-section">
+      <label class="field-label">CONFIGURACIÓN</label>
+
+      <!-- Geocerca activa -->
+      <div class="config-item toggle-item">
+        <span class="config-label">Geocerca activa</span>
+        <ion-toggle
+          [(ngModel)]="isActive"
+          class="custom-toggle">
+        </ion-toggle>
+      </div>
+
+      <!-- Alerta al entrar -->
+      <div class="config-item checkbox-item">
+        <ion-checkbox
+          [(ngModel)]="alertOnEnter"
+          class="custom-checkbox">
+        </ion-checkbox>
+        <div class="alert-content">
+          <ion-icon name="notifications-outline" class="alert-icon enter"></ion-icon>
+          <span class="alert-label">Alerta al entrar</span>
+        </div>
+      </div>
+
+      <!-- Alerta al salir -->
+      <div class="config-item checkbox-item">
+        <ion-checkbox
+          [(ngModel)]="alertOnExit"
+          class="custom-checkbox">
+        </ion-checkbox>
+        <div class="alert-content">
+          <ion-icon name="notifications-off-outline" class="alert-icon exit"></ion-icon>
+          <span class="alert-label">Alerta al salir</span>
+        </div>
+      </div>
+
+      <!-- Alerta por permanencia -->
+      <div class="config-item checkbox-item">
+        <ion-checkbox
+          [(ngModel)]="alertOnStay"
+          class="custom-checkbox">
+        </ion-checkbox>
+        <div class="alert-content">
+          <ion-icon name="time-outline" class="alert-icon stay"></ion-icon>
+          <span class="alert-label">Alerta por permanencia</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehículos Vinculados -->
+    <div class="form-field vehicle-field">
+      <label class="field-label">VINCULAR VEHÍCULO</label>
+
+      <!-- Vehicle Autocomplete -->
+      <div class="autocomplete-wrapper">
+        <div class="vehicle-input-container">
+          <ion-icon name="car-outline" class="vehicle-icon"></ion-icon>
+          <input
+            type="text"
+            [(ngModel)]="vehicleSearchText"
+            (input)="onVehicleInput($event)"
+            (focus)="onVehicleFocus()"
+            placeholder="Buscar vehículo..."
+            class="vehicle-input">
+          @if (selectedVehiclesList().length > 0) {
+            <button class="clear-vehicle-btn" (click)="clearVehicleSelection()">
+              <ion-icon name="close-circle-outline"></ion-icon>
+            </button>
+          }
+        </div>
+        @if (showVehicleList()) {
+          <div class="autocomplete-list">
+            @for (vehicle of filteredVehicles(); track vehicle.id) {
+              <div class="autocomplete-item" (click)="selectVehicle(vehicle)">
+                <ion-icon name="car-outline"></ion-icon>
+                <div class="vehicle-info">
+                  <span class="vehicle-plate">{{ vehicle.plate }}</span>
+                  <span class="vehicle-details">{{ vehicle.brandName }} {{ vehicle.model }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Selected Vehicle Chip -->
+      @if (selectedVehiclesList().length > 0) {
+        <div class="selected-vehicle-chip">
+          <span class="chip-text">{{ selectedVehiclesList()[0].plate }}</span>
+          <button class="chip-remove" (click)="clearVehicleSelection()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="form-footer">
+    <ion-button
+      fill="outline"
+      color="medium"
+      (click)="onCancel()"
+      class="cancel-btn">
+      Cancelar
+    </ion-button>
+    <ion-button
+      fill="solid"
+      color="dark"
+      (click)="onSave()"
+      [disabled]="!isFormValid()"
+      class="save-btn">
+      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+      Guardar
+    </ion-button>
+  </div>
+</div>

@@ -35,6 +35,16 @@
 
         <!-- Formulario -->
         @if (!generatedLink()) {
+          <!-- Alerta de límite de tiempo -->
+          <div class="info-banner-horizontal">
+            <div class="banner-icon">
+              <ion-icon name="time-outline"></ion-icon>
+            </div>
+            <div class="banner-text">
+              El link tiene una duración máxima de <strong>24 horas</strong> (1 día)
+            </div>
+          </div>
+
           <form [formGroup]="linkForm">
             <!-- Fecha/Hora Desde -->
             <ion-item>
@@ -50,7 +60,7 @@
                     id="startDatetime"
                     presentation="date-time"
                     formControlName="startDate"
-                    [min]="minStartDate"
+                    [min]="minStartDate()"
                     locale="es-MX"
                     [showDefaultButtons]="true"
                     cancelText="Cancelar"
@@ -74,7 +84,7 @@
                     id="endDatetime"
                     presentation="date-time"
                     formControlName="endDate"
-                    [min]="minEndDate"
+                    [min]="minEndDate()"
                     locale="es-MX"
                     [showDefaultButtons]="true"
                     cancelText="Cancelar"
@@ -83,6 +93,16 @@
                 </ng-template>
               </ion-modal>
             </ion-item>
+
+            <!-- Mensaje de error si excede 24 horas -->
+            @if (!isDurationValid) {
+              <ion-item lines="none" class="error-item">
+                <ion-label color="danger">
+                  <ion-icon name="warning-outline" color="danger"></ion-icon>
+                  La duración no puede exceder 24 horas. Por favor selecciona una fecha de expiración menor.
+                </ion-label>
+              </ion-item>
+            }
           </form>
         }
 
@@ -131,7 +151,7 @@
         <ion-toolbar>
           <ion-button 
             slot="end"
-            [disabled]="linkForm.invalid || isGenerating()" 
+            [disabled]="linkForm.invalid || isGenerating() || !isDurationValid" 
             (click)="generateLink()">
             @if (isGenerating()) {
               <ion-spinner name="crescent"></ion-spinner>

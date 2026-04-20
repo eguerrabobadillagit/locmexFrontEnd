@@ -103,6 +103,8 @@
     overflow-y: auto;
     padding: 16px;
     padding-top: 8px;
+    // Limitar altura máxima para que no sobrepase la pantalla
+    max-height: calc(100vh - 300px); // Ajustar según espacio ocupado por header y controles
 
     .point-item {
       position: relative;

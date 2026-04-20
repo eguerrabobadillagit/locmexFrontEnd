@@ -1,0 +1,73 @@
+<div class="alerts-menu">
+  <!-- Header con fondo de color -->
+  <div class="alerts-menu-header">
+    <div class="alerts-menu-title">
+      <ion-icon name="notifications-outline" class="header-icon"></ion-icon>
+      <span>Alertas de Geocercas</span>
+    </div>
+    <ion-button fill="clear" size="small" class="close-btn" (click)="onClose()">
+      <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Content -->
+  <div class="alerts-menu-content" [class.expanded]="showAll()">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Cargando alertas...</span>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ error() }}</span>
+      </div>
+    } @else if (alerts().length === 0) {
+      <div class="no-alerts">
+        <ion-icon name="notifications-off-outline" class="no-alerts-icon"></ion-icon>
+        <span>Sin alertas recientes</span>
+      </div>
+    } @else {
+      <div class="alerts-items">
+        @for (alert of displayedAlerts(); track alert.id) {
+          <div 
+            class="alert-row"
+            [class.read]="alert.read"
+            [style.background-color]="getAlertConfig(alert.alertType).backgroundColor"
+            (click)="onAlertClick(alert.id)">
+            <div class="alert-content">
+              <!-- Icono según severidad -->
+              <div class="alert-icon-wrapper">
+                <ion-icon
+                  [name]="getSeverityConfig(alert.severity).icon"
+                  [style.color]="getSeverityConfig(alert.severity).color"
+                  [style.border-color]="getAlertConfig(alert.alertType).textColor + '40'">
+                </ion-icon>
+              </div>
+
+              <!-- Info de la alerta -->
+              <div class="alert-info">
+                <div class="alert-header-row">
+                  <span class="alert-type" [style.color]="getAlertConfig(alert.alertType).textColor">
+                    {{ getAlertConfig(alert.alertType).label }}
+                  </span>
+                  <span class="alert-time">{{ getRelativeTime(alert.createdAtUtc) }}</span>
+                </div>
+                <p class="alert-message">{{ alert.message }}</p>
+                <div class="alert-timestamp">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ getExactTime(alert.createdAtUtc) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      @if (hasMoreAlerts()) {
+        <div class="alerts-more" (click)="toggleShowAll()">
+          <span>{{ showAll() ? 'Ver menos alertas' : 'Ver todas las alertas' }}</span>
+        </div>
+      }
+    }
+  </div>
+</div>

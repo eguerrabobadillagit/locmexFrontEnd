@@ -10,6 +10,7 @@ import { VehicleAnimationService } from './vehicle-animation.service';
 export class MapUtilsService {
   private readonly wsService = inject(VehicleWebSocketService);
   private readonly animationService = inject(VehicleAnimationService);
+  private intervalId: any = null;
 
   mapSidebarUnitToVehicleDetail(unit: SidebarUnit): VehicleDetail {
     return {
@@ -33,10 +34,13 @@ export class MapUtilsService {
   }
 
   startTelemetryListener(): void {
+    // Limpiar intervalo anterior para prevenir duplicados
+    this.stopTelemetryListener();
+
     const vehiclesSignal = this.wsService.vehicles;
     let previousVehicles = new Map<string, VehicleDetail>();
 
-    setInterval(() => {
+    this.intervalId = setInterval(() => {
       const currentVehicles = vehiclesSignal();
 
       currentVehicles.forEach((vehicle, id) => {
@@ -61,5 +65,12 @@ export class MapUtilsService {
 
       previousVehicles = new Map(currentVehicles);
     }, 100);
+  }
+
+  stopTelemetryListener(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 }

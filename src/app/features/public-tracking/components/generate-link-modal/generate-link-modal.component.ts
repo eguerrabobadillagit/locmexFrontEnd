@@ -7,7 +7,7 @@ import {
   IonSpinner, IonIcon, IonTextarea, IonDatetime, IonDatetimeButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { closeOutline, copyOutline, qrCodeOutline, checkmarkOutline, calendarOutline, informationCircleOutline } from 'ionicons/icons';
+import { closeOutline, copyOutline, qrCodeOutline, checkmarkOutline, calendarOutline, informationCircleOutline, timeOutline, warningOutline } from 'ionicons/icons';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
 
@@ -47,33 +47,54 @@ export class GenerateLinkModalComponent implements OnInit {
   isGenerating = signal<boolean>(false);
   generatedLink = signal<TrackingLinkResponse | null>(null);
   linkCopied = signal<boolean>(false);
+  minStartDate = signal<string>('');
+  minEndDate = signal<string>('');
 
   // Form
   linkForm!: FormGroup;
 
-  // Getters para fechas mínimas
-  get minStartDate(): string {
-    return new Date().toISOString();
-  }
-
-  get minEndDate(): string {
-    return this.linkForm?.get('startDate')?.value || new Date().toISOString();
-  }
-
   constructor() {
-    addIcons({ closeOutline, copyOutline, qrCodeOutline, checkmarkOutline, calendarOutline, informationCircleOutline });
+    addIcons({ closeOutline, copyOutline, qrCodeOutline, checkmarkOutline, calendarOutline, informationCircleOutline, timeOutline, warningOutline });
   }
 
   ngOnInit(): void {
     // Fecha/hora actual
     const now = new Date();
-    // Fecha/hora de expiración por defecto: 30 días después
-    const defaultExpiration = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    // Fecha/hora de expiración por defecto: 1 día después (máximo permitido por el backend)
+    const defaultExpiration = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    // Inicializar fechas mínimas (solo una vez, no en getters)
+    this.minStartDate.set(now.toISOString());
+    this.minEndDate.set(now.toISOString());
 
     this.linkForm = this.fb.group({
       startDate: [now.toISOString(), Validators.required],
       endDate: [defaultExpiration.toISOString(), Validators.required]
     });
+
+    // Actualizar minEndDate cuando cambie startDate
+    this.linkForm.get('startDate')?.valueChanges.subscribe((value) => {
+      if (value) {
+        this.minEndDate.set(value);
+      }
+    });
+  }
+
+  /**
+   * Valida que la diferencia no exceda 24 horas (1440 minutos)
+   */
+  get isDurationValid(): boolean {
+    const startDate = this.linkForm?.get('startDate')?.value;
+    const endDate = this.linkForm?.get('endDate')?.value;
+    
+    if (!startDate || !endDate) return true;
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffMs = end.getTime() - start.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    
+    return diffMinutes <= 1440; // Máximo 24 horas
   }
 
   /**
@@ -136,9 +157,9 @@ export class GenerateLinkModalComponent implements OnInit {
     this.generatedLink.set(null);
     this.linkCopied.set(false);
     
-    // Resetear fechas
+    // Resetear fechas (1 día por defecto)
     const now = new Date();
-    const defaultExpiration = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const defaultExpiration = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     this.linkForm.reset({ 
       startDate: now.toISOString(),
       endDate: defaultExpiration.toISOString()

@@ -72,17 +72,54 @@ export class ExampleComponent {
 ### 2. **Signals para Reactividad**
 - Utilizar signals para estado local
 - Preferir signals sobre BehaviorSubjects cuando sea apropiado
-- Usar computed() para valores derivados
+- Usar `computed()` para valores derivados
+- Usar `input()` y `output()` de Angular 16+ para comunicación componente-padre
 
 ```typescript
 export class ExampleComponent {
-  private data = signal<any[]>([]);
-  isLoading = signal<boolean>(false);
-  filteredData = computed(() => {
-    return this.data().filter(item => item.active);
+  // Estado interno con signals
+  private _data = signal<DataItem[]>([]);
+  readonly data = this._data.asReadonly();
+  
+  // Inputs modernos (Angular 16+)
+  readonly title = input.required<string>();
+  readonly items = input<DataItem[]>([]);
+  readonly maxItems = input<number>(10);
+  
+  // Outputs modernos (Angular 16+)
+  readonly itemSelect = output<DataItem>();
+  readonly formSubmit = output<FormData>();
+  
+  // Computed para valores derivados
+  readonly filteredData = computed(() => {
+    return this._data().filter(item => item.active).slice(0, this.maxItems());
   });
+  
+  readonly hasData = computed(() => this._data().length > 0);
+  
+  // Métodos para modificar estado
+  addItem(item: DataItem) {
+    this._data.update(current => [...current, item]);
+  }
 }
 ```
+
+#### Uso del componente:
+```html
+<app-example
+  [title]="'Mi Lista'"
+  [items]="dataItems"
+  [maxItems]="5"
+  (itemSelect)="onItemSelected($event)"
+  (formSubmit)="onFormSubmitted($event)"
+/>
+```
+
+#### Beneficios de input/output signals:
+- ✅ Type safety en templates
+- ✅ Transformaciones automáticas
+- ✅ Mejor performance (change detection optimizada)
+- ✅ Compatible con standalone components
 
 ### 3. **Inyección de Dependencias con inject()**
 - Usar `inject()` en lugar de constructor injection
@@ -415,6 +452,72 @@ export class ExampleComponent implements OnInit {
 }
 ```
 
+## 📱 Mobile-First Patterns
+
+### Detección de Mobile
+```typescript
+// ❌ NO usar window directamente (no es SSR-safe)
+private get isMobile(): boolean {
+  return window.innerWidth <= 768;
+}
+
+// ✅ Usar BreakpointObserver de Angular CDK
+import { BreakpointObserver } from '@angular/cdk/layout';
+
+export class MyComponent {
+  private readonly breakpointObserver = inject(BreakpointObserver);
+  readonly isMobile = computed(() => 
+    this.breakpointObserver.isMatched('(max-width: 768px)')
+  );
+}
+```
+
+## 🗺️ Geometrías y Mapas
+
+### Tipado de Geometrías
+```typescript
+// src/app/features/geofences/interfaces/geometry.interface.ts
+export type GeometryType = 'circle' | 'polygon' | 'rectangle';
+
+export interface GeofenceGeometry {
+  type: GeometryType;
+  coordinates: GeoJSON.Position[] | GeoJSON.Position[][];
+  radius?: number;
+}
+```
+
+### Patrón TerraDraw
+- Extraer lógica de dibujo a servicios dedicados
+- No implementar TerraDraw directamente en componentes
+- Usar adapter pattern para integrar con Google Maps
+
+## 📝 Debugging y Logging
+
+### Console Logs
+**REGLA ESTRICTA:** Eliminar todos los console.logs antes de commit.
+
+```typescript
+// ❌ NO dejar logs de debugging
+console.log('[Component] Debug message', data);
+
+// ✅ Usar servicio de logging condicional
+@Injectable({ providedIn: 'root' })
+export class DebugService {
+  private readonly isDev = isDevMode();
+  
+  log(component: string, message: string, data?: unknown): void {
+    if (this.isDev) {
+      console.log(`[${component}] ${message}`, data ?? '');
+    }
+  }
+}
+```
+
+### Herramientas recomendadas
+- **Angular DevTools:** Para inspección de componentes y signals
+- **Augury:** Para debugging de estado
+- **RxJS DevTools:** Para debugging de streams reactivos
+
 ## 📊 Manejo de Datos
 
 ### AG Grid Enterprise
@@ -481,11 +584,47 @@ columnDefs = [
 - Reglas específicas del proyecto
 - Integración con VS Code
 
+#### Reglas recomendadas (agregar a .eslintrc.json):
+```json
+{
+  "rules": {
+    "max-lines": ["error", {
+      "max": 300,
+      "skipBlankLines": true,
+      "skipComments": true
+    }],
+    "max-lines-per-function": ["warn", {
+      "max": 50,
+      "skipBlankLines": true,
+      "skipComments": true
+    }],
+    "@typescript-eslint/no-explicit-any": "error",
+    "no-console": ["warn", { "allow": ["error", "warn"] }],
+    "@angular-eslint/prefer-standalone": "error"
+  }
+}
+```
+
 ### VS Code Extensions recomendadas
 - Angular Language Service
 - Ionic Snippets
-- Prettier - Code formatter
+- Prettier - Code: formatter
 - ESLint
+- Error Lens (muestra errores inline)
+- Code: Spell Checker
+
+### Configuración de VS Code: (settings.json):
+```json
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "angular.enable-strict-mode-prompt": true
+}
+```
 
 ## 📋 Checklist para Nuevos Features
 
@@ -504,6 +643,10 @@ columnDefs = [
 
 ### Antes de Commit
 - [ ] Ejecutar `npm run lint`
+- [ ] Verificar límite de 300 líneas por archivo
+- [ ] Eliminar todos los `console.log` de debugging
+- [ ] Verificar que no hay uso de `any` sin justificación
+- [ ] Verificar que se usan `input()`/`output()` en lugar de decoradores legacy
 - [ ] Probar funcionalidad
 - [ ] Verificar responsive design
 - [ ] Documentar componentes complejos
@@ -528,6 +671,89 @@ this.vehicleForm = new FormGroup({
   plate: new FormControl('', [Validators.required, Validators.minLength(6)]),
   model: new FormControl('', Validators.required)
 });
+```
+
+## ⚠️ Anti-patterns a Evitar
+
+### 1. Uso de `any`
+```typescript
+// ❌ MAL - Sin tipado
+const data = signal<any>(null);
+const geometry: any = getGeometry();
+
+// ✅ BIEN - Con tipado explícito
+interface VehicleData { id: string; plate: string; }
+const data = signal<VehicleData | null>(null);
+const geometry: GeofenceGeometry = getGeometry();
+```
+
+### 2. Getters sin memoización
+```typescript
+// ❌ MAL - Se ejecuta en cada ciclo de detección
+get filteredItems(): Item[] {
+  return this.items().filter(item => item.active);
+}
+
+// ✅ BIEN - Computed memoiza el resultado
+readonly filteredItems = computed(() => {
+  return this.items().filter(item => item.active);
+});
+```
+
+### 3. Event listeners manuales
+```typescript
+// ❌ MAL - Event listeners manuales
+ngOnInit() {
+  document.addEventListener('click', this.handleClick);
+}
+
+// ✅ BIEN - Usar outputs de Angular
+@Component({
+  template: `<button (click)="onButtonClick()">Click</button>`
+})
+export class MyComponent {
+  buttonClick = output<void>();
+  
+  onButtonClick() {
+    this.buttonClick.emit();
+  }
+}
+```
+
+### 4. Inputs/Outputs legacy
+```typescript
+// ❌ MAL - Decoradores legacy
+@Input() vehicleId!: string;
+@Output() select = new EventEmitter<string>();
+
+// ✅ BIEN - Signals modernas
+readonly vehicleId = input.required<string>();
+readonly select = output<string>();
+```
+
+### 5. Archivos grandes sin refactorizar
+```typescript
+// ❌ MAL - Componente de 720 líneas
+@Component({...})
+export class MapComponent { // 720 líneas
+  // TODO: Refactorizar
+}
+
+// ✅ BIEN - Separar en componentes especializados
+// map.component.ts - 150 líneas (orquestación)
+// map-controls.component.ts - 100 líneas (controles)
+// map-alerts.component.ts - 120 líneas (alertas)
+// terra-draw.service.ts - 200 líneas (lógica de dibujo)
+```
+
+### 6. Acceso directo a signals de servicios
+```typescript
+// ❌ MAL - Acceso directo sin método público
+const geofence = this.geofenceService.geofences()
+  .find(g => g.id === id);
+
+// ✅ BIEN - Usar método del servicio
+const geofence = this.geofenceService.getGeofenceById(id);
 ```
 
 ## 📚 Recursos Adicionales

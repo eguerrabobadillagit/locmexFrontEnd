@@ -1,0 +1,107 @@
+.vehicle-selector {
+  margin-top: 16px;
+
+  ion-accordion-group {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  ion-accordion {
+    background: transparent;
+  }
+
+  .accordion-header {
+    --background: transparent;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --inner-padding-end: 0;
+    --min-height: 48px;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+
+      .header-icon {
+        font-size: 20px;
+        color: var(--ion-color-medium);
+      }
+
+      .header-text {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .title {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ion-color-medium);
+          letter-spacing: 0.5px;
+        }
+
+        .count {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ion-color-medium);
+        }
+      }
+    }
+
+    .chevron-icon {
+      font-size: 20px;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .vehicles-list {
+    padding: 0 16px 8px;
+
+    .vehicle-item {
+      --background: transparent;
+      --padding-start: 0;
+      --padding-end: 0;
+      --inner-padding-end: 0;
+      --min-height: 56px;
+      cursor: pointer;
+
+      ion-checkbox {
+        margin-right: 12px;
+        --size: 20px;
+        --checkbox-background-checked: var(--ion-color-dark);
+        --checkmark-color: white;
+        --border-color: var(--ion-color-medium);
+        --border-color-checked: var(--ion-color-dark);
+      }
+
+      ion-label {
+        margin: 0;
+
+        .vehicle-plate {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--ion-color-dark);
+          margin: 0 0 2px 0;
+        }
+
+        .vehicle-subtitle {
+          font-size: 12px;
+          color: var(--ion-color-medium);
+          margin: 0;
+        }
+      }
+    }
+
+    .empty-item {
+      --background: transparent;
+      --min-height: 48px;
+
+      .empty-text {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        font-style: italic;
+        text-align: center;
+      }
+    }
+  }
+}

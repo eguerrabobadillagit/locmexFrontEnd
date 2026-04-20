@@ -1,0 +1,25 @@
+<div class="sidebar-tabs-container">
+  <button 
+    class="tab-button"
+    [class.active]="activeTab() === 'unidades'"
+    (click)="onTabClick('unidades')">
+    <ion-icon name="car-outline"></ion-icon>
+    <span>Unidades</span>
+  </button>
+  
+  <button 
+    class="tab-button"
+    [class.active]="activeTab() === 'geocercas'"
+    (click)="onTabClick('geocercas')">
+    <ion-icon name="shield-outline"></ion-icon>
+    <span>Geocercas</span>
+  </button>
+  
+  <button 
+    class="tab-button"
+    [class.active]="activeTab() === 'menu'"
+    (click)="onTabClick('menu')">
+    <ion-icon name="menu-outline"></ion-icon>
+    <span>Menú</span>
+  </button>
+</div>

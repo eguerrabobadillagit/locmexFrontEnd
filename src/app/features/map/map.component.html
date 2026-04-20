@@ -20,45 +20,90 @@
   <!-- Geofence Overlay Component -->
   @if (googleMap?.googleMap) {
     <app-geofence-overlay
-      [map]="googleMap.googleMap!"
-      [showGeofences]="showGeofences()">
+      [map]="googleMap.googleMap!">
     </app-geofence-overlay>
   }
 
-  <!-- Floating Geofence Toggle Button -->
-  <ion-fab class="geofence-fab" [class.sheet-active]="showMobilePlayer()">
-    <ion-fab-button (click)="toggleGeofences()" [color]="showGeofences() ? 'success' : 'medium'">
+  <!-- Floating Alerts Button - Top Left -->
+  <ion-fab class="alerts-fab" [class.has-alerts]="unreadAlertsCount() > 0" [class.sheet-active]="showMobilePlayer()">
+    <ion-fab-button
+      id="alerts-trigger"
+      [color]="unreadAlertsCount() > 0 ? 'warning' : 'light'"
+      class="square-button">
+      <ion-icon [name]="unreadAlertsCount() > 0 ? 'notifications' : 'notifications-outline'"></ion-icon>
+    </ion-fab-button>
+    @if (unreadAlertsCount() > 0) {
+      <div class="alerts-badge">{{ unreadAlertsCount() }}</div>
+    }
+    <!-- Alerts Popover -->
+    <ion-popover
+      #alertsPopover
+      class="alerts-popover"
+      trigger="alerts-trigger"
+      triggerAction="click"
+      side="right"
+      alignment="start"
+      size="auto"
+      [showBackdrop]="false"
+      [dismissOnSelect]="false"
+      [style.--offset-x.px]="15"
+      (willPresent)="onPopoverWillPresent()">
+      <ng-template>
+        <app-alerts-list
+          [alerts]="allAlerts()"
+          [isLoading]="isLoadingAlerts()"
+          [error]="alertsError()"
+          [totalCount]="allAlertsCount()"
+          [unreadCount]="unreadAlertsCount()"
+          (alertClick)="onAlertClick($event)"
+          (close)="alertsPopover.dismiss()">
+        </app-alerts-list>
+      </ng-template>
+    </ion-popover>
+  </ion-fab>
+
+
+  <!-- Floating Controls Row - Top Left (aligned with alerts) -->
+  <div class="map-controls-row" [class.sheet-active]="showMobilePlayer()">
+    <!-- Geofence Toggle Button - Green when active -->
+    <ion-button
+      (click)="toggleGeofences()"
+      [color]="showGeofences() ? 'success' : 'light'"
+      class="control-button"
+      fill="solid">
       <ion-icon [name]="geofenceIcon()"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+    </ion-button>
 
-  <!-- Floating Auto-Tracking Toggle Button -->
-  <ion-fab class="tracking-fab" [class.sheet-active]="showMobilePlayer()">
-    <ion-fab-button (click)="toggleAutoTracking()" [color]="autoTrackingEnabled() ? 'primary' : 'medium'">
+    <!-- Auto-Tracking Toggle Button -->
+    <ion-button
+      (click)="toggleAutoTracking()"
+      [color]="autoTrackingEnabled() ? 'primary' : 'light'"
+      class="control-button"
+      fill="solid">
       <ion-icon [name]="trackingIcon()"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+    </ion-button>
 
-  <!-- Floating Map Type Selector -->
-  <ion-fab class="map-type-fab" [class.sheet-active]="showMobilePlayer()">
-    <ion-fab-button color="medium">
-      <ion-icon name="layers-outline"></ion-icon>
-    </ion-fab-button>
-    <ion-fab-list side="top">
-      <ion-fab-button (click)="changeMapType('roadmap')" title="Mapa" color="light">
-        <ion-icon name="map-outline"></ion-icon>
-      </ion-fab-button>
-      <ion-fab-button (click)="changeMapType('satellite')" title="Satélite" color="light">
-        <ion-icon name="globe-outline"></ion-icon>
-      </ion-fab-button>
-      <ion-fab-button (click)="changeMapType('hybrid')" title="Híbrido" color="light">
+    <!-- Map Type Selector FAB -->
+    <ion-fab class="control-fab map-type-fab">
+      <ion-fab-button color="light" class="square-button">
         <ion-icon name="layers-outline"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button (click)="changeMapType('terrain')" title="Terreno" color="light">
-        <ion-icon name="earth-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab-list>
-  </ion-fab>
+      <ion-fab-list side="bottom" [style.min-width.px]="0">
+        <ion-fab-button (click)="changeMapType('roadmap')" title="Mapa" color="light">
+          <ion-icon name="map-outline"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button (click)="changeMapType('satellite')" title="Satélite" color="light">
+          <ion-icon name="globe-outline"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button (click)="changeMapType('hybrid')" title="Híbrido" color="light">
+          <ion-icon name="layers-outline"></ion-icon>
+        </ion-fab-button>
+        <ion-fab-button (click)="changeMapType('terrain')" title="Terreno" color="light">
+          <ion-icon name="earth-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab-list>
+    </ion-fab>
+  </div>
 
   <!-- Vehicle Detail Panel -->
   @if (showVehicleDetail() && selectedVehicleDetail()) {
@@ -68,6 +113,17 @@
         (close)="onCloseVehicleDetail()">
       </app-vehicle-detail>
     </div>
+  }
+
+  <!-- Vehicle Detail Mobile (solo visible en mobile) -->
+  @if (showVehicleDetail() && selectedVehicleDetail()) {
+    <app-vehicle-detail-mobile
+      [vehicle]="selectedVehicleDetail()!"
+      (close)="onCloseVehicleDetail()"
+      (edit)="onEditVehicle()"
+      (locate)="onLocateVehicle()"
+      (expand)="onExpandVehicle()">
+    </app-vehicle-detail-mobile>
   }
 
   <!-- Mobile Bottom Sheet Player -->
@@ -94,6 +150,14 @@
           </button>
         </div>
       </div>
+
+      <!-- Loading State -->
+      @if (isLoadingRoute()) {
+        <div class="mobile-sheet-loading">
+          <div class="mobile-spinner"></div>
+          <p>Cargando recorrido...</p>
+        </div>
+      }
 
       <!-- Playback controls – always visible right after header -->
       <app-route-playback-player
