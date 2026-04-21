@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { IonicModule, AlertController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridOptions } from 'ag-grid-enterprise';
 import { PageHeaderComponent } from '../../core/components/page-header/page-header.component';
@@ -28,6 +29,8 @@ export class GeofencesPage implements OnInit {
   private readonly geofenceService = inject(GeofenceService);
   private readonly toastService = inject(NgToastService);
   private readonly alertController = inject(AlertController);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   // UI state signals
   filteredGeofences = signal<GeofenceResponse[]>([]);
@@ -35,7 +38,7 @@ export class GeofencesPage implements OnInit {
   currentFilter = signal<string>('all');
   showMapComponent = signal<boolean>(false);
   geofenceToEdit = signal<GeofenceResponse | null>(null);
-  
+
   filterOptions: IFilterOption[] = geofenceFilterOptions;
   columnDefs: ColDef[] = geofenceColumnDefs;
   gridOptions: GridOptions = geofenceGridOptions;
@@ -43,6 +46,51 @@ export class GeofencesPage implements OnInit {
   ngOnInit(): void {
     this.loadGeofences();
     this.setupGridEventListeners();
+    this.handleQueryParams();
+  }
+
+  private handleQueryParams(): void {
+    this.route.queryParams.subscribe(params => {
+      const mode = params['mode'];
+      const geofenceId = params['id'];
+
+      if (mode === 'create') {
+        // Modo creación
+        this.geofenceToEdit.set(null);
+        this.showMapComponent.set(true);
+        // Limpiar query params
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      } else if (mode === 'edit' && geofenceId) {
+        // Modo edición
+        const geofence = this.geofenceService.geofences().find(g => g.id === geofenceId);
+        if (geofence) {
+          this.geofenceToEdit.set(geofence);
+          this.showMapComponent.set(true);
+        } else {
+          // Si no se encuentra, cargar desde el servicio
+          this.geofenceService.getGeofenceById(geofenceId).subscribe({
+            next: (geofence) => {
+              this.geofenceToEdit.set(geofence);
+              this.showMapComponent.set(true);
+            },
+            error: (error) => {
+              console.error('Error al cargar geocerca para editar:', error);
+              this.toastService.danger('Error al cargar la geocerca', 'Error');
+            }
+          });
+        }
+        // Limpiar query params
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: {},
+          replaceUrl: true
+        });
+      }
+    });
   }
 
   setupGridEventListeners(): void {

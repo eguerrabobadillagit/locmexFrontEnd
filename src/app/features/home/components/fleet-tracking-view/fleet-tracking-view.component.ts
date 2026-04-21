@@ -1,19 +1,19 @@
-import { Component, OnInit, output, signal, inject, computed, effect } from '@angular/core';
+import { Component, OnInit, input, output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IonIcon, IonCard, IonCardContent, IonSpinner, IonCheckbox, MenuController } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { carOutline, speedometerOutline, batteryHalfOutline, powerOutline, eyeOutline, listOutline, gridOutline, closeOutline, analyticsOutline, alertCircleOutline } from 'ionicons/icons';
+import { closeOutline, alertCircleOutline, analyticsOutline } from 'ionicons/icons';
 import { VehicleSelectionService } from '../../../services/vehicle-selection';
 import { VehicleVisibilityService } from '../../../services/vehicle-visibility.service';
-import { VehicleService, SidebarUnit } from '../../../vehicles/services/vehicle.service';
-import { VehicleWebSocketService } from '../../../map/service/vehicle-websocket.service';
-import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
+import { Vehicle } from '../../../vehicles/interfaces/vehicle.interface';
+import { UnitsListComponent } from '../units-list/units-list.component';
 import { VehicleHistoryFormComponent } from '../../../vehicles/components/vehicle-history-form/vehicle-history-form.component';
 import { VehicleHistoryRouteComponent } from '../../../vehicles/components/vehicle-history-route/vehicle-history-route.component';
-import { FormattedHistoryPoint, VehicleHistoryRequest } from '../../../vehicles/interfaces/vehicle-history.interface';
+import { VehicleHistoryRequest, VehicleHistoryPoint, FormattedHistoryPoint } from '../../../vehicles/interfaces/vehicle-history.interface';
 import { RoutePlaybackService } from '../../../map/service/route-playback.service';
-import { Vehicle, getVehicleStatusClass } from '../../../vehicles/interfaces/vehicle.interface';
+import { VehicleHistoryService } from '../../../vehicles/services/vehicle-history.service';
+import { calculateHistorySummary, formatHistoryTime } from '../../../vehicles/utils/vehicle-history.utils';
 import { HistoryDateHelperService } from '../../../vehicles/services/history-date-helper.service';
 
 @Component({
@@ -24,301 +24,91 @@ import { HistoryDateHelperService } from '../../../vehicles/services/history-dat
   imports: [
     CommonModule,
     IonIcon,
-    IonCard,
-    IonCardContent,
-    IonSpinner,
-    IonCheckbox,
+    UnitsListComponent,
     VehicleHistoryFormComponent,
     VehicleHistoryRouteComponent,
   ],
 })
 export class FleetTrackingViewComponent implements OnInit {
+  // Inputs from parent (SidebarComponent)
+  vehicles = input<Vehicle[]>([]);
+  isLoading = input<boolean>(false);
+  error = input<string | null>(null);
+  viewMode = input<'card' | 'list'>('list');
+
+  // Outputs to parent
+  vehicleSelect = output<string>();
+  viewModeToggle = output<void>();
   closeView = output<void>();
+  retryLoad = output<void>();
+  openHistory = output<Vehicle>();
   mobileSidebarClose = output<void>();
   mobileSidebarOpen = output<void>();
-  viewMode = signal<'card' | 'list'>('card');
-  
-  // Signal para vehículos seleccionados
-  selectedVehicles = signal<Set<string>>(new Set());
-  
-  // Computed para contar seleccionados
-  selectedCount = computed(() => this.selectedVehicles().size);
-  
-  // Signal para el vehículo actualmente seleccionado (para mostrar detalles)
-  selectedVehicleId = signal<string | null>(null);
-  
-  // Bandera para controlar la selección inicial
-  private initialSelectionDone = false;
+
+  // View mode: 'list' shows units, 'history' shows history form/route
+  sidebarViewMode = signal<'list' | 'history'>('list');
+  selectedHistoryVehicle = signal<Vehicle | null>(null);
+  historySubViewMode = signal<'form' | 'route'>('form');
+  historyRequestData = signal<VehicleHistoryRequest | null>(null);
+
+  // History loading state
+  isLoadingHistory = signal<boolean>(false);
+  historyError = signal<string | null>(null);
+  historyPoints = signal<VehicleHistoryPoint[]>([]);
+  formattedHistoryPoints = signal<FormattedHistoryPoint[]>([]);
+  totalHistoryDistance = signal<string>('0 km');
+  totalHistoryDuration = signal<string>('0h 0m');
+  totalHistoryPoints = signal<number>(0);
 
   private get isMobile(): boolean {
     return window.innerWidth <= 768;
   }
 
-  // Signal para datos iniciales de sidebar-units
-  sidebarUnits = signal<Vehicle[]>([]);
-
-  // Computed que combina datos iniciales con actualizaciones del socket
-  vehicles = computed(() => {
-    const sidebar = this.sidebarUnits();
-    const socketVehicles = this.wsService.vehiclesList();
-
-    // Si no hay datos del socket, retornar sidebar
-    if (socketVehicles.length === 0) {
-      return sidebar;
-    }
-
-    // Combinar: usar datos del socket si existen, sino usar sidebar
-    return sidebar.map(sidebarVehicle => {
-      const socketVehicle = socketVehicles.find(v => v.id === sidebarVehicle.id);
-      return socketVehicle
-        ? this.mapSocketVehicleToSidebarFormat(socketVehicle, sidebarVehicle)
-        : sidebarVehicle;
-    });
-  });
-
-  isLoading = signal<boolean>(false);
-  error = signal<string | null>(null);
-
-  // View mode for sidebar content (list or history)
-  sidebarViewMode = signal<'list' | 'history'>('list');
-  selectedHistoryVehicle = signal<Vehicle | null>(null);
-
-  // History sub-view mode (form or route)
-  historySubViewMode = signal<'form' | 'route'>('form');
-
-  // History request data for route view
-  historyRequestData = signal<VehicleHistoryRequest | null>(null);
-
-  private readonly menuController = inject(MenuController);
-  private readonly vehicleSelectionService = inject(VehicleSelectionService);
-  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
-  private readonly vehicleService = inject(VehicleService);
-  private readonly wsService = inject(VehicleWebSocketService);
-  private readonly routePlayback = inject(RoutePlaybackService);
-  private readonly historyDateHelper = inject(HistoryDateHelperService);
-
   constructor() {
     addIcons({
-      carOutline,
       closeOutline,
       alertCircleOutline,
       analyticsOutline,
-      eyeOutline,
-      speedometerOutline,
-      batteryHalfOutline,
-      powerOutline,
-      listOutline,
-      gridOutline,
-    });
-
-    // Effect para seleccionar todos los vehículos por defecto cuando se cargan (solo una vez)
-    effect(() => {
-      const vehicles = this.vehicles();
-      if (vehicles.length > 0 && !this.initialSelectionDone) {
-        const allVehicleIds = vehicles.map(v => v.id);
-        this.selectedVehicles.set(new Set(allVehicleIds));
-        this.vehicleVisibilityService.showAll(allVehicleIds);
-        this.initialSelectionDone = true;
-      }
     });
   }
 
-  ngOnInit() {
-    this.loadVehicles();
+  private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
+  private readonly routePlayback = inject(RoutePlaybackService);
+  private readonly historyDateHelper = inject(HistoryDateHelperService);
+  private readonly historyService = inject(VehicleHistoryService);
 
-    // Conectar al WebSocket si no está conectado
-    if (this.wsService.connectionStatus() !== 'connected') {
-      this.wsService.connect();
-    }
-
-    // Suscribirse a la selección de vehículos para resaltar la card activa
-    this.vehicleSelectionService.vehicleSelected$.subscribe(vehicleId => {
-      this.selectedVehicleId.set(vehicleId);
-    });
+  onVehicleSelect(vehicleId: string) {
+    this.vehicleSelectionService.selectVehicle(vehicleId);
+    this.vehicleSelect.emit(vehicleId);
   }
 
-  loadVehicles(): void {
-    this.isLoading.set(true);
-    this.error.set(null);
-
-    this.vehicleService.getSidebarUnits().subscribe({
-      next: (response: SidebarUnit[]) => {
-        const mappedVehicles = response.map(v => this.mapSidebarUnit(v));
-        this.sidebarUnits.set(mappedVehicles);
-
-        // Inicializar TODOS los vehículos del sidebar en wsService
-        // Esto asegura que vehículos offline también estén disponibles para el panel de detalles
-        const vehicleDetails = response.map(unit => this.mapSidebarUnitToVehicleDetail(unit));
-        this.wsService.initializeVehicles(vehicleDetails);
-
-        this.isLoading.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        console.error('Error al cargar vehículos:', err);
-        this.error.set(
-          'Error al cargar los vehículos. Por favor, intenta de nuevo.',
-        );
-        this.isLoading.set(false);
-      },
-    });
+  onViewModeToggle() {
+    this.viewModeToggle.emit();
   }
 
-  private mapSidebarUnitToVehicleDetail(unit: SidebarUnit): VehicleDetail {
-    return {
-      id: unit.vehicleId || unit.deviceId,
-      plate: unit.plate,
-      status: unit.statusCode,
-      model: unit.unitLabel,
-      driver: unit.driverName || 'Sin asignar',
-      imei: unit.deviceId,
-      speed: unit.speedKph || 0,
-      fuel: unit.batteryLevel || 0,
-      heading: 0,
-      motorHours: 0,
-      latitude: unit.latitude ?? 0,
-      longitude: unit.longitude ?? 0,
-      satellites: 0,
-      altitude: 0,
-      odometer: 0,
-      lastReport: unit.lastMessageAtUtc
-    };
+  onRetryLoad() {
+    this.retryLoad.emit();
   }
 
-  private mapSidebarUnit(unit: SidebarUnit): Vehicle {
-    const status = this.getStatusFromCode(unit.statusCode, unit.ignitionOn);
-    return {
-      id: unit.vehicleId || unit.deviceId,
-      plate: unit.plate,
-      driver: unit.driverName || 'Sin asignar',
-      model: unit.unitLabel,
-      status: status,
-      statusText: this.getStatusText(status),
-      lastUpdate: this.getRelativeTime(unit.lastMessageAtUtc),
-      speed: unit.speedKph || 0,
-      battery: unit.batteryLevel || 0,
-      motorOn: unit.ignitionOn,
-    };
+  onOpenHistoryClicked(vehicle: Vehicle) {
+    this.openHistory.emit(vehicle);
+    this.openHistoryView(vehicle);
   }
 
-  private mapSocketVehicleToSidebarFormat(socketVehicle: VehicleDetail, sidebarVehicle: Vehicle): Vehicle {
-    // Determinar status basado en velocidad y estado del socket
-    const status = this.getStatusFromSocketData(socketVehicle.status, socketVehicle.speed);
-
-    return {
-      id: socketVehicle.id,
-      plate: socketVehicle.plate,
-      driver: sidebarVehicle.driver, // Mantener driver del sidebar (no viene en socket)
-      model: sidebarVehicle.model, // Mantener modelo del sidebar
-      status: status,
-      statusText: this.getStatusText(status),
-      lastUpdate: this.getRelativeTime(socketVehicle.lastReport),
-      speed: socketVehicle.speed,
-      battery: socketVehicle.fuel, // fuel del socket = battery del sidebar
-      motorOn: socketVehicle.speed > 0 || socketVehicle.status === 'moving' // Inferir motor ON
-    };
-  }
-
-  private getStatusFromSocketData(statusCode: string, speed: number): 'moving' | 'stopped' | 'no-signal' {
-    if (statusCode === 'offline' || statusCode === 'no-signal') return 'no-signal';
-    if (speed > 0 || statusCode === 'moving' || statusCode === 'In_route') return 'moving';
-    return 'stopped';
-  }
-
-  private getStatusFromCode(statusCode: string, ignitionOn: boolean): 'moving' | 'stopped' | 'no-signal' {
-    if (statusCode === 'offline') return 'no-signal';
-    if (ignitionOn) return 'moving';
-    return 'stopped';
-  }
-
-  private getStatusText(status: 'moving' | 'stopped' | 'no-signal'): string {
-    switch (status) {
-      case 'moving':
-        return 'En movimiento';
-      case 'stopped':
-        return 'Detenido';
-      case 'no-signal':
-        return 'Sin señal';
-      default:
-        return 'Desconocido';
-    }
-  }
-
-  private getRelativeTime(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return 'Ahora';
-    if (diffMins < 60) return `Hace ${diffMins} min`;
-    if (diffHours < 24)
-      return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
-    return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
-  }
-
-  toggleViewMode() {
-    this.viewMode.set(this.viewMode() === 'list' ? 'card' : 'list');
-  }
-
-  toggleVehicleSelection(vehicleId: string, event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-    
-    const currentSelection = new Set(this.selectedVehicles());
-    
-    if (currentSelection.has(vehicleId)) {
-      currentSelection.delete(vehicleId);
-      this.vehicleVisibilityService.hideVehicle(vehicleId);
-    } else {
-      currentSelection.add(vehicleId);
-      this.vehicleVisibilityService.showVehicle(vehicleId);
-    }
-    
-    this.selectedVehicles.set(currentSelection);
-  }
-
-  toggleSelectAll(event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
-    
-    const allVehicleIds = this.vehicles().map(v => v.id);
-    const currentSelection = this.selectedVehicles();
-    
-    // Si todos están seleccionados, deseleccionar todos
-    if (currentSelection.size === allVehicleIds.length) {
-      this.selectedVehicles.set(new Set());
-      this.vehicleVisibilityService.hideAll();
-    } else {
-      // Seleccionar todos
-      this.selectedVehicles.set(new Set(allVehicleIds));
-      this.vehicleVisibilityService.showAll(allVehicleIds);
-    }
-  }
-
-  onClose() {
+  onCloseSidebar() {
     this.closeView.emit();
   }
 
-  onVehicleClick(vehicleId: string) {
-    this.vehicleSelectionService.selectVehicle(vehicleId);
-    if (this.isMobile) {
-      this.mobileSidebarClose.emit();
-    }
-  }
-
-  openHistory(vehicle: Vehicle, event: Event) {
-    event.stopPropagation();
+  // History methods
+  openHistoryView(vehicle: Vehicle) {
     this.selectedHistoryVehicle.set(vehicle);
     this.historySubViewMode.set('form');
     this.historyRequestData.set(null);
     this.sidebarViewMode.set('history');
   }
 
-  closeHistory() {
+  closeHistoryView() {
     this.routePlayback.clearRoute();
     this.sidebarViewMode.set('list');
     this.selectedHistoryVehicle.set(null);
@@ -330,17 +120,77 @@ export class FleetTrackingViewComponent implements OnInit {
 
   onHistorySearch(request: VehicleHistoryRequest) {
     this.historyRequestData.set(request);
-    this.historySubViewMode.set('route');
-    if (this.isMobile) {
-      this.mobileSidebarClose.emit();
-    }
+    this.loadHistoryData(request);
+  }
+
+  private loadHistoryData(request: VehicleHistoryRequest) {
+    this.isLoadingHistory.set(true);
+    this.historyError.set(null);
+    this.routePlayback.setLoadingRoute(true);
+
+    const fromDateTime = `${request.fromDate}T${request.fromHour}:${request.fromMinute}:00`;
+    const toDateTime = `${request.toDate}T${request.toHour}:${request.toMinute}:59`;
+    const fromUtc = new Date(fromDateTime).toISOString();
+    const toUtc = new Date(toDateTime).toISOString();
+
+    this.historyService.getVehicleHistory({
+      vehicleId: request.vehicleId,
+      fromUtc,
+      toUtc
+    }).subscribe({
+      next: (points) => {
+        this.historyPoints.set(points);
+        this.formattedHistoryPoints.set(this.formatHistoryPoints(points));
+        this.calculateHistorySummary(points);
+        this.totalHistoryPoints.set(points.length);
+        this.routePlayback.loadRoute(points);
+        this.isLoadingHistory.set(false);
+        this.routePlayback.setLoadingRoute(false);
+        this.historySubViewMode.set('route');
+
+        if (this.isMobile) {
+          this.mobileSidebarClose.emit();
+        }
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('[FleetTrackingView] Error al cargar historial:', err);
+        let errorMessage = 'Error al cargar el historial. Por favor, intenta de nuevo.';
+        if (err.error?.errors && Array.isArray(err.error.errors[''])) {
+          errorMessage = err.error.errors[''][0];
+        } else if (err.error?.title) {
+          errorMessage = err.error.title;
+        } else if (err.error?.message) {
+          errorMessage = err.error.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        this.historyError.set(errorMessage);
+        this.isLoadingHistory.set(false);
+        this.routePlayback.setLoadingRoute(false);
+      }
+    });
+  }
+
+  private formatHistoryPoints(points: VehicleHistoryPoint[]): FormattedHistoryPoint[] {
+    return points.map((point, index) => ({
+      index,
+      time: formatHistoryTime(point.fixTimeUtc),
+      location: `Lat: ${point.latitude.toFixed(4)}, Lng: ${point.longitude.toFixed(4)}`,
+      speedKph: point.speedKph,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      status: point.speedKph > 0 ? 'moving' : 'stopped'
+    }));
+  }
+
+  private calculateHistorySummary(points: VehicleHistoryPoint[]): void {
+    const summary = calculateHistorySummary(points);
+    this.totalHistoryDistance.set(summary.totalDistance);
+    this.totalHistoryDuration.set(summary.totalDuration);
   }
 
   onBackToHistoryForm() {
     this.historySubViewMode.set('form');
-    if (this.isMobile) {
-      this.mobileSidebarOpen.emit();
-    }
   }
 
   onHistoryPointSelect(point: FormattedHistoryPoint) {
@@ -371,7 +221,32 @@ export class FleetTrackingViewComponent implements OnInit {
     return this.historyDateHelper.getToMinute(this.historyRequestData());
   }
 
-  getStatusClass(status: string): string {
-    return getVehicleStatusClass(status);
+  ngOnInit() {
+    // Inicializar todos los vehículos como visibles por defecto
+    const allVehicleIds = this.vehicles().map(v => v.id);
+    if (allVehicleIds.length > 0) {
+      this.vehicleVisibilityService.showAll(allVehicleIds);
+    }
+  }
+
+  toggleVehicleSelection(vehicleId: string, selected: boolean) {
+    if (selected) {
+      this.vehicleVisibilityService.showVehicle(vehicleId);
+    } else {
+      this.vehicleVisibilityService.hideVehicle(vehicleId);
+    }
+  }
+
+  toggleSelectAll(selected: boolean) {
+    const allVehicleIds = this.vehicles().map(v => v.id);
+    if (selected) {
+      this.vehicleVisibilityService.showAll(allVehicleIds);
+    } else {
+      this.vehicleVisibilityService.hideAll();
+    }
+  }
+
+  isVehicleVisible(vehicleId: string): boolean {
+    return this.vehicleVisibilityService.isVisible(vehicleId);
   }
 }

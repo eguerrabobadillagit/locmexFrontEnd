@@ -230,10 +230,47 @@ ion-content {
   --background: #f5f5f5;
 }
 
-.modal-content {
+  .modal-content {
   max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px;
+
+  // Banner horizontal tipo info (estilo imagen)
+  .info-banner-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #eff6ff;
+    border: 1px solid #bedbff;
+    border-left: 4px solid #3b82f6;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+
+    .banner-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 22px;
+        color: #3b82f6;
+      }
+    }
+
+    .banner-text {
+      flex: 1;
+      font-size: 14px;
+      color: #1e40af;
+      line-height: 1.4;
+
+      strong {
+        font-weight: 600;
+        color: #1e3a8a;
+      }
+    }
+  }
 
   // Banner informativo estilo wizard
   .info-banner {
@@ -295,6 +332,31 @@ ion-content {
       --border-style: none;
       --inner-border-width: 0;
       margin-bottom: 28px;
+
+      &.error-item {
+        --background: #fef2f2;
+        border-radius: 8px;
+        margin-top: 16px;
+        margin-bottom: 0;
+
+        ion-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #dc2626 !important;
+          font-size: 13px;
+          font-weight: 500;
+          white-space: normal;
+          line-height: 1.4;
+          padding: 8px 0;
+
+          ion-icon {
+            font-size: 18px;
+            color: #dc2626;
+            flex-shrink: 0;
+          }
+        }
+      }
 
       ion-label {
         display: flex;

@@ -48,6 +48,14 @@ export class VehicleHistoryRouteComponent implements OnInit {
   @Input() toDate!: string;
   @Input() toHour!: string;
   @Input() toMinute!: string;
+
+  // Datos precargados (opcionales) - cuando se pasan, no se hace la llamada a la API
+  @Input() historyPointsData: VehicleHistoryPoint[] | null = null;
+  @Input() formattedPointsData: FormattedHistoryPoint[] | null = null;
+  @Input() totalDistance: string = '0 km';
+  @Input() totalDuration: string = '0h 0m';
+  @Input() totalPoints: number = 0;
+
   @Output() closeRoute = new EventEmitter<void>();
   @Output() backToForm = new EventEmitter<void>();
   @Output() pointSelect = new EventEmitter<FormattedHistoryPoint>();
@@ -65,11 +73,12 @@ export class VehicleHistoryRouteComponent implements OnInit {
   isPlaying = signal<boolean>(false);
   playbackSpeed = signal<PlaybackSpeed>(1);
   currentPointIndex = signal<number>(0);
-  totalDistance = signal<string>('0 km');
-  totalDuration = signal<string>('0h 0m');
-  totalPoints = signal<number>(0);
+  _totalDistance = signal<string>('0 km');
+  _totalDuration = signal<string>('0h 0m');
+  _totalPoints = signal<number>(0);
 
   constructor() {
+    console.log('[VehicleHistoryRoute] Constructor - Componente creado');
     addIcons({
       arrowBackOutline,
       analyticsOutline,
@@ -95,11 +104,51 @@ export class VehicleHistoryRouteComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadHistoryData();
+    console.log('[VehicleHistoryRoute] ngOnInit - Componente inicializado');
+
+    // Si se pasaron datos precargados, usarlos directamente
+    if (this.historyPointsData && this.historyPointsData.length > 0) {
+      console.log('[VehicleHistoryRoute] Usando datos precargados:', this.historyPointsData.length, 'puntos');
+      this.usePreloadedData();
+    } else {
+      // Si no hay datos precargados, cargar desde la API
+      console.log('[VehicleHistoryRoute] No hay datos precargados, cargando desde API');
+      this.loadHistoryData();
+    }
+  }
+
+  // Getters para acceder a los valores (inputs o signals)
+  get totalDistanceValue(): string {
+    return this.totalDistance || this._totalDistance();
+  }
+
+  get totalDurationValue(): string {
+    return this.totalDuration || this._totalDuration();
+  }
+
+  get totalPointsValue(): number {
+    return this.totalPoints || this._totalPoints();
+  }
+
+  private usePreloadedData() {
+    if (this.historyPointsData) {
+      this.historyPoints.set(this.historyPointsData);
+      this.routePlayback.loadRoute(this.historyPointsData);
+    }
+    if (this.formattedPointsData) {
+      this.formattedPoints.set(this.formattedPointsData);
+    }
+    // Usar los totales pasados como inputs
+    const summary = calculateHistorySummary(this.historyPoints());
+    this._totalDistance.set(summary.totalDistance);
+    this._totalDuration.set(summary.totalDuration);
+    this._totalPoints.set(this.historyPoints().length);
   }
 
   private loadHistoryData() {
+    console.log('[VehicleHistoryRoute] Iniciando carga de historial');
     this.isLoading.set(true);
+    this.routePlayback.setLoadingRoute(true);
     this.error.set(null);
 
     const fromDateTime = `${this.fromDate}T${this.fromHour}:${this.fromMinute}:00`;
@@ -113,15 +162,17 @@ export class VehicleHistoryRouteComponent implements OnInit {
       toUtc
     }).subscribe({
       next: (points) => {
+        console.log('[VehicleHistoryRoute] Datos cargados exitosamente:', points.length, 'puntos');
         this.historyPoints.set(points);
         this.formattedPoints.set(this.formatHistoryPoints(points));
         this.calculateSummary(points);
-        this.totalPoints.set(points.length);
+        this._totalPoints.set(points.length);
         this.routePlayback.loadRoute(points);
         this.isLoading.set(false);
+        this.routePlayback.setLoadingRoute(false);
       },
       error: (err) => {
-        console.error('Error al cargar historial:', err);
+        console.error('[VehicleHistoryRoute] Error al cargar historial:', err);
         let errorMessage = 'Error al cargar el historial. Por favor, intenta de nuevo.';
         if (err.error?.errors && Array.isArray(err.error.errors[''])) {
           errorMessage = err.error.errors[''][0];
@@ -134,6 +185,8 @@ export class VehicleHistoryRouteComponent implements OnInit {
         }
         this.error.set(errorMessage);
         this.isLoading.set(false);
+        this.routePlayback.setLoadingRoute(false);
+        console.log('[VehicleHistoryRoute] Carga finalizada con error');
       }
     });
   }
@@ -152,8 +205,8 @@ export class VehicleHistoryRouteComponent implements OnInit {
 
   private calculateSummary(points: VehicleHistoryPoint[]): void {
     const summary = calculateHistorySummary(points);
-    this.totalDistance.set(summary.totalDistance);
-    this.totalDuration.set(summary.totalDuration);
+    this._totalDistance.set(summary.totalDistance);
+    this._totalDuration.set(summary.totalDuration);
   }
 
   onClose() {

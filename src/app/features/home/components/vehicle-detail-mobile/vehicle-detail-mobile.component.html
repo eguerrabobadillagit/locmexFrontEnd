@@ -1,0 +1,232 @@
+<div class="vehicle-detail-mobile-container" [class.expanded]="isExpanded()">
+  <!-- Header con drag handle -->
+  <div class="detail-header"
+       (touchstart)="onDragStart($event)"
+       (mousedown)="onDragStart($event)"
+       (click)="toggleSheet()">
+    <!-- Drag Handle -->
+    <div class="drag-handle-container">
+      <div class="drag-handle"></div>
+    </div>
+
+    <div class="header-content">
+      <button class="back-btn" (click)="onBack(); $event.stopPropagation()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+      <div class="header-title">
+        <ion-icon name="information-circle-outline" class="title-icon"></ion-icon>
+        <div>
+          <h4 class="vehicle-plate">{{ vehicle?.plate }}</h4>
+          <span class="subtitle">Detalle de unidad</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="expand-btn" (click)="toggleSheet(); $event.stopPropagation()">
+          <ion-icon [name]="isExpanded() ? 'chevron-down-outline' : 'chevron-up-outline'"></ion-icon>
+        </button>
+        <button class="close-btn" (click)="onClose(); $event.stopPropagation()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA COLAPSADA - Siempre visible -->
+  <div class="collapsed-content">
+    <!-- Status y velocidad -->
+    <div class="collapsed-row">
+      <div class="status-badge" [ngClass]="getStatusClass()">
+        {{ getStatusText() }}
+      </div>
+      <div class="speed-indicator" *ngIf="vehicle?.speed">
+        <ion-icon name="speedometer-outline"></ion-icon>
+        <span>{{ vehicle?.speed }} km/h</span>
+      </div>
+    </div>
+
+    <!-- Ubicación -->
+    <div class="collapsed-address">
+      <ion-icon name="location-outline"></ion-icon>
+      <span>{{ address() }}</span>
+    </div>
+
+    <!-- Último reporte -->
+    <div class="collapsed-report" *ngIf="vehicle?.lastReport">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ vehicle?.lastReport }}</span>
+    </div>
+
+    <!-- Botón para expandir -->
+    <button class="expand-hint" (click)="toggleSheet(); $event.stopPropagation()">
+      <span>Ver más detalles</span>
+      <ion-icon name="chevron-up-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- VISTA EXPANDIDA - Se oculta con max-height: 0 cuando está colapsado -->
+  <div class="detail-content-wrapper">
+    <!-- Tabs Navigation -->
+    <div class="custom-tabs">
+      <button
+        class="tab-button"
+        [class.active]="activeSegment === 'info'"
+        (click)="onSegmentChange('info')">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Información
+      </button>
+      <button
+        class="tab-button"
+        [class.active]="activeSegment === 'alertas'"
+        (click)="onSegmentChange('alertas')">
+        <ion-icon name="warning-outline"></ion-icon>
+        Alertas
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="detail-content">
+      @switch (activeSegment) {
+        @case ('info') {
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button class="action-btn" (click)="onEdit()">
+              <ion-icon name="create-outline"></ion-icon>
+              <span>Editar</span>
+            </button>
+            <button class="action-btn" (click)="onLocate()">
+              <ion-icon name="location-outline"></ion-icon>
+              <span>Ubicar</span>
+            </button>
+            <button class="action-btn" (click)="onShare()">
+              <ion-icon name="share-outline"></ion-icon>
+              <span>Compartir</span>
+            </button>
+            <button class="action-btn" (click)="onExpand()">
+              <ion-icon name="expand-outline"></ion-icon>
+              <span>Ampliar</span>
+            </button>
+          </div>
+
+          <!-- Recent Location Address -->
+          <div class="info-section">
+            <label>Ubicación reciente</label>
+            <p class="info-value address-text">
+              <ion-icon name="location-outline" class="location-icon"></ion-icon>
+              {{ address() }}
+            </p>
+          </div>
+
+          <!-- Last Report -->
+          <div class="info-section">
+            <label>Último Reporte</label>
+            <p class="info-value">{{ vehicle?.lastReport }}</p>
+          </div>
+
+          <!-- Status -->
+          <div class="info-section">
+            <label>Estado</label>
+            <div class="status-badge" [ngClass]="getStatusClass()">
+              {{ getStatusText() }}
+            </div>
+          </div>
+
+          <!-- Model -->
+          <div class="info-section">
+            <label>Modelo</label>
+            <p class="info-value">{{ vehicle?.model }}</p>
+          </div>
+
+          <!-- Driver -->
+          <div class="info-section">
+            <label>Conductor</label>
+            <p class="info-value">{{ vehicle?.driver }}</p>
+          </div>
+
+          <!-- IMEI -->
+          <div class="info-section">
+            <label>IMEI</label>
+            <p class="info-value">{{ vehicle?.imei }}</p>
+          </div>
+
+          <!-- Real Time Information -->
+          <div class="info-section">
+            <label>Información en Tiempo Real</label>
+            <div class="metrics-grid">
+              <ion-card class="metric-card">
+                <ion-card-content>
+                  <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
+                  <span class="metric-label">Velocidad</span>
+                  <span class="metric-value">{{ vehicle?.speed }} km/h</span>
+                </ion-card-content>
+              </ion-card>
+
+              <ion-card class="metric-card">
+                <ion-card-content>
+                  <ion-icon name="water-outline" class="metric-icon"></ion-icon>
+                  <span class="metric-label">Combustible</span>
+                  <span class="metric-value">{{ vehicle?.fuel }}%</span>
+                </ion-card-content>
+              </ion-card>
+
+              <ion-card class="metric-card">
+                <ion-card-content>
+                  <ion-icon name="compass-outline" class="metric-icon"></ion-icon>
+                  <span class="metric-label">Rumbo</span>
+                  <span class="metric-value">{{ vehicle?.heading }}°</span>
+                </ion-card-content>
+              </ion-card>
+
+              <ion-card class="metric-card">
+                <ion-card-content>
+                  <ion-icon name="time-outline" class="metric-icon"></ion-icon>
+                  <span class="metric-label">Hrs Motor</span>
+                  <span class="metric-value">{{ vehicle?.motorHours }} h</span>
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </div>
+
+          <!-- GPS Location -->
+          <div class="info-section">
+            <label>Ubicación GPS</label>
+            <p class="info-value">{{ vehicle?.latitude }}, {{ vehicle?.longitude }}</p>
+            <p class="info-subtitle">Satélites: {{ vehicle?.satellites }} | Altitud: {{ vehicle?.altitude }}m</p>
+          </div>
+
+          <!-- Odometer -->
+          <div class="info-section">
+            <label>Odómetro</label>
+            <p class="info-value">{{ vehicle?.odometer | number:'1.0-0' }} km</p>
+          </div>
+        }
+
+        @case ('alertas') {
+          @if (vehicle) {
+            <app-vehicle-alerts [vehicleId]="vehicle.id" />
+          }
+        }
+      }
+
+      <!-- Spacer para que el footer no tape contenido -->
+      <div class="content-spacer"></div>
+    </div>
+
+    <!-- Footer with Monitor Button -->
+    <div class="footer">
+      <ion-button expand="block" color="dark" class="monitor-btn">
+        <ion-icon name="eye-outline" slot="start"></ion-icon>
+        Monitorear Imagen
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Modal para generar link de tracking -->
+  @if (vehicle) {
+    <app-generate-link-modal
+      [isOpen]="showShareModal()"
+      [vehicleId]="vehicle.id"
+      [vehiclePlate]="vehicle.plate"
+      (close)="onCloseShareModal()">
+    </app-generate-link-modal>
+  }
+</div>

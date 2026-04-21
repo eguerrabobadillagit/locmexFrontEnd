@@ -1,44 +1,137 @@
-<ion-split-pane contentId="main-content">
-  <!-- Menú lateral -->
-  <ion-menu contentId="main-content" type="overlay">
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>LogiTrack Pro</ion-title>
-      </ion-toolbar>
-    </ion-header>
+<ion-split-pane contentId="main-content" [when]="false" class="custom-split-pane">
+  <!-- Backdrop para móvil - se muestra cuando el sidebar está abierto -->
+  <div class="sidebar-backdrop" [class.visible]="showFleetPanel()" (click)="closeFleetPanel()"></div>
 
-    <ion-content>
-      <app-navbar
-        [selectedMenu]="selectedMenu()"
-        (menuSelect)="selectMenu($event)">
-      </app-navbar>
-    </ion-content>
+  <!-- Sidebar principal - Contenedor con contenido migrado del sidebar -->
+  <div class="fleet-panel" [class.open]="showFleetPanel()" [class.collapsed]="!showFleetPanel()">
+    <div class="sidebar-container">
+      <!-- CONTENT AREA -->
+      <div class="content-area">
+        @switch (activeSidebarTab()) {
+          @case ('geocercas') {
+            <div class="geocercas-view">
+              @switch (geofenceViewMode()) {
+                @case ('list') {
+                  <!-- Mobile Header -->
+                  <div class="mobile-header">
+                    <div class="header-title">
+                      <strong>Geocercas</strong>
+                      <span class="subtitle">Gestión de zonas</span>
+                    </div>
+                    <button class="close-btn" (click)="closeFleetPanel()" aria-label="Cerrar sidebar">
+                      <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                  </div>
+                  <div class="geocercas-content">
+                    <app-geofence-list
+                      [filterTab]="geofenceFilterTab()"
+                      [searchQuery]="geofenceSearchQuery()"
+                      (filterChange)="onGeofenceFilterChange($event)"
+                      (searchChange)="onGeofenceSearchChange($event)"
+                      (createGeofence)="onCreateGeofence()"
+                      (viewGeofence)="onViewGeofence($event)"
+                      (editGeofence)="onEditGeofence($event)"
+                      (deleteGeofence)="onDeleteGeofence($event)"
+                      (mobileSidebarClose)="closeFleetPanel()" />
+                  </div>
+                }
+                @case ('create') {
+                  <app-geofence-sidebar-form
+                    mode="create"
+                    (save)="onGeofenceFormSave($event)"
+                    (cancel)="onGeofenceFormCancel()"
+                    (close)="onGeofenceFormClose()"
+                    (shapeTypeChange)="onGeofenceShapeTypeChange($event)">
+                  </app-geofence-sidebar-form>
+                }
+                @case ('edit') {
+                  <app-geofence-sidebar-form
+                    mode="edit"
+                    [geofence]="editingGeofence()"
+                    (save)="onGeofenceFormSave($event)"
+                    (cancel)="onGeofenceFormCancel()"
+                    (close)="onGeofenceFormClose()"
+                    (shapeTypeChange)="onGeofenceShapeTypeChange($event)">
+                  </app-geofence-sidebar-form>
+                }
+              }
+            </div>
+          }
 
-    <ion-footer class="ion-no-border">
-      <div class="version-info">
-        <p>Versión 13.0</p>
-        <p>Plataforma de Marca Blanca</p>
+          @case ('menu') {
+            <div class="menu-view">
+              <!-- Mobile Header -->
+              <div class="mobile-header">
+                <div class="header-title">
+                  <strong>LogiTrack Pro</strong>
+                  <span class="subtitle">Plataforma de Logística</span>
+                </div>
+                <button class="close-btn" (click)="closeFleetPanel()" aria-label="Cerrar sidebar">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+              <div class="menu-content">
+                <app-navbar
+                  [selectedMenu]="selectedMenu()"
+                  (menuSelect)="onMenuSelect($event)">
+                </app-navbar>
+              </div>
+            </div>
+          }
+
+          @case ('unidades') {
+            <app-fleet-tracking-view
+              [vehicles]="vehicles()"
+              [isLoading]="isLoading()"
+              [error]="error()"
+              [viewMode]="viewMode()"
+              (vehicleSelect)="onVehicleClick($event)"
+              (viewModeToggle)="toggleViewMode()"
+              (closeView)="closeFleetPanel()"
+              (retryLoad)="loadVehicles()"
+              (openHistory)="onOpenHistory($event)"
+              (mobileSidebarClose)="onMobileSidebarClose()"
+              (mobileSidebarOpen)="onMobileSidebarOpen()">
+            </app-fleet-tracking-view>
+          }
+        }
       </div>
-    </ion-footer>
-  </ion-menu>
 
-  <!-- Panel deslizante de Fleet Tracking -->
-  @if (fleetPanelEverOpened()) {
-    <div class="fleet-panel" [class.fleet-panel--hidden]="!showFleetPanel()">
-      <app-fleet-tracking-view
-        (closeView)="closeFleetPanel()"
-        (mobileSidebarClose)="onMobileSidebarClose()"
-        (mobileSidebarOpen)="onMobileSidebarOpen()">
-      </app-fleet-tracking-view>
+      <!-- TABS -->
+      <div class="sidebar-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="activeSidebarTab() === 'unidades'"
+          (click)="onTabClick('unidades')">
+          <ion-icon name="car-outline"></ion-icon>
+          <span>Unidades</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeSidebarTab() === 'geocercas'"
+          (click)="onTabClick('geocercas')">
+          <ion-icon name="shield-outline"></ion-icon>
+          <span>Geocercas</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeSidebarTab() === 'menu'"
+          (click)="onTabClick('menu')">
+          <ion-icon name="menu-outline"></ion-icon>
+          <span>Menú</span>
+        </button>
+      </div>
     </div>
-  }
+  </div>
 
   <!-- Contenido principal -->
-  <div class="ion-page" id="main-content">
+  <div class="ion-page" id="main-content" [class.with-fleet-panel]="showFleetPanel()">
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-menu-button></ion-menu-button>
+          <ion-button fill="clear" (click)="toggleFleetPanel()">
+            <ion-icon name="menu-outline"></ion-icon>
+          </ion-button>
         </ion-buttons>
 
         <ion-title>

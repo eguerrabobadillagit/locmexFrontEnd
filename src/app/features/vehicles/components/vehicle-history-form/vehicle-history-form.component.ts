@@ -227,7 +227,13 @@ export class VehicleHistoryFormComponent implements OnInit {
     const request: VehicleHistoryRequest = {
       vehicleId: this.vehicleId,
       fromUtc,
-      toUtc
+      toUtc,
+      fromDate: this.fromDate(),
+      fromHour: this.fromHour(),
+      fromMinute: this.fromMinute(),
+      toDate: this.toDate(),
+      toHour: this.toHour(),
+      toMinute: this.toMinute()
     };
 
     this.searchHistory.emit(request);

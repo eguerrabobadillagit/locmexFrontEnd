@@ -1,0 +1,126 @@
+import { Component, input, output, signal, computed, inject, OnInit, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonIcon, IonCard, IonCardContent, IonSpinner, IonCheckbox } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  carOutline, speedometerOutline, batteryHalfOutline, powerOutline,
+  eyeOutline, listOutline, gridOutline, closeOutline, analyticsOutline, alertCircleOutline
+} from 'ionicons/icons';
+import { Vehicle, getVehicleStatusClass } from '../../../vehicles/interfaces/vehicle.interface';
+import { VehicleVisibilityService } from '../../../services/vehicle-visibility.service';
+
+@Component({
+  selector: 'app-units-list',
+  templateUrl: './units-list.component.html',
+  styleUrls: ['./units-list.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonIcon,
+    IonCard,
+    IonCardContent,
+    IonSpinner,
+    IonCheckbox,
+  ],
+})
+export class UnitsListComponent implements OnInit {
+  vehicles = input<Vehicle[]>([]);
+  isLoading = input<boolean>(false);
+  error = input<string | null>(null);
+  viewMode = input<'card' | 'list'>('list');
+
+  vehicleClick = output<string>();
+  viewModeToggle = output<void>();
+  close = output<void>();
+  retry = output<void>();
+  openHistory = output<Vehicle>();
+  vehicleSelectionChange = output<{ vehicleId: string; selected: boolean }>();
+  selectAllChange = output<boolean>();
+
+  // Signals para selección
+  selectedVehicles = signal<Set<string>>(new Set());
+  selectedVehicleId = signal<string | null>(null);
+
+  // Computed para conteo
+  selectedCount = computed(() => this.selectedVehicles().size);
+
+  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
+
+  constructor() {
+    // Efecto para sincronizar con VehicleVisibilityService
+    effect(() => {
+      const visibleIds = this.vehicleVisibilityService.selectedVehicleIds();
+      this.selectedVehicles.set(new Set(visibleIds));
+    });
+
+    addIcons({
+      carOutline,
+      closeOutline,
+      alertCircleOutline,
+      analyticsOutline,
+      eyeOutline,
+      speedometerOutline,
+      batteryHalfOutline,
+      powerOutline,
+      listOutline,
+      gridOutline,
+    });
+  }
+
+  ngOnInit() {
+    // Inicializar todos los vehículos seleccionados por defecto
+    const allIds = this.vehicles().map(v => v.id);
+    this.vehicleVisibilityService.showAll(allIds);
+  }
+
+  onVehicleClick(vehicleId: string) {
+    this.selectedVehicleId.set(vehicleId);
+    this.vehicleClick.emit(vehicleId);
+  }
+
+  toggleViewMode() {
+    this.viewModeToggle.emit();
+  }
+
+  onClose() {
+    this.close.emit();
+  }
+
+  onRetry() {
+    this.retry.emit();
+  }
+
+  onOpenHistory(vehicle: Vehicle, event: Event) {
+    event.stopPropagation();
+    this.openHistory.emit(vehicle);
+  }
+
+  getStatusClass(status: string): string {
+    return getVehicleStatusClass(status);
+  }
+
+  onVehicleCheckboxClick(vehicleId: string) {
+    const currentlyVisible = this.vehicleVisibilityService.isVisible(vehicleId);
+    if (currentlyVisible) {
+      this.vehicleVisibilityService.hideVehicle(vehicleId);
+    } else {
+      this.vehicleVisibilityService.showVehicle(vehicleId);
+    }
+    this.vehicleSelectionChange.emit({ vehicleId, selected: !currentlyVisible });
+  }
+
+  onSelectAllClick() {
+    const allIds = this.vehicles().map(v => v.id);
+    const allSelected = this.selectedCount() === allIds.length;
+    if (allSelected) {
+      this.vehicleVisibilityService.hideAll();
+    } else {
+      this.vehicleVisibilityService.showAll(allIds);
+    }
+    this.selectAllChange.emit(!allSelected);
+  }
+
+  isVehicleSelected(vehicleId: string): boolean {
+    return this.vehicleVisibilityService.isVisible(vehicleId);
+  }
+}
