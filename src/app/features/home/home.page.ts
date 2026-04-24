@@ -79,7 +79,6 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
   private readonly geofenceDrawingService = inject(GeofenceDrawingService);
   private readonly alertController = inject(AlertController);
-
   // Sidebar signals
   selectedMenu = signal<string>('dashboard');
   showFleetPanel = signal<boolean>(true);
@@ -143,6 +142,7 @@ export class HomePage implements OnInit, OnDestroy {
         this.showFleetPanel.set(true);
       }
     });
+
   }
 
   ngOnInit() {
@@ -552,6 +552,8 @@ export class HomePage implements OnInit, OnDestroy {
       speed: unit.speedKph || 0,
       battery: unit.batteryLevel || 0,
       motorOn: unit.ignitionOn,
+      latitude: unit.latitude ?? undefined,
+      longitude: unit.longitude ?? undefined,
     };
   }
 
@@ -567,7 +569,9 @@ export class HomePage implements OnInit, OnDestroy {
       lastUpdate: this.getRelativeTime(socketVehicle.lastReport),
       speed: socketVehicle.speed,
       battery: socketVehicle.fuel,
-      motorOn: socketVehicle.speed > 0 || socketVehicle.status === 'moving'
+      motorOn: socketVehicle.speed > 0 || socketVehicle.status === 'moving',
+      latitude: socketVehicle.latitude,
+      longitude: socketVehicle.longitude,
     };
   }
 

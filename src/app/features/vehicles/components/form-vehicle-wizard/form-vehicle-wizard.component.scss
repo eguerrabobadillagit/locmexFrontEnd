@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .step-content {
   max-width: 900px;
   margin: 0 auto;
@@ -273,7 +281,7 @@ ion-card {
 
   ion-card {
     text-align: center;
-    
+
     p {
       margin: 0;
       color: var(--ion-color-medium);

@@ -64,6 +64,30 @@
     <!-- Playback Controls -->
     @if (formattedPoints().length > 0 && !isLoading()) {
       <div class="playback-content">
+
+      <!-- Speed Legend -->
+      <div class="speed-legend">
+        <span class="legend-title">Velocidad:</span>
+        <div class="legend-item">
+          <span class="legend-color green"></span>
+          <span>0-40 km/h</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color yellow"></span>
+          <span>41-80 km/h</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color red"></span>
+          <span>>80 km/h</span>
+        </div>
+        @if (detectedStops().length > 0) {
+          <div class="legend-item">
+            <span class="legend-color orange"></span>
+            <span>{{ detectedStops().length }} parada{{ detectedStops().length > 1 ? 's' : '' }}</span>
+          </div>
+        }
+      </div>
+
       <app-route-playback-player
         [formattedPoints]="formattedPoints()"
         [currentPointIndex]="currentPointIndex()"
@@ -78,21 +102,25 @@
         (goToLast)="goToLast()"
       ></app-route-playback-player>
 
-      <!-- History Points List -->
-      <div class="points-list">
-        @for (point of formattedPoints(); track point.index) {
-          <div
-            class="point-item"
-            [class.active]="currentPointIndex() === point.index"
-            (click)="onPointClick(point)"
-          >
-            <app-history-point-item
-              [point]="point"
-              [isActive]="currentPointIndex() === point.index"
-            ></app-history-point-item>
-          </div>
-        }
-      </div>
+      <!-- History Points List with Virtual Scroll -->
+      <cdk-virtual-scroll-viewport
+        class="points-list"
+        [itemSize]="76"
+        [minBufferPx]="400"
+        [maxBufferPx]="800"
+      >
+        <div
+          *cdkVirtualFor="let point of formattedPoints(); trackBy: trackByIndex"
+          class="point-item"
+          [class.active]="currentPointIndex() === point.index"
+          (click)="onPointClick(point)"
+        >
+          <app-history-point-item
+            [point]="point"
+            [isActive]="currentPointIndex() === point.index"
+          ></app-history-point-item>
+        </div>
+      </cdk-virtual-scroll-viewport>
 
       <!-- Footer Summary -->
       <div class="footer-summary">

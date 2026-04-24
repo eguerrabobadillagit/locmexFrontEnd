@@ -15,6 +15,7 @@ import { RoutePlaybackService } from '../../../map/service/route-playback.servic
 import { VehicleHistoryService } from '../../../vehicles/services/vehicle-history.service';
 import { calculateHistorySummary, formatHistoryTime } from '../../../vehicles/utils/vehicle-history.utils';
 import { HistoryDateHelperService } from '../../../vehicles/services/history-date-helper.service';
+import { StreetViewService } from '../../../services/street-view.service';
 
 @Component({
   selector: 'app-fleet-tracking-view',
@@ -45,7 +46,7 @@ export class FleetTrackingViewComponent implements OnInit {
   mobileSidebarClose = output<void>();
   mobileSidebarOpen = output<void>();
 
-  // View mode: 'list' shows units, 'history' shows history form/route
+  // View mode: 'list' | 'history'
   sidebarViewMode = signal<'list' | 'history'>('list');
   selectedHistoryVehicle = signal<Vehicle | null>(null);
   historySubViewMode = signal<'form' | 'route'>('form');
@@ -64,6 +65,12 @@ export class FleetTrackingViewComponent implements OnInit {
     return window.innerWidth <= 768;
   }
 
+  private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
+  private readonly routePlayback = inject(RoutePlaybackService);
+  private readonly historyDateHelper = inject(HistoryDateHelperService);
+  private readonly historyService = inject(VehicleHistoryService);
+  private readonly streetViewService = inject(StreetViewService);
   constructor() {
     addIcons({
       closeOutline,
@@ -71,12 +78,6 @@ export class FleetTrackingViewComponent implements OnInit {
       analyticsOutline,
     });
   }
-
-  private readonly vehicleSelectionService = inject(VehicleSelectionService);
-  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
-  private readonly routePlayback = inject(RoutePlaybackService);
-  private readonly historyDateHelper = inject(HistoryDateHelperService);
-  private readonly historyService = inject(VehicleHistoryService);
 
   onVehicleSelect(vehicleId: string) {
     this.vehicleSelectionService.selectVehicle(vehicleId);
@@ -94,6 +95,18 @@ export class FleetTrackingViewComponent implements OnInit {
   onOpenHistoryClicked(vehicle: Vehicle) {
     this.openHistory.emit(vehicle);
     this.openHistoryView(vehicle);
+  }
+
+  onOpenStreetViewClicked(vehicle: Vehicle) {
+    this.vehicleSelectionService.selectVehicle(vehicle.id);
+    this.vehicleSelect.emit(vehicle.id);
+    if (vehicle.latitude && vehicle.longitude) {
+      this.streetViewService.openStreetView({
+        lat: vehicle.latitude,
+        lng: vehicle.longitude,
+        plate: vehicle.plate
+      });
+    }
   }
 
   onCloseSidebar() {

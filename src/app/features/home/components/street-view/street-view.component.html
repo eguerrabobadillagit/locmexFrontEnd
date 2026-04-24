@@ -1,0 +1,32 @@
+<div class="street-view-wrapper">
+  <!-- Header -->
+  <div class="sv-header">
+    <button class="back-btn" (click)="onBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="sv-title">
+      <ion-icon name="eye-outline"></ion-icon>
+      <span>Street View — {{ vehiclePlate() }}</span>
+    </div>
+  </div>
+
+  <!-- Sin Street View disponible -->
+  @if (noStreetView()) {
+    <div class="no-sv-container">
+      <ion-icon name="warning-outline" class="no-sv-icon"></ion-icon>
+      <p class="no-sv-title">Street View no disponible</p>
+      <p class="no-sv-subtitle">No hay imágenes de calle para esta ubicación.</p>
+      <ion-button fill="outline" color="medium" (click)="onBack()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Volver
+      </ion-button>
+    </div>
+  }
+
+  <!-- Contenedor Street View -->
+  <div
+    #streetViewContainer
+    class="sv-container"
+    [class.hidden]="noStreetView()">
+  </div>
+</div>

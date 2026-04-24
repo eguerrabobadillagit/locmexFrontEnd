@@ -105,12 +105,25 @@
     </ion-fab>
   </div>
 
+  <!-- Street View Fullscreen Overlay -->
+  @if (showStreetViewFullscreen() && streetViewFullscreenVehicle()) {
+    <div class="streetview-fullscreen-overlay">
+      <app-street-view
+        [latitude]="streetViewFullscreenVehicle()!.latitude"
+        [longitude]="streetViewFullscreenVehicle()!.longitude"
+        [vehiclePlate]="streetViewFullscreenVehicle()!.plate"
+        (back)="onCloseStreetViewFullscreen()">
+      </app-street-view>
+    </div>
+  }
+
   <!-- Vehicle Detail Panel -->
   @if (showVehicleDetail() && selectedVehicleDetail()) {
     <div class="vehicle-detail-panel">
       <app-vehicle-detail
         [vehicle]="selectedVehicleDetail()!"
-        (close)="onCloseVehicleDetail()">
+        (close)="onCloseVehicleDetail()"
+        (openStreetViewFullscreen)="onOpenStreetView($event)">
       </app-vehicle-detail>
     </div>
   }
@@ -122,7 +135,8 @@
       (close)="onCloseVehicleDetail()"
       (edit)="onEditVehicle()"
       (locate)="onLocateVehicle()"
-      (expand)="onExpandVehicle()">
+      (expand)="onExpandVehicle()"
+      (openStreetViewFullscreen)="onOpenStreetView($event)">
     </app-vehicle-detail-mobile>
   }
 

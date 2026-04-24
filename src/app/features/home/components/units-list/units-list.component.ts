@@ -8,6 +8,7 @@ import {
 } from 'ionicons/icons';
 import { Vehicle, getVehicleStatusClass } from '../../../vehicles/interfaces/vehicle.interface';
 import { VehicleVisibilityService } from '../../../services/vehicle-visibility.service';
+import { getSpeedColor, getSpeedHexColor, SpeedColor } from '../../../vehicles/utils/vehicle-history.utils';
 
 @Component({
   selector: 'app-units-list',
@@ -34,6 +35,7 @@ export class UnitsListComponent implements OnInit {
   close = output<void>();
   retry = output<void>();
   openHistory = output<Vehicle>();
+  openStreetView = output<Vehicle>();
   vehicleSelectionChange = output<{ vehicleId: string; selected: boolean }>();
   selectAllChange = output<boolean>();
 
@@ -95,8 +97,32 @@ export class UnitsListComponent implements OnInit {
     this.openHistory.emit(vehicle);
   }
 
+  onOpenStreetView(vehicle: Vehicle, event: Event) {
+    event.stopPropagation();
+    this.openStreetView.emit(vehicle);
+  }
+
   getStatusClass(status: string): string {
     return getVehicleStatusClass(status);
+  }
+
+  /**
+   * Obtiene la clase CSS para el color de velocidad basado en thresholds centralizados:
+   * - Gris: 0 km/h (detenido)
+   * - Verde: 1-40 km/h
+   * - Amarillo: 41-80 km/h
+   * - Rojo: >80 km/h
+   */
+  getSpeedColorClass(speed: number): string {
+    const color = getSpeedColor(speed);
+    return `speed-${color}`;
+  }
+
+  /**
+   * Obtiene el color hexadecimal para la velocidad (útil para estilos inline)
+   */
+  getSpeedColorHex(speed: number): string {
+    return getSpeedHexColor(getSpeedColor(speed));
   }
 
   onVehicleCheckboxClick(vehicleId: string) {

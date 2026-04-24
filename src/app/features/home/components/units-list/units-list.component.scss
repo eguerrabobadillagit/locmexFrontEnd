@@ -260,6 +260,16 @@
       }
     }
 
+    .eye-btn {
+      &:hover {
+        background: #e8f5e9;
+
+        ion-icon {
+          color: #2e7d32;
+        }
+      }
+    }
+
     ion-checkbox {
       --size: 20px;
       --checkbox-background-checked: #4caf50;
@@ -356,10 +366,30 @@
       gap: 6px;
       font-size: 14px;
       color: #666;
+      transition: color 0.2s ease;
 
       .metric-icon {
         font-size: 18px;
         color: #1a1a1a;
+        transition: color 0.2s ease;
+      }
+
+      // Colores de velocidad centralizados
+      &.speed-gray {
+        color: #9E9E9E;
+        .metric-icon { color: #9E9E9E; }
+      }
+      &.speed-green {
+        color: #4CAF50;
+        .metric-icon { color: #4CAF50; }
+      }
+      &.speed-yellow {
+        color: #FFC107;
+        .metric-icon { color: #FFC107; }
+      }
+      &.speed-red {
+        color: #F44336;
+        .metric-icon { color: #F44336; }
       }
     }
   }
@@ -552,6 +582,16 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+
+      .last-connection {
+        display: block;
+        font-size: 11px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+      }
     }
 
     .status-badge-compact {
@@ -623,16 +663,37 @@
         padding: 4px 8px;
         background: #f5f5f5;
         border-radius: 6px;
+        transition: all 0.2s ease;
 
         ion-icon {
           font-size: 16px;
           color: #666;
+          transition: color 0.2s ease;
         }
 
         span {
           font-size: 12px;
           font-weight: 500;
           color: #666;
+          transition: color 0.2s ease;
+        }
+
+        // Colores de velocidad centralizados (vista compacta)
+        &.speed-gray {
+          background: #f5f5f5;
+          ion-icon, span { color: #9E9E9E; }
+        }
+        &.speed-green {
+          background: #e8f5e9;
+          ion-icon, span { color: #4CAF50; }
+        }
+        &.speed-yellow {
+          background: #fff8e1;
+          ion-icon, span { color: #FFC107; }
+        }
+        &.speed-red {
+          background: #ffebee;
+          ion-icon, span { color: #F44336; }
         }
       }
     }
