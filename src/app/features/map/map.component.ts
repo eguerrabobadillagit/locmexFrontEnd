@@ -61,7 +61,7 @@ interface GeofenceAlertView extends AlertView {}
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent, StreetViewComponent]
+  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, IonContent, IonList, IonItem, IonLabel, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent, StreetViewComponent, UserMenuComponent]
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
