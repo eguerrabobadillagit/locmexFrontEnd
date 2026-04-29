@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild, OnDestroy, computed, signal, inject, effect } from '@angular/core';
 import { GoogleMap, MapMarker } from '@angular/google-maps';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton } from '@ionic/angular/standalone';
+import { ActivatedRoute, Router } from '@angular/router';
+import { IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, IonContent, IonList, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { AlertsListComponent, AlertView } from './components/alerts-list/alerts-list.component';
+import { UserMenuComponent } from '../../core/components/user-menu/user-menu.component';
 import { VehicleSelectionService } from '../services/vehicle-selection';
 import { VehicleVisibilityService } from '../services/vehicle-visibility.service';
 import { GeofenceVisibilityService } from '../services/geofence-visibility.service';
@@ -28,6 +29,7 @@ import { chevronUpOutline, chevronDownOutline, closeOutline, locationOutline, lo
 import { VehicleDetail } from './interfaces/vehicle-detail.interface';
 import { AlertService } from '../alerts/services/alert.service';
 import { Alert } from '../alerts/interfaces/alert.interface';
+import { AuthService } from '../auth/services/auth.service';
 import { GeofenceService } from '../geofences/services/geofence.service';
 import { GeofenceResponse } from '../geofences/interfaces/geofence-request.interface';
 import { GeofenceDrawingService } from '../geofences/services/geofence-drawing.service';
@@ -56,7 +58,7 @@ interface GeofenceAlertView extends AlertView {}
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent]
+  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, IonContent, IonList, IonItem, IonLabel, AlertsListComponent, UserMenuComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent]
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
@@ -194,6 +196,8 @@ export class MapComponent implements OnInit, OnDestroy {
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
   private readonly geofenceDrawingService = inject(GeofenceDrawingService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   // Terra Draw
   private terraDraw: TerraDraw | null = null;
@@ -485,6 +489,22 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
+  getMapTypeLabel(): string {
+    const mapType = this.currentMapType();
+    switch (mapType) {
+      case 'roadmap':
+        return 'Mapa';
+      case 'satellite':
+        return 'Satélite';
+      case 'hybrid':
+        return 'Híbrido';
+      case 'terrain':
+        return 'Terreno';
+      default:
+        return 'Mapa';
+    }
+  }
+
   centerOnGeofence(geofence: { geoJson: string; geometryType: string; name: string }): void {
     if (!this.googleMap?.googleMap) return;
 
@@ -716,5 +736,13 @@ export class MapComponent implements OnInit, OnDestroy {
       // Guardar la geometría en el servicio
       this.geofenceDrawingService.setDrawnGeometry(feature);
     }
+  }
+
+  /**
+   * Cerrar sesión del usuario
+   */
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

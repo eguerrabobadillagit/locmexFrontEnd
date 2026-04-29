@@ -65,7 +65,7 @@ export class VehicleDetailMobileComponent {
 
   address = signal<string>('Cargando ubicación...');
   showShareModal = signal<boolean>(false);
-  activeSegment: 'info' | 'alertas' = 'info';
+  activeSegment: 'info' | 'alertas' | 'comandos' = 'info';
   
   // Estado del sheet (expandido/colapsado)
   isExpanded = signal<boolean>(false);
@@ -124,7 +124,7 @@ export class VehicleDetailMobileComponent {
     }
   }
 
-  onSegmentChange(value: 'info' | 'alertas'): void {
+  onSegmentChange(value: 'info' | 'alertas' | 'comandos'): void {
     this.activeSegment = value;
   }
 
@@ -240,5 +240,10 @@ export class VehicleDetailMobileComponent {
   @HostListener('document:mouseup')
   handleGlobalEnd() {
     this.onDragEnd();
+  }
+
+  onCommandClick(command: string): void {
+    console.log('Comando seleccionado:', command);
+    // TODO: Implementar lógica de envío de comandos al dispositivo
   }
 }

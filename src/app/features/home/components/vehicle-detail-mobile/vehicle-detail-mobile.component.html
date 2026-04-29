@@ -81,6 +81,13 @@
         <ion-icon name="warning-outline"></ion-icon>
         Alertas
       </button>
+      <button
+        class="tab-button"
+        [class.active]="activeSegment === 'comandos'"
+        (click)="onSegmentChange('comandos')">
+        <ion-icon name="terminal-outline"></ion-icon>
+        Comandos
+      </button>
     </div>
 
     <!-- Content -->
@@ -204,6 +211,44 @@
           @if (vehicle) {
             <app-vehicle-alerts [vehicleId]="vehicle.id" />
           }
+        }
+
+        @case ('comandos') {
+          <!-- Lista de comandos -->
+          <div class="commands-list">
+            <div class="command-item" (click)="onCommandClick('pedir-ubicacion')">
+              <span>Pedir ubicación</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('pedir-ubicacion-s')">
+              <span>Pedir ubicación S</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('bloqueo-motor')">
+              <span>Bloqueo de motor</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('bloqueo-motor-s')">
+              <span>Bloqueo de motor S</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('desbloqueo-motor')">
+              <span>Desbloqueo de motor</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('desbloqueo-motor-s')">
+              <span>Desbloqueo de motor S</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('reiniciar-gps')">
+              <span>Reiniciar GPS</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+            <div class="command-item" (click)="onCommandClick('reiniciar-gps-s')">
+              <span>Reiniciar GPS S</span>
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </div>
+          </div>
         }
       }
 

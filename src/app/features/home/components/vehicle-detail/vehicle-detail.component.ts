@@ -26,7 +26,8 @@ import {
   waterOutline,
   compassOutline,
   timeOutline,
-  eyeOutline
+  eyeOutline,
+  chevronForwardOutline
 } from 'ionicons/icons';
 
 // Registrar iconos
@@ -40,7 +41,8 @@ addIcons({
   'water-outline': waterOutline,
   'compass-outline': compassOutline,
   'time-outline': timeOutline,
-  'eye-outline': eyeOutline
+  'eye-outline': eyeOutline,
+  'chevron-forward-outline': chevronForwardOutline
 });
 
 @Component({
@@ -103,14 +105,14 @@ export class VehicleDetailComponent {
     }
   }
 
-  // Segmento activo: 'info' | 'alertas'
-  activeSegment: 'info' | 'alertas' = 'info';
+  // Segmento activo: 'info' | 'alertas' | 'comandos'
+  activeSegment: 'info' | 'alertas' | 'comandos' = 'info';
 
   ngOnInit(): void {
     // Inicialización del componente
   }
 
-  onSegmentChange(value: 'info' | 'alertas'): void {
+  onSegmentChange(value: 'info' | 'alertas' | 'comandos'): void {
     this.activeSegment = value;
   }
 
@@ -154,5 +156,10 @@ export class VehicleDetailComponent {
     if (vehicle.status === 'In_route') return 'En ruta';
     if (vehicle.status === 'Stopped') return 'Detenido';
     return 'Sin señal';
+  }
+
+  onCommandClick(command: string): void {
+    console.log('Comando seleccionado:', command);
+    // TODO: Implementar lógica de envío de comandos al dispositivo
   }
 }

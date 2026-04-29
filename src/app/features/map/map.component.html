@@ -24,6 +24,11 @@
     </app-geofence-overlay>
   }
 
+  <!-- Floating User Menu - Top Right -->
+  <div class="floating-user-menu">
+    <app-user-menu (logout)="onLogout()"></app-user-menu>
+  </div>
+
   <!-- Floating Alerts Button - Top Left -->
   <ion-fab class="alerts-fab" [class.has-alerts]="unreadAlertsCount() > 0" [class.sheet-active]="showMobilePlayer()">
     <ion-fab-button
@@ -83,26 +88,42 @@
       <ion-icon [name]="trackingIcon()"></ion-icon>
     </ion-button>
 
-    <!-- Map Type Selector FAB -->
-    <ion-fab class="control-fab map-type-fab">
-      <ion-fab-button color="light" class="square-button">
-        <ion-icon name="layers-outline"></ion-icon>
-      </ion-fab-button>
-      <ion-fab-list side="bottom" [style.min-width.px]="0">
-        <ion-fab-button (click)="changeMapType('roadmap')" title="Mapa" color="light">
-          <ion-icon name="map-outline"></ion-icon>
-        </ion-fab-button>
-        <ion-fab-button (click)="changeMapType('satellite')" title="Satélite" color="light">
-          <ion-icon name="globe-outline"></ion-icon>
-        </ion-fab-button>
-        <ion-fab-button (click)="changeMapType('hybrid')" title="Híbrido" color="light">
-          <ion-icon name="layers-outline"></ion-icon>
-        </ion-fab-button>
-        <ion-fab-button (click)="changeMapType('terrain')" title="Terreno" color="light">
-          <ion-icon name="earth-outline"></ion-icon>
-        </ion-fab-button>
-      </ion-fab-list>
-    </ion-fab>
+  </div>
+
+  <!-- Map Type Selector Dropdown (separado) -->
+  <div class="map-type-selector-container">
+    <ion-button
+      id="map-type-trigger"
+      color="light"
+      class="map-type-button"
+      fill="solid">
+      <span class="map-type-label">{{ getMapTypeLabel() }}</span>
+      <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+    </ion-button>
+    <ion-popover trigger="map-type-trigger" triggerAction="click" side="bottom" alignment="start" cssClass="map-type-popover">
+      <ng-template>
+        <ion-content>
+          <ion-list lines="none">
+            <ion-item button (click)="changeMapType('roadmap')" [class.selected]="currentMapType() === 'roadmap'">
+              <ion-icon name="map-outline" slot="start"></ion-icon>
+              <ion-label>Mapa</ion-label>
+            </ion-item>
+            <ion-item button (click)="changeMapType('satellite')" [class.selected]="currentMapType() === 'satellite'">
+              <ion-icon name="globe-outline" slot="start"></ion-icon>
+              <ion-label>Satélite</ion-label>
+            </ion-item>
+            <ion-item button (click)="changeMapType('hybrid')" [class.selected]="currentMapType() === 'hybrid'">
+              <ion-icon name="layers-outline" slot="start"></ion-icon>
+              <ion-label>Híbrido</ion-label>
+            </ion-item>
+            <ion-item button (click)="changeMapType('terrain')" [class.selected]="currentMapType() === 'terrain'">
+              <ion-icon name="earth-outline" slot="start"></ion-icon>
+              <ion-label>Terreno</ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-content>
+      </ng-template>
+    </ion-popover>
   </div>
 
   <!-- Vehicle Detail Panel -->

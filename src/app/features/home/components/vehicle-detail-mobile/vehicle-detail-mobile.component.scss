@@ -245,6 +245,38 @@
   overflow-y: auto;
 }
 
+// Commands List Styles
+.commands-list {
+  padding: 0;
+  margin: 0;
+
+  .command-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:active {
+      background-color: #f3f4f6;
+    }
+
+    span {
+      font-size: 15px;
+      color: #374151;
+      font-weight: 400;
+    }
+
+    ion-icon {
+      font-size: 18px;
+      color: #9ca3af;
+    }
+  }
+}
+
 // Custom Tabs
 .custom-tabs {
   display: flex;

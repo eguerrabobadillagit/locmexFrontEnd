@@ -1,7 +1,7 @@
 :host {
   display: block;
   width: 100%;
-  height: calc(100vh - 56px);
+  height: 100vh;
 }
 
 .map-container {
@@ -175,8 +175,121 @@
   }
 }
 
+// Floating User Menu - Top Right
+.floating-user-menu {
+  position: absolute;
+  top: 16px;
+  right: 67px;
+  //left: 250px; // Margen izquierdo para no encimarse con el selector de mapa
+  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  background: white;
+  display: flex;
+  justify-content: flex-end; // Alinear a la derecha
+}
+
+// Map Type Selector Container (separado de los controles)
+.map-type-selector-container {
+  position: absolute;
+  top: 12px; // A la altura de las alertas
+  left: 76px; // A la derecha de los botones FAB
+  z-index: 999;
+
+  .map-type-button {
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    height: 44px;
+    min-width: 100px;
+    
+    &::part(native) {
+      border-radius: 8px;
+    }
+
+    .map-type-label {
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 4px;
+    }
+
+    ion-icon {
+      font-size: 16px;
+      margin-left: 4px;
+    }
+  }
+}
+
+// Estilos del popover del selector de mapa
+ion-popover.map-type-popover {
+  --width: 160px;
+  
+  ion-content {
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+  }
+
+  ion-list {
+    padding: 0;
+    background: transparent;
+  }
+
+  ion-item {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --min-height: 44px;
+    cursor: pointer;
+    
+    &:hover {
+      --background: rgba(0, 0, 0, 0.04);
+    }
+
+    &.selected {
+      --background: rgba(var(--ion-color-primary-rgb), 0.1);
+      
+      ion-label {
+        color: var(--ion-color-primary);
+        font-weight: 600;
+      }
+      
+      ion-icon {
+        color: var(--ion-color-primary);
+      }
+    }
+
+    ion-icon {
+      font-size: 20px;
+      margin-right: 12px;
+    }
+
+    ion-label {
+      font-size: 14px;
+    }
+  }
+}
+
 // Mobile Bottom Sheet – shown only on small screens
 @media (max-width: 768px) {
+  // Ajustar posiciones de controles flotantes en mobile
+  .floating-user-menu {
+    right: calc(100% - 16px - 270px) !important; // Más espacio a la derecha en mobile
+  }
+
+  .alerts-fab {
+    top: 72px !important; // Bajar botón de alertas en mobile
+  }
+
+  .map-controls-row {
+    top: 128px !important; // Bajar botones de geocercas/tracking en mobile (más abajo)
+  }
+
+  .map-type-selector-container {
+    top: 72px !important; // Bajar selector de mapa en mobile
+  }
+
   .map-container {
     // Ocultar el panel lateral de vehicle-detail en mobile
     .vehicle-detail-panel {
