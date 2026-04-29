@@ -14,7 +14,7 @@ import {
   calendarOutline,
   locationOutline,
   searchOutline,
-  trailSignOutline, carOutline, alertCircleOutline } from 'ionicons/icons';
+  trailSignOutline, carOutline, alertCircleOutline, fileTrayOutline } from 'ionicons/icons';
 import { VehicleHistoryService } from '../../services/vehicle-history.service';
 import { HistoryPointItemComponent } from '../history-point-item/history-point-item.component';
 import { RoutePlaybackPlayerComponent } from '../../../../features/map/components/route-playback-player/route-playback-player.component';
@@ -94,6 +94,7 @@ export class VehicleHistoryRouteComponent implements OnInit {
       alertCircleOutline,
       locationOutline,
       trailSignOutline,
+      fileTrayOutline,
     });
 
     effect(() => {
@@ -105,6 +106,11 @@ export class VehicleHistoryRouteComponent implements OnInit {
       if (point) {
         this.currentPointIndex.set(point.index);
       }
+    });
+
+    effect(() => {
+      const index = this.currentPointIndex();
+      this.scrollToIndex(index);
     });
   }
 
@@ -280,7 +286,8 @@ export class VehicleHistoryRouteComponent implements OnInit {
 
   private scrollToIndex(index: number) {
     if (this.virtualScroll) {
-      this.virtualScroll.scrollToIndex(index, 'smooth');
+      const offset = index * 76;
+      this.virtualScroll.scrollToOffset(offset, 'smooth');
     }
   }
 

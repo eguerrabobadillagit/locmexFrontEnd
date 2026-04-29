@@ -139,8 +139,12 @@
     <!-- Empty State -->
     @if (formattedPoints().length === 0 && !isLoading() && !error()) {
       <div class="empty-state">
-        <ion-icon name="trail-sign-outline"></ion-icon>
-        <p>No se encontraron registros en el rango seleccionado</p>
+        <ion-icon name="file-tray-outline" class="empty-icon"></ion-icon>
+        <p class="empty-message">No se encontraron registros para el rango seleccionado.</p>
+        <button class="empty-action-btn" (click)="onBackToForm()">
+          <ion-icon name="search-outline"></ion-icon>
+          Buscar otro rango
+        </button>
       </div>
     }
   </div>

@@ -51,22 +51,50 @@
 }
 
 .empty-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 32px 20px;
   text-align: center;
+  min-height: 0;
 
-  ion-icon {
-    font-size: 48px;
-    color: var(--ion-color-light, #e0e0e0);
+  .empty-icon {
+    font-size: 64px;
+    color: var(--ion-color-medium, #999);
     margin-bottom: 16px;
   }
 
-  p {
-    margin: 0;
+  .empty-message {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ion-color-dark, #333);
+    line-height: 1.4;
+  }
+
+  .empty-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: #1a1a1a;
+    color: #fff;
     font-size: 14px;
-    color: var(--ion-color-medium, #666);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #333333;
+    }
+
+    ion-icon {
+      font-size: 18px;
+    }
   }
 }

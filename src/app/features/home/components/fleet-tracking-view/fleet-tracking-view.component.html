@@ -1,24 +1,25 @@
 <div class="fleet-tracking-container">
   @switch (sidebarViewMode()) {
     @case ('history') {
-      @switch (historySubViewMode()) {
-        @case ('route') {
-          @if (isLoadingHistory()) {
-            <div class="history-loading">
-              <div class="spinner"></div>
-              <p>Cargando recorrido...</p>
-            </div>
-          }
+      <!-- Loading Overlay -->
+      @if (isLoadingHistory()) {
+        <div class="sidebar-loading-overlay">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Cargando historial...</p>
+        </div>
+      }
 
-          @if (historyError()) {
-            <div class="history-error">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-              <p>{{ historyError() }}</p>
-              <button class="retry-btn" (click)="onBackToHistoryForm()">Volver</button>
-            </div>
-          }
+      @if (historyError()) {
+        <div class="history-error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>{{ historyError() }}</p>
+          <button class="retry-btn" (click)="onBackToHistoryForm()">Volver</button>
+        </div>
+      }
 
-          @if (!isLoadingHistory() && !historyError()) {
+      @if (!isLoadingHistory() && !historyError()) {
+        @switch (historySubViewMode()) {
+          @case ('route') {
             <app-vehicle-history-route
               [vehicleId]="selectedHistoryVehicle()?.id || ''"
               [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
@@ -37,13 +38,13 @@
               (backToForm)="onBackToHistoryForm()"
               (pointSelect)="onHistoryPointSelect($event)" />
           }
-        }
-        @default {
-          <app-vehicle-history-form
-            [vehicleId]="selectedHistoryVehicle()?.id || ''"
-            [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
-            (closeForm)="closeHistoryView()"
-            (searchHistory)="onHistorySearch($event)" />
+          @default {
+            <app-vehicle-history-form
+              [vehicleId]="selectedHistoryVehicle()?.id || ''"
+              [vehiclePlate]="selectedHistoryVehicle()?.plate || ''"
+              (closeForm)="closeHistoryView()"
+              (searchHistory)="onHistorySearch($event)" />
+          }
         }
       }
     }

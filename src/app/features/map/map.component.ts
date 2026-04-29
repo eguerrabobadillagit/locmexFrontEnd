@@ -7,6 +7,7 @@ import { AlertsListComponent, AlertView } from './components/alerts-list/alerts-
 import { VehicleSelectionService } from '../services/vehicle-selection';
 import { VehicleVisibilityService } from '../services/vehicle-visibility.service';
 import { GeofenceVisibilityService } from '../services/geofence-visibility.service';
+import { MobilePanelCoordinatorService } from '../services/mobile-panel-coordinator.service';
 import { VehicleDetailComponent } from '../home/components/vehicle-detail/vehicle-detail.component';
 import { VehicleDetailMobileComponent } from '../home/components/vehicle-detail-mobile/vehicle-detail-mobile.component';
 import { VehicleWebSocketService } from './service/vehicle-websocket.service';
@@ -198,6 +199,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
   private readonly geofenceDrawingService = inject(GeofenceDrawingService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly mobilePanelCoordinator = inject(MobilePanelCoordinatorService);
 
   // Terra Draw
   private terraDraw: TerraDraw | null = null;
@@ -306,6 +308,13 @@ export class MapComponent implements OnInit, OnDestroy {
       // porque eso sobreescribiría la selección manual del usuario.
       // Los vehículos permanecerán ocultos/visibles según el estado actual.
     });
+
+    // Effect para cerrar detalle de vehículo cuando se abre historial
+    effect(() => {
+      if (this.mobilePanelCoordinator.closeVehicleDetailRequested()) {
+        this.showVehicleDetail.set(false);
+      }
+    });
   }
 
   async ngOnInit() {
@@ -329,6 +338,7 @@ export class MapComponent implements OnInit, OnDestroy {
         this.focusOnVehicle(vehicleId);
         this.selectedVehicleId.set(vehicleId);
         this.showVehicleDetail.set(true);
+        this.mobilePanelCoordinator.requestCloseHistory();
       })
     );
 
@@ -429,6 +439,7 @@ export class MapComponent implements OnInit, OnDestroy {
     if (vehicleData) {
       this.selectedVehicleId.set(markerId);
       this.showVehicleDetail.set(true);
+      this.mobilePanelCoordinator.requestCloseHistory();
     }
   }
 
