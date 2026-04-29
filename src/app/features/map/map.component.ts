@@ -7,6 +7,7 @@ import { AlertsListComponent, AlertView } from './components/alerts-list/alerts-
 import { VehicleSelectionService } from '../services/vehicle-selection';
 import { VehicleVisibilityService } from '../services/vehicle-visibility.service';
 import { GeofenceVisibilityService } from '../services/geofence-visibility.service';
+import { MobilePanelCoordinatorService } from '../services/mobile-panel-coordinator.service';
 import { VehicleDetailComponent } from '../home/components/vehicle-detail/vehicle-detail.component';
 import { VehicleDetailMobileComponent } from '../home/components/vehicle-detail-mobile/vehicle-detail-mobile.component';
 import { VehicleWebSocketService } from './service/vehicle-websocket.service';
@@ -23,9 +24,11 @@ import { Subscription } from 'rxjs';
 
 import { createVehicleMarkerIcon } from './utils/vehicle-marker-icon.util';
 import { addIcons } from 'ionicons';
+import { detectStops, VehicleStop } from '../vehicles/utils/vehicle-history.utils';
 import { chevronUpOutline, chevronDownOutline, closeOutline, locationOutline, locateOutline, eyeOutline, eyeOffOutline, navigate, navigateOutline, layersOutline, mapOutline, globeOutline, earthOutline, notificationsOutline, notifications, enterOutline, exitOutline, notificationsOffOutline, arrowUndoOutline, arrowRedoOutline, trashOutline } from 'ionicons/icons';
 
 import { VehicleDetail } from './interfaces/vehicle-detail.interface';
+import { StreetViewComponent } from '../home/components/street-view/street-view.component';
 import { AlertService } from '../alerts/services/alert.service';
 import { Alert } from '../alerts/interfaces/alert.interface';
 import { GeofenceService } from '../geofences/services/geofence.service';
@@ -56,7 +59,7 @@ interface GeofenceAlertView extends AlertView {}
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent]
+  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent, StreetViewComponent]
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
@@ -66,6 +69,8 @@ export class MapComponent implements OnInit, OnDestroy {
 
   selectedVehicleId = signal<string | null>(null);
   showVehicleDetail = signal<boolean>(false);
+  showStreetViewFullscreen = signal<boolean>(false);
+  streetViewFullscreenVehicle = signal<VehicleDetail | null>(null);
   currentMapType = signal<string>('roadmap');
 
   // Geofence visibility - computed from service
@@ -194,6 +199,7 @@ export class MapComponent implements OnInit, OnDestroy {
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
   private readonly geofenceDrawingService = inject(GeofenceDrawingService);
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly mobilePanelCoordinator = inject(MobilePanelCoordinatorService);
 
   // Terra Draw
   private terraDraw: TerraDraw | null = null;
@@ -213,14 +219,19 @@ export class MapComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Effect para Route Playback - sincronizar puntos de ruta
+    // Effect para Route Playback - sincronizar puntos de ruta con colores de velocidad y paradas
     effect(() => {
       const points = this.routePlayback.routePoints();
       const map = this.googleMap?.googleMap;
       if (points.length === 0) {
         this.routeOverlay.clearRouteOverlays();
       } else if (map) {
-        this.routeOverlay.renderRoutePolyline(map, points);
+        // Detectar paradas (puntos con velocidad 0 por más de 2 minutos)
+        const stops = detectStops(points, 2);
+        if (stops.length > 0) {
+          console.log('[MapComponent] Paradas detectadas:', stops.length, stops);
+        }
+        this.routeOverlay.renderRoutePolyline(map, points, stops);
       }
     });
 
@@ -297,6 +308,13 @@ export class MapComponent implements OnInit, OnDestroy {
       // porque eso sobreescribiría la selección manual del usuario.
       // Los vehículos permanecerán ocultos/visibles según el estado actual.
     });
+
+    // Effect para cerrar detalle de vehículo cuando se abre historial
+    effect(() => {
+      if (this.mobilePanelCoordinator.closeVehicleDetailRequested()) {
+        this.showVehicleDetail.set(false);
+      }
+    });
   }
 
   async ngOnInit() {
@@ -320,6 +338,7 @@ export class MapComponent implements OnInit, OnDestroy {
         this.focusOnVehicle(vehicleId);
         this.selectedVehicleId.set(vehicleId);
         this.showVehicleDetail.set(true);
+        this.mobilePanelCoordinator.requestCloseHistory();
       })
     );
 
@@ -420,6 +439,7 @@ export class MapComponent implements OnInit, OnDestroy {
     if (vehicleData) {
       this.selectedVehicleId.set(markerId);
       this.showVehicleDetail.set(true);
+      this.mobilePanelCoordinator.requestCloseHistory();
     }
   }
 
@@ -448,6 +468,16 @@ export class MapComponent implements OnInit, OnDestroy {
   onExpandVehicle() {
     // TODO: Implementar vista expandida del vehículo
     console.log('[MapComponent] Ampliar vehículo:', this.selectedVehicleId());
+  }
+
+  onOpenStreetView(vehicleDetail: VehicleDetail) {
+    this.streetViewFullscreenVehicle.set(vehicleDetail);
+    this.showStreetViewFullscreen.set(true);
+  }
+
+  onCloseStreetViewFullscreen() {
+    this.showStreetViewFullscreen.set(false);
+    this.streetViewFullscreenVehicle.set(null);
   }
 
   // Métodos de playback móvil - delegados al servicio

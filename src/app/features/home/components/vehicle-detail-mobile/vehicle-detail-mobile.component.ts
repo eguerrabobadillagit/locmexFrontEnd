@@ -1,16 +1,12 @@
-import { Component, Input, Output, EventEmitter, signal, inject, effect, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject, effect, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonIcon,
   IonCard,
   IonCardContent,
-  IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton
+  IonModal
 } from '@ionic/angular/standalone';
+import { FormVehicleWizardComponent } from '../../../vehicles/components/form-vehicle-wizard/form-vehicle-wizard.component';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -30,6 +26,7 @@ import {
   chevronDownOutline
 } from 'ionicons/icons';
 import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
+import { StreetViewComponent } from '../street-view/street-view.component';
 import { GeocodingService } from '../../../map/service/geocoding.service';
 import { VehicleAlertsComponent } from '../vehicle-alerts/vehicle-alerts.component';
 import { GenerateLinkModalComponent } from '../../../public-tracking/components/generate-link-modal/generate-link-modal.component';
@@ -44,14 +41,11 @@ import { GenerateLinkModalComponent } from '../../../public-tracking/components/
     IonIcon,
     IonCard,
     IonCardContent,
-    IonContent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
+    IonModal,
     VehicleAlertsComponent,
-    GenerateLinkModalComponent
+    GenerateLinkModalComponent,
+    StreetViewComponent,
+    FormVehicleWizardComponent
   ]
 })
 export class VehicleDetailMobileComponent {
@@ -62,14 +56,17 @@ export class VehicleDetailMobileComponent {
   @Output() edit = new EventEmitter<void>();
   @Output() locate = new EventEmitter<void>();
   @Output() expand = new EventEmitter<void>();
+  @Output() openStreetViewFullscreen = new EventEmitter<VehicleDetail>();
 
+  showStreetView = signal<boolean>(false);
   address = signal<string>('Cargando ubicación...');
   showShareModal = signal<boolean>(false);
+  showEditWizard = signal<boolean>(false);
   activeSegment: 'info' | 'alertas' = 'info';
-  
+
   // Estado del sheet (expandido/colapsado)
   isExpanded = signal<boolean>(false);
-  
+
   // Variables para el drag
   private startY = 0;
   private startHeight = 0;
@@ -137,7 +134,15 @@ export class VehicleDetailMobileComponent {
   }
 
   onEdit() {
-    this.edit.emit();
+    this.showEditWizard.set(true);
+  }
+
+  onWizardClose() {
+    this.showEditWizard.set(false);
+  }
+
+  onVehicleUpdated(_data: any) {
+    this.showEditWizard.set(false);
   }
 
   onLocate() {
@@ -154,6 +159,18 @@ export class VehicleDetailMobileComponent {
 
   onExpand() {
     this.expand.emit();
+  }
+
+  onMonitorImage() {
+    this.showStreetView.set(true);
+  }
+
+  onStreetViewFullscreen() {
+    if (this.vehicle) this.openStreetViewFullscreen.emit(this.vehicle);
+  }
+
+  onCloseStreetView() {
+    this.showStreetView.set(false);
   }
 
   toggleSheet() {
@@ -181,21 +198,21 @@ export class VehicleDetailMobileComponent {
     this.isDragging = true;
     this.startY = 'touches' in event ? event.touches[0].clientY : event.clientY;
     this.startHeight = this.isExpanded() ? this.EXPANDED_HEIGHT : this.COLLAPSED_HEIGHT;
-    
+
     // Prevenir selección de texto durante el drag
     document.body.style.userSelect = 'none';
   }
 
   onDragMove(event: TouchEvent | MouseEvent) {
     if (!this.isDragging) return;
-    
+
     const currentY = 'touches' in event ? event.touches[0].clientY : event.clientY;
     const deltaY = this.startY - currentY;
     this.currentHeight = Math.max(
       this.COLLAPSED_HEIGHT,
       Math.min(this.EXPANDED_HEIGHT, this.startHeight + deltaY)
     );
-    
+
     // Aplicar altura directamente al elemento
     const container = document.querySelector('.vehicle-detail-mobile-container') as HTMLElement;
     if (container) {
@@ -206,19 +223,19 @@ export class VehicleDetailMobileComponent {
 
   onDragEnd() {
     if (!this.isDragging) return;
-    
+
     this.isDragging = false;
     document.body.style.userSelect = '';
-    
+
     // Determinar si expandir o colapsar basado en la posición actual
     const threshold = (this.COLLAPSED_HEIGHT + this.EXPANDED_HEIGHT) / 2;
-    
+
     if (this.currentHeight > threshold) {
       this.isExpanded.set(true);
     } else {
       this.isExpanded.set(false);
     }
-    
+
     // Restaurar transición
     const container = document.querySelector('.vehicle-detail-mobile-container') as HTMLElement;
     if (container) {

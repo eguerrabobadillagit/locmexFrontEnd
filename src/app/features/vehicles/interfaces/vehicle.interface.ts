@@ -9,6 +9,8 @@ export interface Vehicle {
   speed: number;
   battery: number;
   motorOn: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 export function getVehicleStatusClass(status: string): string {

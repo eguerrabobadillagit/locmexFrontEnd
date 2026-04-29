@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, signal, inject, OnInit, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject, OnInit, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ScrollingModule, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import {
   IonIcon,
   IonCard,
@@ -13,7 +14,7 @@ import {
   calendarOutline,
   locationOutline,
   searchOutline,
-  trailSignOutline, carOutline, alertCircleOutline } from 'ionicons/icons';
+  trailSignOutline, carOutline, alertCircleOutline, fileTrayOutline } from 'ionicons/icons';
 import { VehicleHistoryService } from '../../services/vehicle-history.service';
 import { HistoryPointItemComponent } from '../history-point-item/history-point-item.component';
 import { RoutePlaybackPlayerComponent } from '../../../../features/map/components/route-playback-player/route-playback-player.component';
@@ -23,7 +24,7 @@ import {
   FormattedHistoryPoint,
   PlaybackSpeed
 } from '../../interfaces/vehicle-history.interface';
-import { calculateHistorySummary, formatHistoryTime } from '../../utils/vehicle-history.utils';
+import { calculateHistorySummary, formatHistoryTime, detectStops, VehicleStop } from '../../utils/vehicle-history.utils';
 
 @Component({
   selector: 'app-vehicle-history-route',
@@ -36,10 +37,13 @@ import { calculateHistorySummary, formatHistoryTime } from '../../utils/vehicle-
     IonCard,
     IonCardContent,
     HistoryPointItemComponent,
-    RoutePlaybackPlayerComponent
+    RoutePlaybackPlayerComponent,
+    ScrollingModule
   ]
 })
 export class VehicleHistoryRouteComponent implements OnInit {
+  @ViewChild(CdkVirtualScrollViewport) virtualScroll!: CdkVirtualScrollViewport;
+
   @Input() vehicleId!: string;
   @Input() vehiclePlate!: string;
   @Input() fromDate!: string;
@@ -68,6 +72,7 @@ export class VehicleHistoryRouteComponent implements OnInit {
   formattedPoints = signal<FormattedHistoryPoint[]>([]);
   isLoading = signal<boolean>(false);
   error = signal<string | null>(null);
+  detectedStops = signal<VehicleStop[]>([]);
 
   // Playback
   isPlaying = signal<boolean>(false);
@@ -89,6 +94,7 @@ export class VehicleHistoryRouteComponent implements OnInit {
       alertCircleOutline,
       locationOutline,
       trailSignOutline,
+      fileTrayOutline,
     });
 
     effect(() => {
@@ -100,6 +106,11 @@ export class VehicleHistoryRouteComponent implements OnInit {
       if (point) {
         this.currentPointIndex.set(point.index);
       }
+    });
+
+    effect(() => {
+      const index = this.currentPointIndex();
+      this.scrollToIndex(index);
     });
   }
 
@@ -134,6 +145,9 @@ export class VehicleHistoryRouteComponent implements OnInit {
     if (this.historyPointsData) {
       this.historyPoints.set(this.historyPointsData);
       this.routePlayback.loadRoute(this.historyPointsData);
+      // Detectar paradas
+      const stops = detectStops(this.historyPointsData, 2);
+      this.detectedStops.set(stops);
     }
     if (this.formattedPointsData) {
       this.formattedPoints.set(this.formattedPointsData);
@@ -167,6 +181,10 @@ export class VehicleHistoryRouteComponent implements OnInit {
         this.formattedPoints.set(this.formatHistoryPoints(points));
         this.calculateSummary(points);
         this._totalPoints.set(points.length);
+        // Detectar paradas
+        const stops = detectStops(points, 2);
+        this.detectedStops.set(stops);
+        console.log('[VehicleHistoryRoute] Paradas detectadas:', stops.length, stops);
         this.routePlayback.loadRoute(points);
         this.isLoading.set(false);
         this.routePlayback.setLoadingRoute(false);
@@ -250,6 +268,10 @@ export class VehicleHistoryRouteComponent implements OnInit {
     this.emitCurrentPoint();
   }
 
+  trackByIndex(index: number, point: FormattedHistoryPoint): number {
+    return point.index;
+  }
+
   onPointClick(point: FormattedHistoryPoint) {
     this.routePlayback.seekTo(point.index);
     this.pointSelect.emit(point);
@@ -259,6 +281,14 @@ export class VehicleHistoryRouteComponent implements OnInit {
     const index = event.detail.value as number;
     this.routePlayback.seekTo(index);
     this.emitCurrentPoint();
+    this.scrollToIndex(index);
+  }
+
+  private scrollToIndex(index: number) {
+    if (this.virtualScroll) {
+      const offset = index * 76;
+      this.virtualScroll.scrollToOffset(offset, 'smooth');
+    }
   }
 
   private emitCurrentPoint() {

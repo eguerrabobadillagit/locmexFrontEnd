@@ -1,4 +1,5 @@
 import { VEHICLE_STATUS_COLORS, MarkerColors } from '../config/marker-styles.config';
+import { getSpeedColor, getSpeedHexColor } from '../../vehicles/utils/vehicle-history.utils';
 
 /**
  * Obtiene los colores correspondientes al estado de un vehículo
@@ -37,5 +38,15 @@ export function createVehicleMarkerIcon(heading: number, status: string): google
     url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
     scaledSize: new google.maps.Size(44, 44),
     anchor: new google.maps.Point(22, 22)
+  };
+}
+
+export function createSpeedBadgeIcon(speedKph: number, overrideColor?: string): google.maps.Icon {
+  const color = overrideColor ?? getSpeedHexColor(getSpeedColor(speedKph));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="white" stroke="${color}" stroke-width="2"/><text x="12" y="15" text-anchor="middle" font-size="9" font-family="Arial, sans-serif" font-weight="bold" fill="#333">${Math.round(speedKph)}</text></svg>`;
+  return {
+    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+    scaledSize: new google.maps.Size(24, 24),
+    anchor: new google.maps.Point(12, 12),
   };
 }

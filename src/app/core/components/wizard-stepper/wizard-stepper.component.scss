@@ -1,8 +1,16 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .wizard-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
+  flex: 1;
+  min-height: 0;
   background: #f5f5f5;
   overflow: hidden;
 }
@@ -186,8 +194,6 @@
   background: white;
   border-top: 1px solid #e0e0e0;
   flex-shrink: 0;
-  position: sticky;
-  bottom: 0;
   z-index: 10;
 
   .step-indicator {

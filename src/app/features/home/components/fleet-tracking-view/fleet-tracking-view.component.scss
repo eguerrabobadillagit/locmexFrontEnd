@@ -9,6 +9,7 @@
   height: 100%;
   background: #ffffff;
   overflow: hidden;
+  position: relative;
 }
 
 // El componente de lista de unidades debe ocupar todo el espacio disponible
@@ -415,6 +416,33 @@ app-vehicle-history-form {
     margin: 0;
     font-size: 14px;
     color: #999;
+  }
+}
+
+// ==================== SIDEBAR LOADING OVERLAY ====================
+.sidebar-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  gap: 12px;
+
+  ion-spinner {
+    --size: 48px;
+    --color: var(--ion-color-primary, #3880ff);
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
   }
 }
 

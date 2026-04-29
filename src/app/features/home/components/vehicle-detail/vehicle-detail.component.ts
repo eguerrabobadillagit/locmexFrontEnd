@@ -1,4 +1,4 @@
-import { Component, input, output, effect, signal, inject } from '@angular/core';
+import { Component, input, output, effect, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
@@ -9,9 +9,13 @@ import {
   IonIcon,
   IonButtons,
   IonCard,
-  IonCardContent
+  IonCardContent,
+  IonModal
 } from '@ionic/angular/standalone';
+import { FormVehicleWizardComponent } from '../../../vehicles/components/form-vehicle-wizard/form-vehicle-wizard.component';
 import { VehicleDetail } from '../../../map/interfaces/vehicle-detail.interface';
+import { StreetViewComponent } from '../street-view/street-view.component';
+import { StreetViewService } from '../../../services/street-view.service';
 import { GeocodingService } from '../../../map/service/geocoding.service';
 import { VehicleAlertsComponent } from '../vehicle-alerts/vehicle-alerts.component';
 import { GenerateLinkModalComponent } from '../../../public-tracking/components/generate-link-modal/generate-link-modal.component';
@@ -26,8 +30,7 @@ import {
   waterOutline,
   compassOutline,
   timeOutline,
-  eyeOutline
-} from 'ionicons/icons';
+  eyeOutline, eyeOffOutline } from 'ionicons/icons';
 
 // Registrar iconos
 addIcons({
@@ -40,7 +43,8 @@ addIcons({
   'water-outline': waterOutline,
   'compass-outline': compassOutline,
   'time-outline': timeOutline,
-  'eye-outline': eyeOutline
+  'eye-outline': eyeOutline,
+  'eye-off-outline': eyeOffOutline
 });
 
 @Component({
@@ -59,20 +63,28 @@ addIcons({
     IonButtons,
     IonCard,
     IonCardContent,
+    IonModal,
     VehicleAlertsComponent,
-    GenerateLinkModalComponent
+    GenerateLinkModalComponent,
+    StreetViewComponent,
+    FormVehicleWizardComponent
   ]
 })
 export class VehicleDetailComponent {
   private geocodingService = inject(GeocodingService);
+  private streetViewService = inject(StreetViewService);
 
   vehicle = input<VehicleDetail | null>(null);
   close = output<void>();
+  openStreetViewFullscreen = output<VehicleDetail>();
+
+  showStreetView = signal<boolean>(false);
 
   address = signal<string>('Cargando ubicación...');
-  
+
   // Signals para el modal de compartir
   showShareModal = signal<boolean>(false);
+  showEditWizard = signal<boolean>(false);
 
   constructor() {
     effect(() => {
@@ -81,6 +93,15 @@ export class VehicleDetailComponent {
         this.loadAddress(v.latitude, v.longitude);
       } else {
         this.address.set('Ubicación no disponible');
+      }
+    });
+
+    effect(() => {
+      const req = this.streetViewService.pendingRequest();
+      const v = this.vehicle();
+      if (req && v && req.plate === v.plate) {
+        this.showStreetView.set(true);
+        setTimeout(() => this.streetViewService.clearRequest(), 100);
       }
     });
   }
@@ -119,7 +140,15 @@ export class VehicleDetailComponent {
   }
 
   onEdit() {
-    // TODO: Implementar edición de vehículo
+    this.showEditWizard.set(true);
+  }
+
+  onWizardClose() {
+    this.showEditWizard.set(false);
+  }
+
+  onVehicleUpdated(_data: any) {
+    this.showEditWizard.set(false);
   }
 
   onLocate() {
@@ -136,6 +165,19 @@ export class VehicleDetailComponent {
 
   onExpand() {
     // TODO: Implementar ampliar vehículo
+  }
+
+  onMonitorImage() {
+    this.showStreetView.set(true);
+  }
+
+  onStreetViewFullscreen() {
+    const v = this.vehicle();
+    if (v) this.openStreetViewFullscreen.emit(v);
+  }
+
+  onCloseStreetView() {
+    this.showStreetView.set(false);
   }
 
   getStatusClass(): string {

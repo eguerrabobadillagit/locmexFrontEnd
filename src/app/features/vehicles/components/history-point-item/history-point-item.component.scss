@@ -53,9 +53,9 @@
         color: var(--ion-color-medium, #666);
       }
 
-      &.speed-orange {
-        background: rgba(var(--ion-color-warning-rgb, 255, 153, 0), 0.2);
-        color: var(--ion-color-warning, #ff9900);
+      &.speed-yellow {
+        background: rgba(var(--ion-color-warning-rgb, 255, 193, 7), 0.2);
+        color: var(--ion-color-warning, #FFC107);
       }
 
       &.speed-green {
@@ -63,9 +63,9 @@
         color: var(--ion-color-success, #2dd36f);
       }
 
-      &.speed-blue {
-        background: rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.2);
-        color: var(--ion-color-primary, #3880ff);
+      &.speed-red {
+        background: rgba(var(--ion-color-danger-rgb, 244, 67, 54), 0.2);
+        color: var(--ion-color-danger, #F44336);
       }
     }
 

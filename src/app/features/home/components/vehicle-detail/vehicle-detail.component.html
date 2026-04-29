@@ -27,11 +27,31 @@
     </button>
   </div>
 
+  <!-- Street View (arriba, fuera del scroll) -->
+  @if (vehicle()?.latitude && vehicle()?.longitude && showStreetView()) {
+    <div class="street-view-top">
+      <div class="sv-top-actions">
+        <button class="sv-action-btn" (click)="onCloseStreetView()" title="Cerrar">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <button class="sv-action-btn" (click)="onStreetViewFullscreen()" title="Pantalla completa">
+          <ion-icon name="expand-outline"></ion-icon>
+        </button>
+      </div>
+      <app-street-view
+        [latitude]="vehicle()!.latitude"
+        [longitude]="vehicle()!.longitude"
+        [vehiclePlate]="vehicle()!.plate"
+        (back)="onCloseStreetView()">
+      </app-street-view>
+    </div>
+  }
+
   <!-- Content -->
   <ion-content>
     @switch (activeSegment) {
       @case ('info') {
-        <!-- Contenido actual del vehículo -->
+
         <!-- Action Buttons -->
         <div class="action-buttons">
           <button class="action-btn" (click)="onEdit()">
@@ -75,24 +95,6 @@
           </div>
         </div>
 
-        <!-- Model -->
-        <div class="info-section">
-          <label>Modelo</label>
-          <p class="info-value">{{ vehicle()?.model }}</p>
-        </div>
-
-        <!-- Driver -->
-        <div class="info-section">
-          <label>Conductor</label>
-          <p class="info-value">{{ vehicle()?.driver }}</p>
-        </div>
-
-        <!-- IMEI -->
-        <div class="info-section">
-          <label>IMEI</label>
-          <p class="info-value">{{ vehicle()?.imei }}</p>
-        </div>
-
         <!-- Real Time Information -->
         <div class="info-section">
           <label>Información en Tiempo Real</label>
@@ -131,6 +133,18 @@
           </div>
         </div>
 
+        <!-- Driver -->
+        <div class="info-section">
+          <label>Conductor</label>
+          <p class="info-value">{{ vehicle()?.driver }}</p>
+        </div>
+
+        <!-- IMEI -->
+        <div class="info-section">
+          <label>IMEI</label>
+          <p class="info-value">{{ vehicle()?.imei }}</p>
+        </div>
+
         <!-- GPS Location -->
         <div class="info-section">
           <label>Ubicación GPS</label>
@@ -143,6 +157,7 @@
           <label>Odómetro</label>
           <p class="info-value">{{ vehicle()?.odometer | number:'1.0-0' }} km</p>
         </div>
+
       }
 
       @case ('alertas') {
@@ -154,13 +169,22 @@
     }
   </ion-content>
 
-  <!-- Footer with Monitor Button -->
-  <div class="footer">
-    <ion-button expand="block" color="dark" class="monitor-btn">
-      <ion-icon name="eye-outline" slot="start"></ion-icon>
-      Monitorear Imagen
-    </ion-button>
-  </div>
+  <!-- Toolbar fija abajo: botón Monitorear Imagen -->
+  @if (vehicle()?.latitude && vehicle()?.longitude) {
+    <ion-toolbar class="monitor-toolbar">
+      @if (showStreetView()) {
+        <button class="monitor-btn monitor-btn--active" (click)="onCloseStreetView()">
+          <ion-icon name="eye-off-outline"></ion-icon>
+          <span>Dejar de Monitorear</span>
+        </button>
+      } @else {
+        <button class="monitor-btn" (click)="onMonitorImage()">
+          <ion-icon name="eye-outline"></ion-icon>
+          <span>Monitorear Imagen</span>
+        </button>
+      }
+    </ion-toolbar>
+  }
 </div>
 
 <!-- Modal para generar link de tracking -->
@@ -172,3 +196,17 @@
     (close)="onCloseShareModal()">
   </app-generate-link-modal>
 }
+
+<!-- Modal para editar vehículo -->
+<ion-modal
+  class="edit-vehicle-modal"
+  [isOpen]="showEditWizard()"
+  (didDismiss)="onWizardClose()">
+  <ng-template>
+    <app-form-vehicle-wizard
+      [vehicleId]="vehicle()?.id"
+      (wizardClosed)="onWizardClose()"
+      (vehicleUpdated)="onVehicleUpdated($event)">
+    </app-form-vehicle-wizard>
+  </ng-template>
+</ion-modal>
