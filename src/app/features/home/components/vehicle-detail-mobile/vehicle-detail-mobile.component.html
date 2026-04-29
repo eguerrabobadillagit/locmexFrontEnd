@@ -16,7 +16,7 @@
       <div class="header-title">
         <ion-icon name="information-circle-outline" class="title-icon"></ion-icon>
         <div>
-          <h4 class="vehicle-plate">{{ vehicle?.plate }}</h4>
+          <h4 class="vehicle-plate">{{ vehicle.plate }}</h4>
           <span class="subtitle">Detalle de unidad</span>
         </div>
       </div>
@@ -137,24 +137,6 @@
             </div>
           </div>
 
-          <!-- Model -->
-          <div class="info-section">
-            <label>Modelo</label>
-            <p class="info-value">{{ vehicle?.model }}</p>
-          </div>
-
-          <!-- Driver -->
-          <div class="info-section">
-            <label>Conductor</label>
-            <p class="info-value">{{ vehicle?.driver }}</p>
-          </div>
-
-          <!-- IMEI -->
-          <div class="info-section">
-            <label>IMEI</label>
-            <p class="info-value">{{ vehicle?.imei }}</p>
-          </div>
-
           <!-- Real Time Information -->
           <div class="info-section">
             <label>Información en Tiempo Real</label>
@@ -193,6 +175,18 @@
             </div>
           </div>
 
+          <!-- Driver -->
+          <div class="info-section">
+            <label>Conductor</label>
+            <p class="info-value">{{ vehicle?.driver }}</p>
+          </div>
+
+          <!-- IMEI -->
+          <div class="info-section">
+            <label>IMEI</label>
+            <p class="info-value">{{ vehicle?.imei }}</p>
+          </div>
+
           <!-- GPS Location -->
           <div class="info-section">
             <label>Ubicación GPS</label>
@@ -205,6 +199,33 @@
             <label>Odómetro</label>
             <p class="info-value">{{ vehicle?.odometer | number:'1.0-0' }} km</p>
           </div>
+
+          <!-- Street View Embebido -->
+          @if (vehicle?.latitude && vehicle?.longitude) {
+            <div class="street-view-section">
+              <div class="street-view-header">
+                <label>Vista de Calle</label>
+                <button class="sv-fullscreen-btn" (click)="onStreetViewFullscreen()" title="Ver en pantalla completa">
+                  <ion-icon name="expand-outline"></ion-icon>
+                </button>
+              </div>
+              @if (showStreetView()) {
+                <div class="street-view-box">
+                  <app-street-view
+                    [latitude]="vehicle.latitude"
+                    [longitude]="vehicle.longitude"
+                    [vehiclePlate]="vehicle.plate"
+                    (back)="onCloseStreetView()">
+                  </app-street-view>
+                </div>
+              } @else {
+                <button class="sv-preview-btn" (click)="onMonitorImage()">
+                  <ion-icon name="eye-outline"></ion-icon>
+                  <span>Monitorear Imagen</span>
+                </button>
+              }
+            </div>
+          }
         }
 
         @case ('alertas') {
@@ -256,13 +277,6 @@
       <div class="content-spacer"></div>
     </div>
 
-    <!-- Footer with Monitor Button -->
-    <div class="footer">
-      <ion-button expand="block" color="dark" class="monitor-btn">
-        <ion-icon name="eye-outline" slot="start"></ion-icon>
-        Monitorear Imagen
-      </ion-button>
-    </div>
   </div>
 
   <!-- Modal para generar link de tracking -->
@@ -275,3 +289,17 @@
     </app-generate-link-modal>
   }
 </div>
+
+<!-- Modal para editar vehículo -->
+<ion-modal
+  class="edit-vehicle-modal"
+  [isOpen]="showEditWizard()"
+  (didDismiss)="onWizardClose()">
+  <ng-template>
+    <app-form-vehicle-wizard
+      [vehicleId]="vehicle?.id"
+      (wizardClosed)="onWizardClose()"
+      (vehicleUpdated)="onVehicleUpdated($event)">
+    </app-form-vehicle-wizard>
+  </ng-template>
+</ion-modal>

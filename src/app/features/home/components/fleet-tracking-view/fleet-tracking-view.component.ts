@@ -1,7 +1,7 @@
-import { Component, OnInit, input, output, signal, inject } from '@angular/core';
+import { Component, OnInit, input, output, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, alertCircleOutline, analyticsOutline } from 'ionicons/icons';
 import { VehicleSelectionService } from '../../../services/vehicle-selection';
@@ -15,6 +15,8 @@ import { RoutePlaybackService } from '../../../map/service/route-playback.servic
 import { VehicleHistoryService } from '../../../vehicles/services/vehicle-history.service';
 import { calculateHistorySummary, formatHistoryTime } from '../../../vehicles/utils/vehicle-history.utils';
 import { HistoryDateHelperService } from '../../../vehicles/services/history-date-helper.service';
+import { StreetViewService } from '../../../services/street-view.service';
+import { MobilePanelCoordinatorService } from '../../../services/mobile-panel-coordinator.service';
 
 @Component({
   selector: 'app-fleet-tracking-view',
@@ -24,6 +26,7 @@ import { HistoryDateHelperService } from '../../../vehicles/services/history-dat
   imports: [
     CommonModule,
     IonIcon,
+    IonSpinner,
     UnitsListComponent,
     VehicleHistoryFormComponent,
     VehicleHistoryRouteComponent,
@@ -45,7 +48,7 @@ export class FleetTrackingViewComponent implements OnInit {
   mobileSidebarClose = output<void>();
   mobileSidebarOpen = output<void>();
 
-  // View mode: 'list' shows units, 'history' shows history form/route
+  // View mode: 'list' | 'history'
   sidebarViewMode = signal<'list' | 'history'>('list');
   selectedHistoryVehicle = signal<Vehicle | null>(null);
   historySubViewMode = signal<'form' | 'route'>('form');
@@ -64,19 +67,29 @@ export class FleetTrackingViewComponent implements OnInit {
     return window.innerWidth <= 768;
   }
 
+  private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
+  private readonly routePlayback = inject(RoutePlaybackService);
+  private readonly historyDateHelper = inject(HistoryDateHelperService);
+  private readonly historyService = inject(VehicleHistoryService);
+  private readonly streetViewService = inject(StreetViewService);
+  private readonly mobilePanelCoordinator = inject(MobilePanelCoordinatorService);
   constructor() {
     addIcons({
       closeOutline,
       alertCircleOutline,
       analyticsOutline,
     });
-  }
 
-  private readonly vehicleSelectionService = inject(VehicleSelectionService);
-  private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
-  private readonly routePlayback = inject(RoutePlaybackService);
-  private readonly historyDateHelper = inject(HistoryDateHelperService);
-  private readonly historyService = inject(VehicleHistoryService);
+    // Effect para cerrar historial cuando se abre detalle de vehículo en mobile
+    effect(() => {
+      if (this.mobilePanelCoordinator.closeHistoryRequested()) {
+        if (this.sidebarViewMode() === 'history') {
+          this.closeHistoryView(true);
+        }
+      }
+    });
+  }
 
   onVehicleSelect(vehicleId: string) {
     this.vehicleSelectionService.selectVehicle(vehicleId);
@@ -96,6 +109,18 @@ export class FleetTrackingViewComponent implements OnInit {
     this.openHistoryView(vehicle);
   }
 
+  onOpenStreetViewClicked(vehicle: Vehicle) {
+    this.vehicleSelectionService.selectVehicle(vehicle.id);
+    this.vehicleSelect.emit(vehicle.id);
+    if (vehicle.latitude && vehicle.longitude) {
+      this.streetViewService.openStreetView({
+        lat: vehicle.latitude,
+        lng: vehicle.longitude,
+        plate: vehicle.plate
+      });
+    }
+  }
+
   onCloseSidebar() {
     this.closeView.emit();
   }
@@ -103,17 +128,42 @@ export class FleetTrackingViewComponent implements OnInit {
   // History methods
   openHistoryView(vehicle: Vehicle) {
     this.selectedHistoryVehicle.set(vehicle);
-    this.historySubViewMode.set('form');
-    this.historyRequestData.set(null);
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
+    const fromDateTime = `${dateStr}T00:00:00`;
+    const toDateTime = `${dateStr}T23:59:59`;
+    const fromUtc = new Date(fromDateTime).toISOString();
+    const toUtc = new Date(toDateTime).toISOString();
+
+    const request: VehicleHistoryRequest = {
+      vehicleId: vehicle.id,
+      fromUtc,
+      toUtc,
+      fromDate: dateStr,
+      fromHour: '00',
+      fromMinute: '00',
+      toDate: dateStr,
+      toHour: '23',
+      toMinute: '59',
+    };
+
+    this.historyRequestData.set(request);
     this.sidebarViewMode.set('history');
+    this.mobilePanelCoordinator.requestCloseVehicleDetail();
+    this.loadHistoryData(request);
   }
 
-  closeHistoryView() {
+  closeHistoryView(skipSidebarOpen = false) {
     this.routePlayback.clearRoute();
     this.sidebarViewMode.set('list');
     this.selectedHistoryVehicle.set(null);
     this.historyRequestData.set(null);
-    if (this.isMobile) {
+    if (this.isMobile && !skipSidebarOpen) {
       this.mobileSidebarOpen.emit();
     }
   }
@@ -148,7 +198,7 @@ export class FleetTrackingViewComponent implements OnInit {
         this.routePlayback.setLoadingRoute(false);
         this.historySubViewMode.set('route');
 
-        if (this.isMobile) {
+        if (this.isMobile && points.length > 0) {
           this.mobileSidebarClose.emit();
         }
       },

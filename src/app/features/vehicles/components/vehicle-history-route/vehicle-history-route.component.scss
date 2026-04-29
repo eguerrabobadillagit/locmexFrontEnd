@@ -97,16 +97,68 @@
     min-height: 0;
   }
 
-  // Points List
+  // Speed Legend
+  .speed-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--ion-background-color, #ffffff);
+    border-bottom: 1px solid var(--ion-color-light, #e0e0e0);
+    font-size: 12px;
+    flex-wrap: wrap;
+
+    .legend-title {
+      font-weight: 600;
+      color: var(--ion-color-dark, #333);
+      margin-right: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--ion-color-medium, #666);
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+
+      &.green {
+        background-color: #4CAF50;
+      }
+
+      &.yellow {
+        background-color: #FFC107;
+      }
+
+      &.red {
+        background-color: #F44336;
+      }
+
+      &.orange {
+        background-color: #FF9800;
+      }
+    }
+  }
+
+  // Points List with Virtual Scroll
   .points-list {
     flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    padding-top: 8px;
-    // Limitar altura máxima para que no sobrepase la pantalla
-    max-height: calc(100vh - 300px); // Ajustar según espacio ocupado por header y controles
+    min-height: 0;
+    height: 100%;
+
+    ::ng-deep .cdk-virtual-scroll-content-wrapper {
+      padding: 16px;
+      padding-top: 8px;
+    }
 
     .point-item {
+      height: 76px;
+      box-sizing: border-box;
       position: relative;
       display: flex;
       gap: 16px;

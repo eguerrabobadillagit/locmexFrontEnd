@@ -460,6 +460,71 @@
   height: 80px;
 }
 
+// Street View embebido
+.street-view-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--ion-color-light, #e0e0e0);
+  background: var(--ion-background-color, #ffffff);
+
+  .street-view-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .sv-fullscreen-btn {
+      background: transparent;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #555;
+      transition: background 0.2s;
+
+      ion-icon { font-size: 16px; }
+    }
+  }
+
+  .street-view-box {
+    width: 100%;
+    height: 220px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+  }
+
+  .sv-preview-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    background: #1a1a1a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+
+    ion-icon { font-size: 20px; }
+  }
+}
+
 // Footer
 .footer {
   padding: 16px;

@@ -79,6 +79,9 @@
                   <p class="model">{{ vehicle.model }}</p>
                 </div>
                 <div class="card-actions">
+                  <button class="eye-btn" (click)="onOpenStreetView(vehicle, $event)" title="Ver Street View">
+                    <ion-icon name="eye-outline"></ion-icon>
+                  </button>
                   <button class="history-btn" (click)="onOpenHistory(vehicle, $event)" title="Ver recorrido histórico">
                     <ion-icon name="analytics-outline"></ion-icon>
                   </button>
@@ -101,7 +104,7 @@
 
               <!-- Metrics -->
               <div class="metrics">
-                <div class="metric">
+                <div class="metric" [class]="getSpeedColorClass(vehicle.speed)">
                   <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
                   <span>{{ vehicle.speed }} km/h</span>
                 </div>
@@ -135,17 +138,21 @@
               <div class="vehicle-info-compact">
                 <span class="vehicle-name">{{ vehicle.plate }}</span>
                 <span class="driver-name">{{ vehicle.driver }}</span>
+                <span class="last-connection">Últ: {{ vehicle.lastUpdate }}</span>
               </div>
             </div>
 
             <div class="vehicle-metrics-compact">
-              <div class="metric-item">
+              <div class="metric-item" [class]="getSpeedColorClass(vehicle.speed)">
                 <ion-icon name="speedometer-outline"></ion-icon>
                 <span>{{ vehicle.speed }} km/h</span>
               </div>
             </div>
 
             <div class="list-actions">
+              <button class="action-icon eye-btn" (click)="onOpenStreetView(vehicle, $event)" title="Street View">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
               <button class="action-icon" (click)="onOpenHistory(vehicle, $event)" title="Ver recorrido">
                 <ion-icon name="analytics-outline"></ion-icon>
               </button>
