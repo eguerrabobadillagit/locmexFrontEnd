@@ -19,6 +19,7 @@ import { StreetViewService } from '../../../services/street-view.service';
 import { GeocodingService } from '../../../map/service/geocoding.service';
 import { VehicleAlertsComponent } from '../vehicle-alerts/vehicle-alerts.component';
 import { GenerateLinkModalComponent } from '../../../public-tracking/components/generate-link-modal/generate-link-modal.component';
+import { HeadingPipe } from '../../../../shared/pipes/heading.pipe';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -72,7 +73,8 @@ addIcons({
     VehicleAlertsComponent,
     GenerateLinkModalComponent,
     StreetViewComponent,
-    FormVehicleWizardComponent
+    FormVehicleWizardComponent,
+    HeadingPipe
   ]
 })
 export class VehicleDetailComponent {

@@ -53,7 +53,7 @@
     <!-- Último reporte -->
     <div class="collapsed-report" *ngIf="vehicle?.lastReport">
       <ion-icon name="time-outline"></ion-icon>
-      <span>{{ vehicle?.lastReport }}</span>
+      <span>{{ vehicle?.lastReport | date:'dd/MM/yyyy HH:mm:ss' }}</span>
     </div>
 
     <!-- Botón para expandir -->
@@ -126,7 +126,7 @@
           <!-- Last Report -->
           <div class="info-section">
             <label>Último Reporte</label>
-            <p class="info-value">{{ vehicle?.lastReport }}</p>
+            <p class="info-value">{{ vehicle?.lastReport | date:'dd/MM/yyyy HH:mm:ss' }}</p>
           </div>
 
           <!-- Status -->
@@ -161,7 +161,7 @@
                 <ion-card-content>
                   <ion-icon name="compass-outline" class="metric-icon"></ion-icon>
                   <span class="metric-label">Rumbo</span>
-                  <span class="metric-value">{{ vehicle?.heading }}°</span>
+                  <span class="metric-value">{{ vehicle?.heading | heading }}</span>
                 </ion-card-content>
               </ion-card>
 

@@ -30,6 +30,7 @@ import { StreetViewComponent } from '../street-view/street-view.component';
 import { GeocodingService } from '../../../map/service/geocoding.service';
 import { VehicleAlertsComponent } from '../vehicle-alerts/vehicle-alerts.component';
 import { GenerateLinkModalComponent } from '../../../public-tracking/components/generate-link-modal/generate-link-modal.component';
+import { HeadingPipe } from '../../../../shared/pipes/heading.pipe';
 
 @Component({
   selector: 'app-vehicle-detail-mobile',
@@ -45,7 +46,8 @@ import { GenerateLinkModalComponent } from '../../../public-tracking/components/
     VehicleAlertsComponent,
     GenerateLinkModalComponent,
     StreetViewComponent,
-    FormVehicleWizardComponent
+    FormVehicleWizardComponent,
+    HeadingPipe
   ]
 })
 export class VehicleDetailMobileComponent {

@@ -71,6 +71,22 @@ ion-modal {
   --max-width: 1026px;
   --height: 90vh;
   --border-radius: 16px;
+
+  ::ng-deep {
+    .modal-wrapper {
+      height: var(--height);
+    }
+
+    ion-content {
+      --background: transparent;
+    }
+
+    app-form-vehicle-wizard {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  }
 }
 
 @media (max-width: 768px) {
