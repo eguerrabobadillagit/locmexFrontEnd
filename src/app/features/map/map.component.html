@@ -24,11 +24,6 @@
     </app-geofence-overlay>
   }
 
-  <!-- Floating User Menu - Top Right -->
-  <div class="floating-user-menu">
-    <app-user-menu (logout)="onLogout()"></app-user-menu>
-  </div>
-
   <!-- Floating Alerts Button - Top Left -->
   <ion-fab class="alerts-fab" [class.has-alerts]="unreadAlertsCount() > 0" [class.sheet-active]="showMobilePlayer()">
     <ion-fab-button

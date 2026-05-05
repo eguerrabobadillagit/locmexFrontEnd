@@ -1,8 +1,8 @@
-import { Component, AfterViewInit, signal, inject } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridOptions, GridReadyEvent } from 'ag-grid-community';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { IonicModule, ToastController, AlertController } from '@ionic/angular';
 import { PageHeaderComponent } from '../../core/components/page-header/page-header.component';
 import { DataToolbarComponent } from '../../core/components/data-toolbar/data-toolbar.component';
 import { IFilterOption } from '../../core/models/filter-option.interface';
@@ -29,6 +29,9 @@ import { CreateUserRequest, UserResponse } from './interfaces/user-request.inter
 export class UsersPage implements AfterViewInit {
   private readonly userService = inject(UserService);
   private readonly toastController = inject(ToastController);
+  private readonly alertController = inject(AlertController);
+
+  @ViewChild('userWizard') userWizard?: FormUserWizardComponent;
 
   users = signal<UserResponse[]>([]);
   filteredUsers = signal<UserResponse[]>([]);
@@ -103,8 +106,11 @@ export class UsersPage implements AfterViewInit {
     
     if (filterValue === 'all') {
       this.filteredUsers.set(allUsers);
-    } else {
-      const filtered = allUsers.filter(user => user.status === filterValue);
+    } else if (filterValue === 'active') {
+      const filtered = allUsers.filter(user => user.isActive === true);
+      this.filteredUsers.set(filtered);
+    } else if (filterValue === 'inactive') {
+      const filtered = allUsers.filter(user => user.isActive === false);
       this.filteredUsers.set(filtered);
     }
   }
@@ -123,9 +129,29 @@ export class UsersPage implements AfterViewInit {
     const user = this.users().find(u => u.id === userId);
     if (!user) return;
 
-    const confirmDelete = confirm(`¿Estás seguro de eliminar al usuario "${user.fullName}"?`);
-    if (!confirmDelete) return;
+    const alert = await this.alertController.create({
+      header: 'Eliminar Usuario',
+      message: `¿Estás seguro de eliminar al usuario "${user.fullName}"?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+          cssClass: 'secondary'
+        },
+        {
+          text: 'Aceptar',
+          role: 'confirm',
+          handler: () => {
+            this.deleteUserConfirmed(userId);
+          }
+        }
+      ]
+    });
 
+    await alert.present();
+  }
+
+  private deleteUserConfirmed(userId: string): void {
     this.userService.deleteUser(userId).subscribe({
       next: async () => {
         const toast = await this.toastController.create({
@@ -171,8 +197,9 @@ export class UsersPage implements AfterViewInit {
         },
         error: async (err) => {
           console.error('Error updating user:', err);
+          this.userWizard?.resetSubmitting();
           const toast = await this.toastController.create({
-            message: 'Error al actualizar el usuario',
+            message: err.error?.message || 'Error al actualizar el usuario',
             duration: 3000,
             position: 'top',
             color: 'danger',
@@ -197,8 +224,9 @@ export class UsersPage implements AfterViewInit {
         },
         error: async (err) => {
           console.error('Error creating user:', err);
+          this.userWizard?.resetSubmitting();
           const toast = await this.toastController.create({
-            message: 'Error al crear el usuario',
+            message: err.error?.message || 'Error al crear el usuario',
             duration: 3000,
             position: 'top',
             color: 'danger',

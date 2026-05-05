@@ -26,6 +26,10 @@ import { CreateUserRequest, UserResponse } from '../../interfaces/user-request.i
 import { UserRole, RoleInfo } from '../../interfaces/user.model';
 import { UserService } from '../../services/user.service';
 import { roleDefinitions } from '../../mock/mock-data';
+import { ClientService } from '../../../devices/services/client.service';
+import { Client } from '../../../devices/interfaces/client.interface';
+import { ModalSearchableGridComponent } from '../../../../core/components/modal-searchable-grid/modal-searchable-grid.component';
+import { ColDef } from 'ag-grid-community';
 
 @Component({
   selector: 'app-form-user-wizard',
@@ -35,7 +39,8 @@ import { roleDefinitions } from '../../mock/mock-data';
     ReactiveFormsModule,
     IonicModule,
     WizardStepperComponent,
-    WizardConfirmationSummaryComponent
+    WizardConfirmationSummaryComponent,
+    ModalSearchableGridComponent
   ],
   templateUrl: './form-user-wizard.component.html',
   styleUrls: ['./form-user-wizard.component.scss']
@@ -43,6 +48,7 @@ import { roleDefinitions } from '../../mock/mock-data';
 export class FormUserWizardComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly userService = inject(UserService);
+  private readonly clientService = inject(ClientService);
 
   userId = input<string | undefined>();
   userSubmitted = output<CreateUserRequest>();
@@ -52,6 +58,8 @@ export class FormUserWizardComponent implements OnInit {
   showPassword = signal<boolean>(false);
   selectedRole = signal<UserRole | null>(null);
   isSubmitting = signal<boolean>(false);
+  clients = signal<Client[]>([]);
+  selectedClient = signal<Client | null>(null);
 
   userForm!: FormGroup;
   roleDefinitions: RoleInfo[] = roleDefinitions;
@@ -84,9 +92,40 @@ export class FormUserWizardComponent implements OnInit {
     return this.roleDefinitions.find(r => r.id === role)?.name || '';
   });
 
+  clientColumnDefs = signal<ColDef[]>([
+    {
+      headerName: 'Nombre',
+      field: 'name',
+      flex: 1,
+      minWidth: 200
+    },
+    {
+      headerName: 'Contacto',
+      field: 'contactName',
+      flex: 1,
+      minWidth: 150
+    },
+    {
+      headerName: 'Teléfono',
+      field: 'contactPhone',
+      flex: 1,
+      minWidth: 130
+    },
+    {
+      headerName: 'Estado',
+      field: 'isActive',
+      width: 100,
+      cellRenderer: (params: any) => {
+        return params.value ? 
+          '<span style="color: #10b981; font-weight: 500;">Activo</span>' : 
+          '<span style="color: #ef4444; font-weight: 500;">Inactivo</span>';
+      }
+    }
+  ]);
+
   confirmationSections = computed<ConfirmationSection[]>(() => {
     const formValue = this.userForm?.value;
-    const roleInfo = this.roleDefinitions.find(r => r.id === formValue?.role);
+    const roleInfo = this.roleDefinitions.find(r => r.id === formValue?.roleCode);
     
     return [
       {
@@ -110,19 +149,19 @@ export class FormUserWizardComponent implements OnInit {
         borderColor: '#8b5cf6',
         fields: [
           { label: 'Rol', value: roleInfo?.name || '—', icon: 'shield-outline' },
-          { label: 'Estado', value: formValue?.status === 'active' ? 'Activo' : 'Inactivo' },
+          { label: 'Estado', value: formValue?.isActive === true ? 'Activo' : 'Inactivo' },
           { label: 'Fecha de Caducidad', value: formValue?.expirationDate || '—', icon: 'calendar-outline' }
         ]
       },
       {
-        title: 'Empresa y Contacto',
-        subtitle: 'Datos de la empresa y teléfono',
+        title: 'Cliente y Contacto',
+        subtitle: 'Datos del cliente y teléfono',
         icon: 'business-outline',
         iconColor: '#10b981',
         backgroundColor: '#ecfdf5',
         borderColor: '#10b981',
         fields: [
-          { label: 'Empresa', value: formValue?.companyId || '—', icon: 'business-outline' },
+          { label: 'Cliente', value: this.selectedClient()?.name || '—', icon: 'business-outline' },
           { label: 'Teléfono', value: formValue?.phone || '—', icon: 'call-outline' }
         ]
       }
@@ -150,6 +189,7 @@ export class FormUserWizardComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.loadClients();
     
     if (this.userId()) {
       this.loadUserData();
@@ -161,18 +201,28 @@ export class FormUserWizardComponent implements OnInit {
       fullName: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', this.isEditMode() ? [] : [Validators.required, Validators.minLength(6)]],
-      role: ['operator', Validators.required],
-      status: ['active', Validators.required],
+      roleCode: ['operator', Validators.required],
+      isActive: [true, Validators.required],
       expirationDate: [''],
-      companyId: ['company-1', Validators.required],
-      phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s\-()]+$/)]]
+      clientId: ['', Validators.required]
     });
 
-    this.userForm.get('role')?.valueChanges.subscribe(role => {
+    this.userForm.get('roleCode')?.valueChanges.subscribe(role => {
       this.selectedRole.set(role);
     });
 
     this.selectedRole.set('operator');
+  }
+
+  loadClients(): void {
+    this.clientService.getClients().subscribe({
+      next: (clients: Client[]) => {
+        this.clients.set(clients);
+      },
+      error: (err) => {
+        console.error('Error loading clients:', err);
+      }
+    });
   }
 
   loadUserData(): void {
@@ -184,18 +234,30 @@ export class FormUserWizardComponent implements OnInit {
         this.userForm.patchValue({
           fullName: user.fullName,
           email: user.email,
-          role: user.role,
-          status: user.status,
+          roleCode: user.roleCode,
+          isActive: user.isActive,
           expirationDate: user.expirationDate || '',
-          companyId: user.companyId,
-          phone: user.phone
+          clientId: user.clientId
         });
-        this.selectedRole.set(user.role);
+        this.selectedRole.set(user.roleCode as UserRole);
+        
+        // Buscar y establecer el cliente seleccionado
+        if (user.clientId) {
+          const client = this.clients().find(c => c.id === user.clientId);
+          if (client) {
+            this.selectedClient.set(client);
+          }
+        }
       },
       error: (err) => {
         console.error('Error loading user:', err);
       }
     });
+  }
+
+  onClientSelected(client: Client): void {
+    this.selectedClient.set(client);
+    this.userForm.patchValue({ clientId: client.id });
   }
 
   nextStep(): void {
@@ -233,18 +295,17 @@ export class FormUserWizardComponent implements OnInit {
                (this.userForm.get('email')?.valid ?? false) && 
                (this.isEditMode() || (this.userForm.get('password')?.valid ?? false));
       case 1:
-        return (this.userForm.get('role')?.valid ?? false) && 
-               (this.userForm.get('status')?.valid ?? false);
+        return (this.userForm.get('roleCode')?.valid ?? false) && 
+               (this.userForm.get('isActive')?.valid ?? false);
       case 2:
-        return (this.userForm.get('companyId')?.valid ?? false) && 
-               (this.userForm.get('phone')?.valid ?? false);
+        return (this.userForm.get('clientId')?.valid ?? false);
       default:
         return true;
     }
   }
 
   selectRole(role: UserRole): void {
-    this.userForm.patchValue({ role });
+    this.userForm.patchValue({ roleCode: role });
     this.selectedRole.set(role);
   }
 
@@ -260,11 +321,15 @@ export class FormUserWizardComponent implements OnInit {
     }
   }
 
+  resetSubmitting(): void {
+    this.isSubmitting.set(false);
+  }
+
   getRoleIcon(roleId: UserRole): string {
     const icons: Record<UserRole, string> = {
-      owner: 'shield-checkmark-outline',
-      distributor: 'git-network-outline',
-      client: 'briefcase-outline',
+      platform_admin: 'shield-checkmark-outline',
+      partner_admin: 'git-network-outline',
+      customer_admin: 'briefcase-outline',
       operator: 'headset-outline'
     };
     return icons[roleId];
@@ -284,9 +349,9 @@ export class FormUserWizardComponent implements OnInit {
 
   getRoleBadgeColor(role: UserRole): string {
     const colors: Record<UserRole, string> = {
-      owner: '#7c3aed',
-      distributor: '#2563eb',
-      client: '#059669',
+      platform_admin: '#7c3aed',
+      partner_admin: '#2563eb',
+      customer_admin: '#059669',
       operator: '#ea580c'
     };
     return colors[role];
@@ -294,9 +359,9 @@ export class FormUserWizardComponent implements OnInit {
 
   getRoleBadgeBgColor(role: UserRole): string {
     const colors: Record<UserRole, string> = {
-      owner: '#f3e8ff',
-      distributor: '#dbeafe',
-      client: '#d1fae5',
+      platform_admin: '#f3e8ff',
+      partner_admin: '#dbeafe',
+      customer_admin: '#d1fae5',
       operator: '#fed7aa'
     };
     return colors[role];

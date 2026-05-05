@@ -11,13 +11,14 @@ import {
   IonSplitPane,
   IonButton,
   IonIcon,
+  IonBadge,
   AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   carOutline, speedometerOutline, batteryHalfOutline, powerOutline,
   eyeOutline, listOutline, gridOutline, closeOutline, analyticsOutline, alertCircleOutline,
-  shieldOutline, menuOutline
+  shieldOutline, menuOutline, personCircleOutline, logOutOutline, chevronBackOutline, chevronForwardOutline
 } from 'ionicons/icons';
 import { UserMenuComponent } from '../../core/components/user-menu/user-menu.component';
 import { AuthService } from '../auth/services/auth.service';
@@ -57,6 +58,7 @@ type GeofenceFilterTab = 'todas' | 'activas' | 'inactivas';
     IonSplitPane,
     IonButton,
     IonIcon,
+    IonBadge,
     RouterOutlet,
     UserMenuComponent,
     NavbarComponent,
@@ -84,6 +86,19 @@ export class HomePage implements OnInit, OnDestroy {
   showFleetPanel = signal<boolean>(true);
   activeSidebarTab = signal<SidebarTab>('menu');
   viewMode = signal<'card' | 'list'>('list');
+
+  // User info computed from AuthService
+  userName = computed(() => this.authService.currentUser()?.email || 'usuario@email.com');
+  userRole = computed(() => {
+    const roleCode = this.authService.currentUser()?.roleCode;
+    const roleMap: Record<string, string> = {
+      'platform_admin': 'Dueño',
+      'partner_admin': 'Distribuidor',
+      'customer_admin': 'Cliente',
+      'operator': 'Operador'
+    };
+    return roleMap[roleCode || ''] || 'Usuario';
+  });
 
   // Geocercas signals
   geofenceSearchQuery = signal<string>('');
@@ -134,6 +149,10 @@ export class HomePage implements OnInit, OnDestroy {
       gridOutline,
       shieldOutline,
       menuOutline,
+      personCircleOutline,
+      logOutOutline,
+      chevronBackOutline,
+      chevronForwardOutline,
     });
 
     effect(() => {

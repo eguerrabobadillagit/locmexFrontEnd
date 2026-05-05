@@ -64,9 +64,9 @@ export class NavbarComponent {
       title: 'Monitoreo',
       icon: 'radio-outline',
       items: [
-        { title: 'Dashboard', icon: 'grid-outline', id: 'dashboard' },
+        // { title: 'Dashboard', icon: 'grid-outline', id: 'dashboard' },
         { title: 'Mapa en Vivo', icon: 'map-outline', id: 'map-view' },
-        { title: 'Telemetría', icon: 'radio-outline', id: 'telemetria' },
+        // { title: 'Telemetría', icon: 'radio-outline', id: 'telemetria' },
         { title: 'Geocercas', icon: 'shapes-outline', id: 'geocercas' }
       ]
     },
@@ -74,28 +74,28 @@ export class NavbarComponent {
       title: 'Operaciones',
       icon: 'cube-outline',
       items: [
-        { title: 'Despacho', icon: 'send-outline', id: 'despacho' },
-        { title: 'Rutas', icon: 'navigate-outline', id: 'rutas' },
+        // { title: 'Despacho', icon: 'send-outline', id: 'despacho' },
+        // { title: 'Rutas', icon: 'navigate-outline', id: 'rutas' },
         { title: 'Vehículos', icon: 'car-outline', id: 'vehiculos' },
-        { title: 'Conductor', icon: 'person-circle-outline', id: 'conductor' }
+        // { title: 'Conductor', icon: 'person-circle-outline', id: 'conductor' }
       ]
     },
-    {
-      title: 'Inventario',
-      icon: 'cube-outline',
-      items: [
-        { title: 'Almacén', icon: 'cube-outline', id: 'almacen' },
-        { title: 'Productos', icon: 'cart-outline', id: 'productos' },
-        { title: 'Puntos de Interés', icon: 'location-outline', id: 'puntos' }
-      ]
-    },
+    // {
+    //   title: 'Inventario',
+    //   icon: 'cube-outline',
+    //   items: [
+    //     { title: 'Almacén', icon: 'cube-outline', id: 'almacen' },
+    //     { title: 'Productos', icon: 'cart-outline', id: 'productos' },
+    //     { title: 'Puntos de Interés', icon: 'location-outline', id: 'puntos' }
+    //   ]
+    // },
     {
       title: 'Gestión',
       icon: 'settings-outline',
       items: [
-        { title: 'Servicios', icon: 'construct-outline', id: 'servicios' },
+        // { title: 'Servicios', icon: 'construct-outline', id: 'servicios' },
         { title: 'Dispositivos GPS', icon: 'hardware-chip-outline', id: 'dispositivos' },
-        { title: 'Portal de Cliente', icon: 'person-outline', id: 'portal' },
+        // { title: 'Portal de Cliente', icon: 'person-outline', id: 'portal' },
         { title: 'Usuarios', icon: 'people-outline', id: 'usuarios' }
       ]
     }

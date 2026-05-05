@@ -172,7 +172,7 @@ export class MapComponent implements OnInit, OnDestroy {
           id: vehicle.id,
           position,
           title: vehicle.plate,
-          icon: createVehicleMarkerIcon(heading, vehicle.status)
+          icon: createVehicleMarkerIcon(heading, vehicle.status, vehicle.plate)
         };
       });
   });

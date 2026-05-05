@@ -67,9 +67,6 @@
                   <span class="subtitle">Plataforma de Logística</span>
                 </div>
                 <div class="header-actions">
-                  <button class="logout-btn" (click)="onLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">
-                    <ion-icon name="log-out-outline"></ion-icon>
-                  </button>
                   <button class="close-btn" (click)="closeFleetPanel()" aria-label="Cerrar sidebar">
                     <ion-icon name="close-outline"></ion-icon>
                   </button>
@@ -102,6 +99,20 @@
         }
       </div>
 
+      <!-- USER FOOTER -->
+      <div class="sidebar-user-footer">
+        <div class="user-info">
+          <ion-icon name="person-circle-outline" class="user-avatar"></ion-icon>
+          <div class="user-details">
+            <span class="user-name">{{ userName() }}</span>
+            <ion-badge class="user-role">{{ userRole() }}</ion-badge>
+          </div>
+        </div>
+        <button class="logout-btn" (click)="onLogout()" aria-label="Cerrar sesión" title="Cerrar sesión">
+          <ion-icon name="log-out-outline"></ion-icon>
+        </button>
+      </div>
+
       <!-- TABS -->
       <div class="sidebar-tabs">
         <button
@@ -128,6 +139,15 @@
       </div>
     </div>
   </div>
+
+  <!-- Botón flotante para toggle del sidebar -->
+  <button 
+    class="sidebar-toggle-btn" 
+    [class.sidebar-open]="showFleetPanel()"
+    (click)="toggleFleetPanel()" 
+    aria-label="Mostrar/Ocultar menú">
+    <ion-icon [name]="showFleetPanel() ? 'chevron-back-outline' : 'chevron-forward-outline'"></ion-icon>
+  </button>
 
   <!-- Contenido principal -->
   <div class="ion-page" id="main-content" [class.with-fleet-panel]="showFleetPanel()">

@@ -4,6 +4,24 @@ import { renderActionButtons } from '../../../core/utils/grid-cell-renderers.uti
 export const userColumnDefs: ColDef[] = [
   {
     headerName: 'Usuario',
+    field: 'email',
+    flex: 1.5,
+    minWidth: 200,
+    cellRenderer: (params: any) => {
+      if (!params.data || !params.value) return '';
+      
+      return `
+        <div style="display: flex; align-items: center; gap: 8px; height: 100%;">
+          <ion-icon name="mail-outline" style="font-size: 16px; color: #6b7280;"></ion-icon>
+          <span style="color: #374151; font-weight: 500;">${params.value}</span>
+        </div>
+      `;
+    },
+    sortable: true,
+    filter: 'agTextColumnFilter'
+  },
+  {
+    headerName: 'Nombre',
     field: 'fullName',
     flex: 1.5,
     minWidth: 200,
@@ -43,7 +61,7 @@ export const userColumnDefs: ColDef[] = [
   },
   {
     headerName: 'Rol',
-    field: 'role',
+    field: 'roleCode',
     flex: 1,
     minWidth: 150,
     cellStyle: { display: 'flex', alignItems: 'center' },
@@ -51,9 +69,9 @@ export const userColumnDefs: ColDef[] = [
       if (!params.data) return '';
       
       const roleConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-        owner: { label: 'Dueño', color: '#7c3aed', bgColor: '#f3e8ff' },
-        distributor: { label: 'Distribuidor', color: '#2563eb', bgColor: '#dbeafe' },
-        client: { label: 'Cliente', color: '#059669', bgColor: '#d1fae5' },
+        platform_admin: { label: 'Dueño', color: '#7c3aed', bgColor: '#f3e8ff' },
+        partner_admin: { label: 'Distribuidor', color: '#2563eb', bgColor: '#dbeafe' },
+        customer_admin: { label: 'Cliente', color: '#059669', bgColor: '#d1fae5' },
         operator: { label: 'Operador', color: '#ea580c', bgColor: '#fed7aa' }
       };
       
@@ -81,12 +99,12 @@ export const userColumnDefs: ColDef[] = [
     sortable: true,
     filter: 'agSetColumnFilter',
     filterParams: {
-      values: ['owner', 'distributor', 'client', 'operator'],
+      values: ['platform_admin', 'partner_admin', 'customer_admin', 'operator'],
       valueFormatter: (params: any) => {
         const labels: Record<string, string> = {
-          owner: 'Dueño',
-          distributor: 'Distribuidor',
-          client: 'Cliente',
+          platform_admin: 'Dueño',
+          partner_admin: 'Distribuidor',
+          customer_admin: 'Cliente',
           operator: 'Operador'
         };
         return labels[params.value] || params.value;
@@ -94,64 +112,23 @@ export const userColumnDefs: ColDef[] = [
     }
   },
   {
-    headerName: 'Empresa',
-    field: 'companyName',
+    headerName: 'Cliente',
+    field: 'clientName',
     flex: 1.5,
     minWidth: 200,
     sortable: true,
     filter: 'agTextColumnFilter'
   },
   {
-    headerName: 'Contacto',
-    field: 'phone',
-    flex: 1,
-    minWidth: 150,
-    cellRenderer: (params: any) => {
-      if (!params.data || !params.value) return '';
-      
-      return `
-        <div style="display: flex; align-items: center; gap: 8px; height: 100%;">
-          <ion-icon name="call-outline" style="font-size: 16px; color: #6b7280;"></ion-icon>
-          <span style="color: #374151;">${params.value}</span>
-        </div>
-      `;
-    },
-    sortable: true,
-    filter: 'agTextColumnFilter'
-  },
-  {
-    headerName: 'Vehículos',
-    field: 'vehicleCount',
-    flex: 0.8,
-    minWidth: 120,
-    cellRenderer: (params: any) => {
-      if (!params.data) return '';
-      
-      return `
-        <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
-          <span style="
-            font-weight: 600;
-            color: ${params.value > 0 ? '#059669' : '#6b7280'};
-            font-size: 16px;
-          ">
-            ${params.value}
-          </span>
-        </div>
-      `;
-    },
-    sortable: true,
-    filter: 'agNumberColumnFilter'
-  },
-  {
     headerName: 'Estado',
-    field: 'status',
+    field: 'isActive',
     flex: 1,
     minWidth: 120,
     cellStyle: { display: 'flex', alignItems: 'center' },
     cellRenderer: (params: any) => {
       if (!params.data) return '';
       
-      const isActive = params.value === 'active';
+      const isActive = params.value === true;
       const bgColor = isActive ? '#d4edda' : '#f8d7da';
       const textColor = isActive ? '#155724' : '#721c24';
       const dotColor = isActive ? '#155724' : '#721c24';
@@ -180,9 +157,9 @@ export const userColumnDefs: ColDef[] = [
     sortable: true,
     filter: 'agSetColumnFilter',
     filterParams: {
-      values: ['active', 'inactive'],
+      values: [true, false],
       valueFormatter: (params: any) => {
-        return params.value === 'active' ? 'Activo' : 'Inactivo';
+        return params.value === true ? 'Activo' : 'Inactivo';
       }
     }
   },
@@ -191,10 +168,11 @@ export const userColumnDefs: ColDef[] = [
     field: 'actions',
     flex: 0.8,
     minWidth: 100,
-    cellRenderer: renderActionButtons,
-    cellRendererParams: {
-      showEdit: true,
-      showDelete: true
+    cellRenderer: (params: any) => {
+      return renderActionButtons(params.data.id, {
+        showEdit: true,
+        showDelete: true
+      });
     },
     sortable: false,
     filter: false,

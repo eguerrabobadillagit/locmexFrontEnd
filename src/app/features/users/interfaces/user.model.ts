@@ -1,15 +1,14 @@
-export type UserRole = 'owner' | 'distributor' | 'client' | 'operator';
-export type UserStatus = 'active' | 'inactive';
+export type UserRole = 'platform_admin' | 'partner_admin' | 'customer_admin' | 'operator';
 
 export interface User {
   id: string;
   fullName: string;
   email: string;
-  role: UserRole;
-  company: string;
-  phone: string;
-  vehicleCount: number;
-  status: UserStatus;
+  roleCode: string;
+  company?: string;
+  phone?: string;
+  vehicleCount?: number;
+  isActive: boolean;
   expirationDate?: string;
 }
 

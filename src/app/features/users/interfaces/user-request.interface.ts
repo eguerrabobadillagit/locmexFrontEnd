@@ -1,13 +1,10 @@
-import { UserRole, UserStatus } from './user.model';
-
 export interface CreateUserRequest {
   fullName: string;
   email: string;
   password: string;
-  role: UserRole;
-  companyId: string;
-  phone: string;
-  status: UserStatus;
+  roleCode: string;
+  clientId: string;
+  isActive?: boolean;
   expirationDate?: string;
 }
 
@@ -15,24 +12,25 @@ export interface UpdateUserRequest {
   fullName?: string;
   email?: string;
   password?: string;
-  role?: UserRole;
-  companyId?: string;
-  phone?: string;
-  status?: UserStatus;
+  roleCode?: string;
+  clientId?: string;
+  isActive?: boolean;
   expirationDate?: string;
 }
 
 export interface UserResponse {
   id: string;
   tenantId: string;
-  fullName: string;
+  clientId: string;
+  clientName: string;
   email: string;
-  role: UserRole;
-  companyId: string;
-  companyName: string;
-  phone: string;
-  vehicleCount: number;
-  status: UserStatus;
-  expirationDate?: string;
+  fullName: string;
+  roleCode: string;
+  isActive: boolean;
   createdAtUtc: string;
+  updatedAtUtc: string;
+  // Campos opcionales que pueden venir del backend
+  phone?: string;
+  vehicleCount?: number;
+  expirationDate?: string;
 }

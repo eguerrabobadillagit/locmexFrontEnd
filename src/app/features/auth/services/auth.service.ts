@@ -13,6 +13,13 @@ export interface LoginResponse {
   expiresAtUtc: string;
 }
 
+export interface UserInfo {
+  fullName: string;
+  email: string;
+  roleCode: string;
+  userId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,6 +33,7 @@ export class AuthService {
   readonly isAuthenticated = signal<boolean>(this.hasValidToken());
   readonly accessToken = signal<string | null>(this.getToken());
   readonly expiresAt = signal<string | null>(this.getExpiresAt());
+  readonly currentUser = signal<UserInfo | null>(this.getUserFromToken());
 
   constructor() {
     this.checkAuthStatus();
@@ -38,6 +46,7 @@ export class AuthService {
         this.setExpiresAt(response.expiresAtUtc);
         this.accessToken.set(response.accessToken);
         this.expiresAt.set(response.expiresAtUtc);
+        this.currentUser.set(this.getUserFromToken());
         this.isAuthenticated.set(true);
       })
     );
@@ -48,6 +57,7 @@ export class AuthService {
     this.clearExpiresAt();
     this.accessToken.set(null);
     this.expiresAt.set(null);
+    this.currentUser.set(null);
     this.isAuthenticated.set(false);
   }
 
@@ -97,5 +107,31 @@ export class AuthService {
 
   isUserAuthenticated(): boolean {
     return this.hasValidToken();
+  }
+
+  private getUserFromToken(): UserInfo | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payload));
+      
+      console.log('🔍 Decoded JWT payload:', decodedPayload);
+      
+      const userInfo = {
+        fullName: decodedPayload.fullName || decodedPayload.name || decodedPayload.given_name || decodedPayload.unique_name || '',
+        email: decodedPayload.email || decodedPayload.emailaddress || decodedPayload.upn || '',
+        roleCode: decodedPayload.roleCode || decodedPayload.role || decodedPayload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || '',
+        userId: decodedPayload.sub || decodedPayload.userId || decodedPayload.nameid || ''
+      };
+      
+      console.log('👤 Extracted user info:', userInfo);
+      
+      return userInfo;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
   }
 }

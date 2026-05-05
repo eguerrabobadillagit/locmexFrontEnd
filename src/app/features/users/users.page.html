@@ -31,6 +31,7 @@
     (didDismiss)="onWizardClose()">
     <ng-template>
       <app-form-user-wizard
+        #userWizard
         [userId]="selectedUserId()"
         (userSubmitted)="onUserCreated($event)"
         (wizardCancelled)="onWizardClose()">

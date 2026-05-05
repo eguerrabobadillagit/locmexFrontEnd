@@ -1,5 +1,6 @@
-import { Component, output } from '@angular/core';
+import { Component, output, inject, computed } from '@angular/core';
 import { IonButton, IonIcon, IonBadge } from '@ionic/angular/standalone';
+import { AuthService } from '../../../features/auth/services/auth.service';
 
 @Component({
   selector: 'app-user-menu',
@@ -9,9 +10,19 @@ import { IonButton, IonIcon, IonBadge } from '@ionic/angular/standalone';
   styleUrls: ['./user-menu.component.scss']
 })
 export class UserMenuComponent {
-  // TODO: Obtener estos datos del servicio de autenticación
-  userName = 'Admin LogiTrack';
-  userRole = 'Dueño';
+  private readonly authService = inject(AuthService);
+  
+  userName = computed(() => this.authService.currentUser()?.email || 'usuario@email.com');
+  userRole = computed(() => {
+    const roleCode = this.authService.currentUser()?.roleCode;
+    const roleMap: Record<string, string> = {
+      'platform_admin': 'Dueño',
+      'partner_admin': 'Distribuidor',
+      'customer_admin': 'Cliente',
+      'operator': 'Operador'
+    };
+    return roleMap[roleCode || ''] || 'Usuario';
+  });
   
   logout = output<void>();
 

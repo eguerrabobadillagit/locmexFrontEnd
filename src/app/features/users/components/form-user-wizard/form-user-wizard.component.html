@@ -110,14 +110,14 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="status">Estado</label>
+                  <label for="isActive">Estado</label>
                   <ion-select
-                    id="status"
-                    formControlName="status"
+                    id="isActive"
+                    formControlName="isActive"
                     interface="popover"
                   >
-                    <ion-select-option value="active">Activo</ion-select-option>
-                    <ion-select-option value="inactive">Inactivo</ion-select-option>
+                    <ion-select-option [value]="true">Activo</ion-select-option>
+                    <ion-select-option [value]="false">Inactivo</ion-select-option>
                   </ion-select>
                 </div>
 
@@ -136,7 +136,7 @@
             </div>
           }
 
-          <!-- Paso 3: Empresa y Contacto -->
+          <!-- Paso 3: Cliente y Contacto -->
           @if (currentStep() === 2) {
             <div class="step-content">
               <ion-card class="info-banner">
@@ -144,41 +144,31 @@
                   <div class="banner-content">
                     <ion-icon name="business-outline" color="primary"></ion-icon>
                     <div class="info-text">
-                      <h3>Empresa y Contacto</h3>
-                      <p>Datos de la empresa y teléfono de contacto</p>
+                      <h3>Cliente y Contacto</h3>
+                      <p>Selecciona el cliente y datos de contacto</p>
                     </div>
                   </div>
                 </ion-card-content>
               </ion-card>
 
-              <div class="form-group">
-                <label for="companyId">Empresa <span class="required">*</span></label>
-                <ion-input
-                  id="companyId"
-                  formControlName="companyId"
-                  placeholder="LogiTrack Pro Mazatlan"
-                  [class.invalid]="userForm.get('companyId')?.invalid && userForm.get('companyId')?.touched"
-                >
-                  <ion-icon name="business-outline" slot="start"></ion-icon>
-                </ion-input>
-                <small class="help-text">Selecciona una empresa existente o escribe para crear una nueva</small>
-              </div>
+              <app-modal-searchable-grid
+                [title]="'Selecciona un cliente'"
+                [itemCount]="clients().length"
+                [searchPlaceholder]="'Buscar por nombre, contacto o teléfono...'"
+                [columnDefs]="clientColumnDefs()"
+                [rowData]="clients()"
+                (rowSelected)="onClientSelected($event)">
+              </app-modal-searchable-grid>
 
-              <div class="form-group">
-                <label for="phone">Teléfono <span class="required">*</span></label>
-                <ion-input
-                  id="phone"
-                  type="tel"
-                  formControlName="phone"
-                  placeholder="+52 XXX XXX XXXX"
-                  [class.invalid]="userForm.get('phone')?.invalid && userForm.get('phone')?.touched"
-                >
-                  <ion-icon name="call-outline" slot="start"></ion-icon>
-                </ion-input>
-                @if (userForm.get('phone')?.invalid && userForm.get('phone')?.touched) {
-                  <span class="error-message">Ingrese un número de teléfono válido</span>
-                }
-              </div>
+              @if (selectedClient()) {
+                <div class="selected-client-info">
+                  <ion-icon name="checkmark-circle" color="success"></ion-icon>
+                  <div class="client-details">
+                    <strong>{{ selectedClient()?.name }}</strong>
+                    <span>{{ selectedClient()?.contactName }} - {{ selectedClient()?.contactPhone }}</span>
+                  </div>
+                </div>
+              }
             </div>
           }
 

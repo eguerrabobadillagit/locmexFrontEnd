@@ -1,5 +1,6 @@
 import { Component, output, input, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonIcon, IonSearchbar, IonSpinner, IonCheckbox } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -38,6 +39,7 @@ export class GeofenceListComponent implements OnInit {
 
   readonly geofenceService = inject(GeofenceService);
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
+  private readonly router = inject(Router);
 
   // Signal para almacenar IDs de geocercas seleccionadas (local)
   selectedGeofences = signal<Set<string>>(new Set());
@@ -214,7 +216,14 @@ export class GeofenceListComponent implements OnInit {
   }
 
   onCardClick(geofence: GeofenceResponse): void {
-    this.geofenceService.selectGeofenceToCenter(geofence);
     this.selectedGeofenceId.set(geofence.id);
+    
+    // Primero navegar a la vista del mapa
+    this.router.navigate(['/home/map-view']).then(() => {
+      // Esperar un momento para que el mapa se cargue completamente
+      setTimeout(() => {
+        this.geofenceService.selectGeofenceToCenter(geofence);
+      }, 300);
+    });
   }
 }

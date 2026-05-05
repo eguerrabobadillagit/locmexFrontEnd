@@ -289,15 +289,15 @@ ion-popover.map-type-popover {
   }
 
   .alerts-fab {
-    top: 72px !important; // Bajar botón de alertas en mobile
+    top: 16px !important; // Mismo nivel que desktop
   }
 
   .map-controls-row {
-    top: 128px !important; // Bajar botones de geocercas/tracking en mobile (más abajo)
+    top: 72px !important; // Mismo nivel que desktop
   }
 
   .map-type-selector-container {
-    top: 72px !important; // Bajar selector de mapa en mobile
+    top: 16px !important; // Mismo nivel que desktop
   }
 
   .map-container {
