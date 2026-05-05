@@ -864,8 +864,14 @@ export class MapComponent implements OnInit, OnDestroy {
   /**
    * Cerrar sesión del usuario
    */
-  onLogout(): void {
+  async onLogout(): Promise<void> {
+    // Desconectar WebSocket
+    await this.wsService.disconnect();
+    
+    // Hacer logout de autenticación
     this.authService.logout();
-    this.router.navigate(['/login']);
+    
+    // Recargar la página para limpiar todo el estado de la aplicación
+    window.location.href = '/login';
   }
 }

@@ -87,6 +87,9 @@ export class VehicleWebSocketService {
       await this.connection.stop();
       this.connection = null;
       this.connectionStatus.set('disconnected');
+      // Limpiar vehículos al desconectar
+      this.vehicles.set(new Map());
+      this.error.set(null);
     }
   }
 

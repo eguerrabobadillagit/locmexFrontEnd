@@ -232,9 +232,15 @@ export class HomePage implements OnInit, OnDestroy {
     this.viewMode.set(this.viewMode() === 'list' ? 'card' : 'list');
   }
 
-  onLogout() {
+  async onLogout() {
+    // Desconectar WebSocket
+    await this.wsService.disconnect();
+    
+    // Hacer logout de autenticación
     this.authService.logout();
-    this.router.navigate(['/auth']);
+    
+    // Recargar la página para limpiar todo el estado de la aplicación
+    window.location.href = '/auth';
   }
 
   // ==================== VEHICLES METHODS ====================
