@@ -430,8 +430,9 @@ export class MapComponent implements OnInit, OnDestroy {
       })
     );
 
-    this.loadVehiclesFromSidebar();
-    this.connectToSignalR();
+    // Cargar vehículos PRIMERO, luego conectar SignalR
+    await this.loadVehiclesFromSidebar();
+    await this.connectToSignalR();
     this.loadGeofenceAlerts();
 
     // Leer vehicleId de query params y centrar en ese vehículo
@@ -494,22 +495,27 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadVehiclesFromSidebar(): void {
-    this.vehicleService.getSidebarUnits().subscribe({
-      next: (sidebarUnits) => {
-        const vehicles = sidebarUnits
-          .filter(unit => unit.latitude !== null && unit.longitude !== null)
-          .map(unit => this.mapUtils.mapSidebarUnitToVehicleDetail(unit));
+  private loadVehiclesFromSidebar(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.vehicleService.getSidebarUnits().subscribe({
+        next: (sidebarUnits) => {
+          const vehicles = sidebarUnits
+            .filter(unit => unit.latitude !== null && unit.longitude !== null)
+            .map(unit => this.mapUtils.mapSidebarUnitToVehicleDetail(unit));
 
-        this.wsService.initializeVehicles(vehicles);
+          this.wsService.initializeVehicles(vehicles);
 
-        // Inicializar todos los vehículos como visibles en el mapa
-        const vehicleIds = vehicles.map(v => v.id);
-        this.vehicleVisibilityService.showAll(vehicleIds);
-      },
-      error: (error) => {
-        console.error('Error al cargar vehículos desde sidebar-units:', error);
-      }
+          // Inicializar todos los vehículos como visibles en el mapa
+          const vehicleIds = vehicles.map(v => v.id);
+          this.vehicleVisibilityService.showAll(vehicleIds);
+          
+          resolve();
+        },
+        error: (error) => {
+          console.error('❌ [MapComponent] Error al cargar vehículos desde sidebar-units:', error);
+          reject(error);
+        }
+      });
     });
   }
 
