@@ -15,6 +15,7 @@ import { VehicleWebSocketService } from './service/vehicle-websocket.service';
 import { VehicleAnimationService } from './service/vehicle-animation.service';
 import { VehicleService, SidebarUnit } from '../vehicles/services/vehicle.service';
 import { GeofenceOverlayComponent } from './components/geofence-overlay/geofence-overlay.component';
+import { VehicleLabelOverlayComponent } from './components/vehicle-label-overlay/vehicle-label-overlay.component';
 import { RoutePlaybackService } from './service/route-playback.service';
 import { RoutePlaybackPlayerComponent } from './components/route-playback-player/route-playback-player.component';
 import { MapRouteOverlayService } from './service/map-route-overlay.service';
@@ -51,6 +52,7 @@ interface VehicleMarker {
   position: google.maps.LatLngLiteral;
   title: string;
   icon: google.maps.Icon;
+  heading: number; // Para rotación nativa
 }
 
 // Re-exportar la interfaz del componente para uso interno
@@ -61,7 +63,7 @@ interface GeofenceAlertView extends AlertView {}
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   standalone: true,
-  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, IonContent, IonList, IonItem, IonLabel, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent, StreetViewComponent, UserMenuComponent]
+  imports: [CommonModule, GoogleMap, MapMarker, VehicleDetailComponent, VehicleDetailMobileComponent, IonFab, IonFabButton, IonFabList, IonIcon, IonPopover, IonButton, IonContent, IonList, IonItem, IonLabel, AlertsListComponent, GeofenceOverlayComponent, RoutePlaybackPlayerComponent, StreetViewComponent, UserMenuComponent, VehicleLabelOverlayComponent]
 })
 export class MapComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription();
@@ -79,17 +81,22 @@ export class MapComponent implements OnInit, OnDestroy {
   showGeofences = computed(() => {
     const visibilityEnabled = this.geofenceVisibilityService.geofenceVisibilityEnabled();
     const selectedCount = this.geofenceVisibilityService.selectedGeofenceIds().size;
-    const totalCount = this.geofenceService.geofences().length;
-    const result = visibilityEnabled && selectedCount > 0;
-    console.log('[MapComponent] showGeofences computed:', { visibilityEnabled, selectedCount, totalCount, result });
-    return result;
+    return visibilityEnabled && selectedCount > 0;
   });
 
   // Drawing mode - for hiding vehicles/geofences
   isDrawingGeofence = computed(() => this.geofenceDrawingService.isDrawing());
 
   isMobileScreen = signal<boolean>(window.innerWidth <= 768);
-  private resizeListener = () => this.isMobileScreen.set(window.innerWidth <= 768);
+  private resizeTimeout: any = null;
+  private resizeListener = () => {
+    // Throttle resize events para evitar múltiples updates
+    if (this.resizeTimeout) return;
+    this.resizeTimeout = setTimeout(() => {
+      this.isMobileScreen.set(window.innerWidth <= 768);
+      this.resizeTimeout = null;
+    }, 150);
+  };
 
   // Delegar señales de playback móvil al servicio
   sheetExpanded = computed(() => this.mobilePlaybackService.sheetExpanded());
@@ -97,11 +104,7 @@ export class MapComponent implements OnInit, OnDestroy {
   mobilePlaybackPoints = computed(() => this.mobilePlaybackService.mobilePlaybackPoints());
   mobileCurrentPointIndex = computed(() => this.mobilePlaybackService.mobileCurrentPointIndex());
   isPlaybackPlaying = computed(() => this.mobilePlaybackService.isPlaybackPlaying());
-  isLoadingRoute = computed(() => {
-    const loading = this.routePlayback.isLoadingRoute();
-    console.log('[MapComponent] isLoadingRoute:', loading);
-    return loading;
-  });
+  isLoadingRoute = computed(() => this.routePlayback.isLoadingRoute());
 
   // Delegar señales de auto-tracking al servicio
   autoTrackingEnabled = computed(() => this.autoTrackingService.isTrackingEnabled);
@@ -111,9 +114,7 @@ export class MapComponent implements OnInit, OnDestroy {
     const isMobile = this.isMobileScreen();
     const hasPoints = this.mobilePlaybackPoints().length > 0;
     const isLoading = this.isLoadingRoute();
-    const result = isMobile && (hasPoints || isLoading);
-    console.log('[MapComponent] showMobilePlayer:', { isMobile, hasPoints, isLoading, result });
-    return result;
+    return isMobile && (hasPoints || isLoading);
   });
 
   geofenceIcon = computed(() => this.showGeofences() ? 'eye-off-outline' : 'eye-outline');
@@ -151,31 +152,31 @@ export class MapComponent implements OnInit, OnDestroy {
     return this.wsService.getVehicleById(id) || null;
   });
 
-  markers = computed(() => {
-    if (this.routePlayback.routePoints().length > 0) return [];
+  // Signal para markers - se actualiza manualmente
+  private _markers = signal<VehicleMarker[]>([]);
+  markers = this._markers.asReadonly();
 
-    const animatedPositions = this.animationService.animatedPositions();
-    const visibleVehicleIds = this.vehicleVisibilityService.selectedVehicleIds();
-
-    return this.wsService.vehiclesList()
-      .filter(vehicle => visibleVehicleIds.has(vehicle.id))  // Filtrar solo vehículos visibles
-      .map(vehicle => {
-        const animatedPos = animatedPositions.get(vehicle.id);
-
-        const position = animatedPos
-          ? { lat: animatedPos.latitude, lng: animatedPos.longitude }
-          : { lat: vehicle.latitude, lng: vehicle.longitude };
-
-        const heading = animatedPos ? animatedPos.heading : vehicle.heading;
-
-        return {
-          id: vehicle.id,
-          position,
-          title: vehicle.plate,
-          icon: createVehicleMarkerIcon(heading, vehicle.status, vehicle.plate)
-        };
-      });
-  });
+  // Cache de markers por ID
+  private markersMap = new Map<string, VehicleMarker>();
+  
+  // Cache de iconos SIN etiqueta - compartido entre todos los vehículos
+  private iconCache = new Map<string, google.maps.Icon>();
+  
+  private getOrCreateIcon(heading: number, status: string): google.maps.Icon {
+    const roundedHeading = Math.round(heading / 5) * 5; // Redondear a múltiplos de 5°
+    const normalizedStatus = status.toUpperCase().replace('-', '_');
+    const key = `${roundedHeading}-${normalizedStatus}`;
+    
+    // Si el icono ya existe en caché, reutilizarlo
+    if (this.iconCache.has(key)) {
+      return this.iconCache.get(key)!;
+    }
+    
+    // Crear icono rotado SIN etiqueta (compartido entre vehículos)
+    const icon = createVehicleMarkerIcon(roundedHeading, status, '');
+    this.iconCache.set(key, icon);
+    return icon;
+  }
 
   mapOptions: google.maps.MapOptions = {
     mapTypeControl: false,
@@ -319,6 +320,89 @@ export class MapComponent implements OnInit, OnDestroy {
         this.showVehicleDetail.set(false);
       }
     });
+
+    // Effect 1: Crear/eliminar markers cuando cambian vehículos visibles o playback
+    effect(() => {
+      const hasPlayback = this.routePlayback.routePoints().length > 0;
+      const visibleVehicleIds = this.vehicleVisibilityService.selectedVehicleIds();
+      const vehiclesList = this.wsService.vehiclesList();
+
+      if (hasPlayback) {
+        // Limpiar todos los markers durante playback
+        this.markersMap.clear();
+        this._markers.set([]);
+        return;
+      }
+
+      // Obtener vehículos visibles
+      const visibleVehicles = vehiclesList.filter(v => visibleVehicleIds.has(v.id));
+      const visibleIds = new Set(visibleVehicles.map(v => v.id));
+
+      // Eliminar markers de vehículos que ya no son visibles
+      this.markersMap.forEach((_, id) => {
+        if (!visibleIds.has(id)) {
+          this.markersMap.delete(id);
+        }
+      });
+
+      // Crear markers para vehículos nuevos (sin animación inicial)
+      visibleVehicles.forEach(vehicle => {
+        if (!this.markersMap.has(vehicle.id)) {
+          const marker: VehicleMarker = {
+            id: vehicle.id,
+            position: { lat: vehicle.latitude, lng: vehicle.longitude },
+            title: vehicle.plate,
+            icon: this.getOrCreateIcon(vehicle.heading, vehicle.status),
+            heading: vehicle.heading
+          };
+          this.markersMap.set(vehicle.id, marker);
+        }
+      });
+
+      // Actualizar array de markers
+      this._markers.set(Array.from(this.markersMap.values()));
+    });
+
+    // Effect 2: Actualizar SOLO los markers que tienen animación activa
+    effect(() => {
+      const animatedPositions = this.animationService.animatedPositions();
+      
+      if (animatedPositions.size === 0) return;
+
+      let updated = false;
+
+      // Actualizar solo los markers que tienen posición animada
+      animatedPositions.forEach((animatedPos, vehicleId) => {
+        const marker = this.markersMap.get(vehicleId);
+        if (!marker) return;
+
+        const newLat = animatedPos.latitude;
+        const newLng = animatedPos.longitude;
+        const newHeading = animatedPos.heading;
+
+        // Solo actualizar si cambió la posición o heading
+        if (marker.position.lat !== newLat || 
+            marker.position.lng !== newLng) {
+          
+          marker.position = { lat: newLat, lng: newLng };
+          marker.heading = newHeading;
+          
+          // Actualizar icono con nuevo heading
+          const vehicle = this.wsService.getVehicleById(vehicleId);
+          if (vehicle) {
+            marker.icon = this.getOrCreateIcon(newHeading, vehicle.status);
+          }
+          
+          updated = true;
+        }
+      });
+
+      // Solo actualizar el signal si hubo cambios
+      if (updated) {
+        this._markers.set(Array.from(this.markersMap.values()));
+      }
+    });
+
   }
 
   async ngOnInit() {
@@ -395,6 +479,15 @@ export class MapComponent implements OnInit, OnDestroy {
     this.animationService.stopAllAnimations();
     this.routeOverlay.clearRouteOverlays();
     this.autoTrackingService.cleanup();
+
+    // Limpiar caches
+    this.markersMap.clear();
+    this.iconCache.clear();
+    
+    // Limpiar timeout de resize
+    if (this.resizeTimeout) {
+      clearTimeout(this.resizeTimeout);
+    }
 
     if (this.cleanupMapListeners) {
       this.cleanupMapListeners();
