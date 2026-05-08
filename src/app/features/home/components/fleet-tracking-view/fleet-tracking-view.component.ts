@@ -128,34 +128,10 @@ export class FleetTrackingViewComponent implements OnInit {
   // History methods
   openHistoryView(vehicle: Vehicle) {
     this.selectedHistoryVehicle.set(vehicle);
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const day = today.getDate().toString().padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-
-    const fromDateTime = `${dateStr}T00:00:00`;
-    const toDateTime = `${dateStr}T23:59:59`;
-    const fromUtc = new Date(fromDateTime).toISOString();
-    const toUtc = new Date(toDateTime).toISOString();
-
-    const request: VehicleHistoryRequest = {
-      vehicleId: vehicle.id,
-      fromUtc,
-      toUtc,
-      fromDate: dateStr,
-      fromHour: '00',
-      fromMinute: '00',
-      toDate: dateStr,
-      toHour: '23',
-      toMinute: '59',
-    };
-
-    this.historyRequestData.set(request);
     this.sidebarViewMode.set('history');
+    this.historySubViewMode.set('form');
+    this.historyRequestData.set(null);
     this.mobilePanelCoordinator.requestCloseVehicleDetail();
-    this.loadHistoryData(request);
   }
 
   closeHistoryView(skipSidebarOpen = false) {

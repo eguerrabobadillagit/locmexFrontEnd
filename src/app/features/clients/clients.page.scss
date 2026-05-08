@@ -1,0 +1,49 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+.grid-container {
+  flex: 1;
+  padding: 16px;
+  overflow: hidden;
+
+  ag-grid-angular {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+ion-modal {
+  --width: 1026px !important;
+  --max-width: 1026px !important;
+  --height: 90vh !important;
+  --border-radius: 16px;
+
+  ::ng-deep {
+    .modal-wrapper {
+      height: var(--height);
+    }
+
+    ion-content {
+      --background: transparent;
+    }
+
+    app-form-client-wizard {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  ion-modal {
+    --width: 95%;
+    --max-width: 95%;
+  }
+}

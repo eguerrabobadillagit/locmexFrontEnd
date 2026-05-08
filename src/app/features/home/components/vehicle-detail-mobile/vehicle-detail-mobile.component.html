@@ -16,7 +16,7 @@
       <div class="header-title">
         <ion-icon name="information-circle-outline" class="title-icon"></ion-icon>
         <div>
-          <h4 class="vehicle-plate">{{ vehicle.plate }}</h4>
+          <h4 class="vehicle-plate">{{ vehicle().plate }}</h4>
           <span class="subtitle">Detalle de unidad</span>
         </div>
       </div>
@@ -38,9 +38,9 @@
       <div class="status-badge" [ngClass]="getStatusClass()">
         {{ getStatusText() }}
       </div>
-      <div class="speed-indicator" *ngIf="vehicle?.speed">
+      <div class="speed-indicator" *ngIf="vehicle()?.speed">
         <ion-icon name="speedometer-outline"></ion-icon>
-        <span>{{ vehicle?.speed }} km/h</span>
+        <span>{{ vehicle()?.speed }} km/h</span>
       </div>
     </div>
 
@@ -51,9 +51,9 @@
     </div>
 
     <!-- Último reporte -->
-    <div class="collapsed-report" *ngIf="vehicle?.lastReport">
+    <div class="collapsed-report" *ngIf="vehicle()?.lastReport">
       <ion-icon name="time-outline"></ion-icon>
-      <span>{{ vehicle?.lastReport | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+      <span>{{ vehicle()?.lastReport | date:'dd/MM/yyyy HH:mm:ss' }}</span>
     </div>
 
     <!-- Botón para expandir -->
@@ -126,7 +126,7 @@
           <!-- Last Report -->
           <div class="info-section">
             <label>Último Reporte</label>
-            <p class="info-value">{{ vehicle?.lastReport | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+            <p class="info-value">{{ vehicle()?.lastReport | date:'dd/MM/yyyy HH:mm:ss' }}</p>
           </div>
 
           <!-- Status -->
@@ -145,7 +145,7 @@
                 <ion-card-content>
                   <ion-icon name="speedometer-outline" class="metric-icon"></ion-icon>
                   <span class="metric-label">Velocidad</span>
-                  <span class="metric-value">{{ vehicle?.speed }} km/h</span>
+                  <span class="metric-value">{{ vehicle()?.speed }} km/h</span>
                 </ion-card-content>
               </ion-card>
 
@@ -153,7 +153,7 @@
                 <ion-card-content>
                   <ion-icon name="water-outline" class="metric-icon"></ion-icon>
                   <span class="metric-label">Combustible</span>
-                  <span class="metric-value">{{ vehicle?.fuel }}%</span>
+                  <span class="metric-value">{{ vehicle()?.fuel }}%</span>
                 </ion-card-content>
               </ion-card>
 
@@ -161,7 +161,7 @@
                 <ion-card-content>
                   <ion-icon name="compass-outline" class="metric-icon"></ion-icon>
                   <span class="metric-label">Rumbo</span>
-                  <span class="metric-value">{{ vehicle?.heading | heading }}</span>
+                  <span class="metric-value">{{ vehicle()?.heading | heading }}</span>
                 </ion-card-content>
               </ion-card>
 
@@ -169,7 +169,7 @@
                 <ion-card-content>
                   <ion-icon name="time-outline" class="metric-icon"></ion-icon>
                   <span class="metric-label">Hrs Motor</span>
-                  <span class="metric-value">{{ vehicle?.motorHours }} h</span>
+                  <span class="metric-value">{{ vehicle()?.motorHours }} h</span>
                 </ion-card-content>
               </ion-card>
             </div>
@@ -178,30 +178,30 @@
           <!-- Driver -->
           <div class="info-section">
             <label>Conductor</label>
-            <p class="info-value">{{ vehicle?.driver }}</p>
+            <p class="info-value">{{ vehicle()?.driver }}</p>
           </div>
 
           <!-- IMEI -->
           <div class="info-section">
             <label>IMEI</label>
-            <p class="info-value">{{ vehicle?.imei }}</p>
+            <p class="info-value">{{ vehicle()?.imei }}</p>
           </div>
 
           <!-- GPS Location -->
           <div class="info-section">
             <label>Ubicación GPS</label>
-            <p class="info-value">{{ vehicle?.latitude }}, {{ vehicle?.longitude }}</p>
-            <p class="info-subtitle">Satélites: {{ vehicle?.satellites }} | Altitud: {{ vehicle?.altitude }}m</p>
+            <p class="info-value">{{ vehicle()?.latitude }}, {{ vehicle()?.longitude }}</p>
+            <p class="info-subtitle">Satélites: {{ vehicle()?.satellites }} | Altitud: {{ vehicle()?.altitude }}m</p>
           </div>
 
           <!-- Odometer -->
           <div class="info-section">
             <label>Odómetro</label>
-            <p class="info-value">{{ vehicle?.odometer | number:'1.0-0' }} km</p>
+            <p class="info-value">{{ vehicle()?.odometer | number:'1.0-0' }} km</p>
           </div>
 
           <!-- Street View Embebido -->
-          @if (vehicle?.latitude && vehicle?.longitude) {
+          @if (vehicle()?.latitude && vehicle()?.longitude) {
             <div class="street-view-section">
               <div class="street-view-header">
                 <label>Vista de Calle</label>
@@ -212,9 +212,9 @@
               @if (showStreetView()) {
                 <div class="street-view-box">
                   <app-street-view
-                    [latitude]="vehicle.latitude"
-                    [longitude]="vehicle.longitude"
-                    [vehiclePlate]="vehicle.plate"
+                    [latitude]="vehicle().latitude"
+                    [longitude]="vehicle().longitude"
+                    [vehiclePlate]="vehicle().plate"
                     (back)="onCloseStreetView()">
                   </app-street-view>
                 </div>
@@ -229,8 +229,8 @@
         }
 
         @case ('alertas') {
-          @if (vehicle) {
-            <app-vehicle-alerts [vehicleId]="vehicle.id" />
+          @if (vehicle()) {
+            <app-vehicle-alerts [vehicleId]="vehicle().id" />
           }
         }
 
@@ -280,11 +280,11 @@
   </div>
 
   <!-- Modal para generar link de tracking -->
-  @if (vehicle) {
+  @if (vehicle()) {
     <app-generate-link-modal
       [isOpen]="showShareModal()"
-      [vehicleId]="vehicle.id"
-      [vehiclePlate]="vehicle.plate"
+      [vehicleId]="vehicle().id"
+      [vehiclePlate]="vehicle().plate"
       (close)="onCloseShareModal()">
     </app-generate-link-modal>
   }
@@ -297,7 +297,7 @@
   (didDismiss)="onWizardClose()">
   <ng-template>
     <app-form-vehicle-wizard
-      [vehicleId]="vehicle?.id"
+      [vehicleId]="vehicle()?.id"
       (wizardClosed)="onWizardClose()"
       (vehicleUpdated)="onVehicleUpdated($event)">
     </app-form-vehicle-wizard>

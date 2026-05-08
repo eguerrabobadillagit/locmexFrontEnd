@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit, OnDestroy, effect, computed } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy, effect, computed, ViewChild } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -39,6 +39,7 @@ import { GeofenceResponse, CreateGeofenceRequest } from '../geofences/interfaces
 import { GeofenceVisibilityService } from '../services/geofence-visibility.service';
 import { GeofenceSidebarFormComponent, GeofenceSidebarFormData, ShapeType } from '../geofences/components/geofence-sidebar-form/geofence-sidebar-form.component';
 import { GeofenceDrawingService, DrawMode } from '../geofences/services/geofence-drawing.service';
+import { MapAutoTrackingService } from '../map/service/map-auto-tracking.service';
 
 export type SidebarTab = 'unidades' | 'geocercas' | 'menu';
 export type GeofenceViewMode = 'list' | 'create' | 'edit';
@@ -81,10 +82,15 @@ export class HomePage implements OnInit, OnDestroy {
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
   private readonly geofenceDrawingService = inject(GeofenceDrawingService);
   private readonly alertController = inject(AlertController);
+  private readonly autoTrackingService = inject(MapAutoTrackingService);
+  
+  // ViewChild para acceder al componente de tracking
+  @ViewChild(FleetTrackingViewComponent) fleetTrackingView!: FleetTrackingViewComponent;
+  
   // Sidebar signals
   selectedMenu = signal<string>('dashboard');
   showFleetPanel = signal<boolean>(true);
-  activeSidebarTab = signal<SidebarTab>('menu');
+  activeSidebarTab = signal<SidebarTab>('unidades');
   viewMode = signal<'card' | 'list'>('list');
 
   // User info computed from AuthService
@@ -221,10 +227,18 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onSidebarTabChange(tab: SidebarTab) {
+    // Cerrar el recorrido histórico si está abierto
+    if (tab === 'geocercas' || tab === 'menu') {
+      this.fleetTrackingView?.closeHistoryView(true);
+    }
     this.activeSidebarTab.set(tab);
   }
 
   onTabClick(tab: SidebarTab): void {
+    // Cerrar el recorrido histórico si está abierto
+    if (tab === 'geocercas' || tab === 'menu') {
+      this.fleetTrackingView?.closeHistoryView(true);
+    }
     this.activeSidebarTab.set(tab);
   }
 
@@ -265,7 +279,12 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onVehicleClick(vehicleId: string) {
+    // Cerrar el recorrido histórico si está abierto
+    this.fleetTrackingView?.closeHistoryView(true);
+    
     this.vehicleSelectionService.selectVehicle(vehicleId);
+    // Activar auto-tracking para seguir al vehículo
+    this.autoTrackingService.setTrackedVehicle(vehicleId);
 
     if (!this.router.url.includes('map-view')) {
       this.router.navigate(['/home/map-view'], { queryParams: { vehicleId } });
@@ -277,8 +296,20 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onOpenHistory(vehicle: Vehicle) {
-    // Implementar según necesidad
-    console.log('Open history for:', vehicle);
+    // Navegar al mapa si no estamos en la vista del mapa
+    if (!this.router.url.includes('map-view')) {
+      this.router.navigate(['/home/map-view'], { queryParams: { vehicleId: vehicle.id } }).then(() => {
+        // Después de navegar, abrir el formulario de historial
+        setTimeout(() => {
+          this.activeSidebarTab.set('unidades');
+          this.fleetTrackingView?.openHistoryView(vehicle);
+        }, 100);
+      });
+    } else {
+      // Si ya estamos en el mapa, solo abrir el formulario
+      this.activeSidebarTab.set('unidades');
+      this.fleetTrackingView?.openHistoryView(vehicle);
+    }
   }
 
   // ==================== GEOFENCES METHODS ====================
@@ -319,6 +350,9 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onCreateGeofence() {
+    // Desactivar auto-tracking
+    this.autoTrackingService.disableTracking();
+    
     // Abrir formulario en el sidebar en lugar de navegar
     this.editingGeofence.set(null);
     this.geofenceViewMode.set('create');
@@ -349,6 +383,9 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   onEditGeofence(geofence: GeofenceResponse) {
+    // Desactivar auto-tracking
+    this.autoTrackingService.disableTracking();
+    
     // Abrir formulario en el sidebar en lugar de navegar
     this.editingGeofence.set(geofence);
     this.geofenceViewMode.set('edit');

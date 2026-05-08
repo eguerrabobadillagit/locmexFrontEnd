@@ -11,6 +11,7 @@ import {
 import { GeofenceService } from '../../../geofences/services/geofence.service';
 import { GeofenceResponse } from '../../../geofences/interfaces/geofence-request.interface';
 import { GeofenceVisibilityService } from '../../../services/geofence-visibility.service';
+import { MapAutoTrackingService } from '../../../map/service/map-auto-tracking.service';
 
 type GeofenceFilterTab = 'todas' | 'activas' | 'inactivas';
 
@@ -40,6 +41,7 @@ export class GeofenceListComponent implements OnInit {
   readonly geofenceService = inject(GeofenceService);
   private readonly geofenceVisibilityService = inject(GeofenceVisibilityService);
   private readonly router = inject(Router);
+  private readonly autoTrackingService = inject(MapAutoTrackingService);
 
   // Signal para almacenar IDs de geocercas seleccionadas (local)
   selectedGeofences = signal<Set<string>>(new Set());
@@ -211,12 +213,17 @@ export class GeofenceListComponent implements OnInit {
   }
 
   onViewGeofence(geofence: GeofenceResponse): void {
+    // Desactivar auto-tracking
+    this.autoTrackingService.disableTracking();
     // Centrar el mapa en la geocerca
     this.geofenceService.selectGeofenceToCenter(geofence);
   }
 
   onCardClick(geofence: GeofenceResponse): void {
     this.selectedGeofenceId.set(geofence.id);
+    
+    // Desactivar auto-tracking
+    this.autoTrackingService.disableTracking();
     
     // Primero navegar a la vista del mapa
     this.router.navigate(['/home/map-view']).then(() => {
@@ -225,5 +232,10 @@ export class GeofenceListComponent implements OnInit {
         this.geofenceService.selectGeofenceToCenter(geofence);
       }, 300);
     });
+
+    // En móvil, cerrar el sidebar al hacer click en una geocerca
+    if (this.isMobile) {
+      this.mobileSidebarClose.emit();
+    }
   }
 }

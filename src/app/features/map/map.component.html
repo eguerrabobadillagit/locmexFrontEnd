@@ -87,6 +87,7 @@
     <ion-button
       (click)="toggleAutoTracking()"
       [color]="autoTrackingEnabled() ? 'primary' : 'light'"
+      [disabled]="isPlaybackActive()"
       class="control-button"
       fill="solid">
       <ion-icon [name]="trackingIcon()"></ion-icon>

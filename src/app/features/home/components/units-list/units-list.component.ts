@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, inject, OnInit, effect } from '@angular/core';
+import { Component, input, output, signal, computed, inject, OnInit, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonCard, IonCardContent, IonSpinner, IonCheckbox } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -8,7 +8,9 @@ import {
 } from 'ionicons/icons';
 import { Vehicle, getVehicleStatusClass } from '../../../vehicles/interfaces/vehicle.interface';
 import { VehicleVisibilityService } from '../../../services/vehicle-visibility.service';
+import { VehicleSelectionService } from '../../../services/vehicle-selection';
 import { getSpeedColor, getSpeedHexColor, SpeedColor } from '../../../vehicles/utils/vehicle-history.utils';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-units-list',
@@ -24,7 +26,7 @@ import { getSpeedColor, getSpeedHexColor, SpeedColor } from '../../../vehicles/u
     IonCheckbox,
   ],
 })
-export class UnitsListComponent implements OnInit {
+export class UnitsListComponent implements OnInit, OnDestroy {
   vehicles = input<Vehicle[]>([]);
   isLoading = input<boolean>(false);
   error = input<string | null>(null);
@@ -47,6 +49,8 @@ export class UnitsListComponent implements OnInit {
   selectedCount = computed(() => this.selectedVehicles().size);
 
   private readonly vehicleVisibilityService = inject(VehicleVisibilityService);
+  private readonly vehicleSelectionService = inject(VehicleSelectionService);
+  private subscription = new Subscription();
 
   constructor() {
     // Efecto para sincronizar con VehicleVisibilityService
@@ -73,6 +77,17 @@ export class UnitsListComponent implements OnInit {
     // Inicializar todos los vehículos seleccionados por defecto
     const allIds = this.vehicles().map(v => v.id);
     this.vehicleVisibilityService.showAll(allIds);
+
+    // Suscribirse a selecciones desde el mapa
+    this.subscription.add(
+      this.vehicleSelectionService.vehicleSelected$.subscribe(vehicleId => {
+        this.selectedVehicleId.set(vehicleId);
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   onVehicleClick(vehicleId: string) {

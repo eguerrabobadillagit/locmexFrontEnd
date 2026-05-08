@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, inject, effect, HostListener, OnInit } from '@angular/core';
+import { Component, input, Output, EventEmitter, signal, inject, effect, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonIcon,
@@ -53,7 +53,7 @@ import { HeadingPipe } from '../../../../shared/pipes/heading.pipe';
 export class VehicleDetailMobileComponent {
   private geocodingService = inject(GeocodingService);
 
-  @Input() vehicle!: VehicleDetail;
+  vehicle = input.required<VehicleDetail>();
   @Output() close = new EventEmitter<void>();
   @Output() edit = new EventEmitter<void>();
   @Output() locate = new EventEmitter<void>();
@@ -97,8 +97,9 @@ export class VehicleDetailMobileComponent {
     });
 
     effect(() => {
-      if (this.vehicle && this.vehicle.latitude && this.vehicle.longitude) {
-        this.loadAddress(this.vehicle.latitude, this.vehicle.longitude);
+      const currentVehicle = this.vehicle();
+      if (currentVehicle && currentVehicle.latitude && currentVehicle.longitude) {
+        this.loadAddress(currentVehicle.latitude, currentVehicle.longitude);
       } else {
         this.address.set('Ubicación no disponible');
       }
@@ -168,7 +169,8 @@ export class VehicleDetailMobileComponent {
   }
 
   onStreetViewFullscreen() {
-    if (this.vehicle) this.openStreetViewFullscreen.emit(this.vehicle);
+    const currentVehicle = this.vehicle();
+    if (currentVehicle) this.openStreetViewFullscreen.emit(currentVehicle);
   }
 
   onCloseStreetView() {
@@ -180,18 +182,20 @@ export class VehicleDetailMobileComponent {
   }
 
   getStatusClass(): string {
-    if (!this.vehicle) return '';
+    const currentVehicle = this.vehicle();
+    if (!currentVehicle) return '';
 
-    if (this.vehicle.status === 'In_route') return 'status-in-route';
-    if (this.vehicle.status === 'Stopped') return 'status-stopped';
+    if (currentVehicle.status === 'In_route') return 'status-in-route';
+    if (currentVehicle.status === 'Stopped') return 'status-stopped';
     return 'status-no-signal';
   }
 
   getStatusText(): string {
-    if (!this.vehicle) return '';
+    const currentVehicle = this.vehicle();
+    if (!currentVehicle) return '';
 
-    if (this.vehicle.status === 'In_route') return 'En ruta';
-    if (this.vehicle.status === 'Stopped') return 'Detenido';
+    if (currentVehicle.status === 'In_route') return 'En ruta';
+    if (currentVehicle.status === 'Stopped') return 'Detenido';
     return 'Sin señal';
   }
 

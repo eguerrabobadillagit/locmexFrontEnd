@@ -60,16 +60,16 @@ export class NavbarComponent {
   menuSelect = output<string>();
 
   menuGroups: MenuGroup[] = [
-    {
-      title: 'Monitoreo',
-      icon: 'radio-outline',
-      items: [
-        // { title: 'Dashboard', icon: 'grid-outline', id: 'dashboard' },
-        { title: 'Mapa en Vivo', icon: 'map-outline', id: 'map-view' },
-        // { title: 'Telemetría', icon: 'radio-outline', id: 'telemetria' },
-        { title: 'Geocercas', icon: 'shapes-outline', id: 'geocercas' }
-      ]
-    },
+    // {
+    //   title: 'Monitoreo',
+    //   icon: 'radio-outline',
+    //   items: [
+    //     // { title: 'Dashboard', icon: 'grid-outline', id: 'dashboard' },
+    //     { title: 'Mapa en Vivo', icon: 'map-outline', id: 'map-view' },
+    //     // { title: 'Telemetría', icon: 'radio-outline', id: 'telemetria' },
+    //     { title: 'Geocercas', icon: 'shapes-outline', id: 'geocercas' }
+    //   ]
+    // },
     {
       title: 'Operaciones',
       icon: 'cube-outline',
@@ -94,6 +94,7 @@ export class NavbarComponent {
       icon: 'settings-outline',
       items: [
         // { title: 'Servicios', icon: 'construct-outline', id: 'servicios' },
+        { title: 'Clientes', icon: 'person-outline', id: 'clientes' },
         { title: 'Dispositivos GPS', icon: 'hardware-chip-outline', id: 'dispositivos' },
         // { title: 'Portal de Cliente', icon: 'person-outline', id: 'portal' },
         { title: 'Usuarios', icon: 'people-outline', id: 'usuarios' }

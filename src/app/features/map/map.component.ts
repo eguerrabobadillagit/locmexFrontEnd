@@ -105,6 +105,7 @@ export class MapComponent implements OnInit, OnDestroy {
   mobileCurrentPointIndex = computed(() => this.mobilePlaybackService.mobileCurrentPointIndex());
   isPlaybackPlaying = computed(() => this.mobilePlaybackService.isPlaybackPlaying());
   isLoadingRoute = computed(() => this.routePlayback.isLoadingRoute());
+  isPlaybackActive = computed(() => this.routePlayback.routePoints().length > 0);
 
   // Delegar señales de auto-tracking al servicio
   autoTrackingEnabled = computed(() => this.autoTrackingService.isTrackingEnabled);
@@ -149,7 +150,9 @@ export class MapComponent implements OnInit, OnDestroy {
   selectedVehicleDetail = computed(() => {
     const id = this.selectedVehicleId();
     if (!id) return null;
-    return this.wsService.getVehicleById(id) || null;
+    const vehicle = this.wsService.getVehicleById(id);
+    // Crear una nueva referencia del objeto para forzar detección de cambios en componentes hijos
+    return vehicle ? { ...vehicle } : null;
   });
 
   // Signal para markers - se actualiza manualmente
@@ -221,6 +224,14 @@ export class MapComponent implements OnInit, OnDestroy {
 
       if (isTrackingEnabled && trackedId && vehicles.length > 0) {
         this.autoTrackingService.centerOnTrackedVehicle(this.googleMap?.googleMap);
+      }
+    });
+
+    // Effect para desactivar auto-tracking cuando se inicia un recorrido
+    effect(() => {
+      const hasPlayback = this.isPlaybackActive();
+      if (hasPlayback && this.autoTrackingService.autoTrackingEnabled()) {
+        this.autoTrackingService.disableTracking();
       }
     });
 
@@ -476,7 +487,8 @@ export class MapComponent implements OnInit, OnDestroy {
     window.removeEventListener('resize', this.resizeListener);
     this.routePlayback.setFrameCallback(null);
     this.subscription.unsubscribe();
-    this.wsService.disconnect();
+    // NO desconectar el WebSocket aquí - mantener la conexión activa
+    // this.wsService.disconnect();
     this.animationService.stopAllAnimations();
     this.routeOverlay.clearRouteOverlays();
     this.autoTrackingService.cleanup();
@@ -521,7 +533,10 @@ export class MapComponent implements OnInit, OnDestroy {
 
   private async connectToSignalR(): Promise<void> {
     try {
-      await this.wsService.connect();
+      // Solo conectar si no está ya conectado
+      if (this.wsService.connectionStatus() !== 'connected') {
+        await this.wsService.connect();
+      }
       this.mapUtils.startTelemetryListener();
     } catch (error) {
       console.error('Error conectando a SignalR:', error);
@@ -543,6 +558,10 @@ export class MapComponent implements OnInit, OnDestroy {
       this.selectedVehicleId.set(markerId);
       this.showVehicleDetail.set(true);
       this.mobilePanelCoordinator.requestCloseHistory();
+      // Seleccionar el vehículo en el sidebar
+      this.vehicleSelectionService.selectVehicle(markerId);
+      // Activar auto-tracking para seguir al vehículo
+      this.autoTrackingService.setTrackedVehicle(markerId);
     }
   }
 

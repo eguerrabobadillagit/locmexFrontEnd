@@ -41,6 +41,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/devices/devices.page').then((m) => m.DevicesPage)
       },
       {
+        path: 'clientes',
+        loadComponent: () => import('./features/clients/clients.page').then((m) => m.ClientsPage)
+      },
+      {
         path: 'usuarios',
         loadComponent: () => import('./features/users/users.page').then((m) => m.UsersPage)
       },

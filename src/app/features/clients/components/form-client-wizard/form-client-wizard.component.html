@@ -1,0 +1,132 @@
+<app-wizard-stepper
+  [config]="wizardConfig()"
+  [steps]="steps()"
+  [currentStep]="currentStep()"
+  (close)="cancel()"
+  (next)="nextStep()"
+  (previous)="previousStep()">
+  
+  <form [formGroup]="clientForm">
+    <!-- Paso 1: Información Básica -->
+    @if (currentStep() === 0) {
+      <div class="step-content">
+        <ion-card class="info-banner">
+          <ion-card-content>
+            <div class="banner-content">
+              <ion-icon name="business-outline" color="primary"></ion-icon>
+              <div class="info-text">
+                <h3>Información Básica</h3>
+                <p>Datos generales del cliente</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div class="form-group">
+          <label for="name">Nombre del Cliente <span class="required">*</span></label>
+          <ion-input
+            id="name"
+            formControlName="name"
+            placeholder="Ej: Transportes del Norte"
+            [class.invalid]="clientForm.get('name')?.invalid && clientForm.get('name')?.touched"
+          ></ion-input>
+          @if (clientForm.get('name')?.invalid && clientForm.get('name')?.touched) {
+            <span class="error-message">El nombre es requerido (mínimo 3 caracteres)</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="externalCode">Código Externo</label>
+          <ion-input
+            id="externalCode"
+            formControlName="externalCode"
+            placeholder="Ej: CL-001"
+          >
+            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+          </ion-input>
+        </div>
+
+        <div class="form-group">
+          <label for="isActive">Estado</label>
+          <ion-select
+            id="isActive"
+            formControlName="isActive"
+            interface="popover"
+          >
+            <ion-select-option [value]="true">Activo</ion-select-option>
+            <ion-select-option [value]="false">Inactivo</ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+    }
+
+    <!-- Paso 2: Datos de Contacto -->
+    @if (currentStep() === 1) {
+      <div class="step-content">
+        <ion-card class="info-banner">
+          <ion-card-content>
+            <div class="banner-content">
+              <ion-icon name="person-outline" color="primary"></ion-icon>
+              <div class="info-text">
+                <h3>Datos de Contacto</h3>
+                <p>Información de contacto del cliente</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <div class="form-group">
+          <label for="contactName">Nombre de Contacto <span class="required">*</span></label>
+          <ion-input
+            id="contactName"
+            formControlName="contactName"
+            placeholder="Ej: Juan Pérez"
+            [class.invalid]="clientForm.get('contactName')?.invalid && clientForm.get('contactName')?.touched"
+          >
+            <ion-icon name="person-outline" slot="start"></ion-icon>
+          </ion-input>
+          @if (clientForm.get('contactName')?.invalid && clientForm.get('contactName')?.touched) {
+            <span class="error-message">El nombre de contacto es requerido (mínimo 3 caracteres)</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="contactEmail">Email de Contacto</label>
+          <ion-input
+            id="contactEmail"
+            type="email"
+            formControlName="contactEmail"
+            placeholder="contacto@ejemplo.com"
+            [class.invalid]="clientForm.get('contactEmail')?.invalid && clientForm.get('contactEmail')?.touched"
+          >
+            <ion-icon name="mail-outline" slot="start"></ion-icon>
+          </ion-input>
+          @if (clientForm.get('contactEmail')?.invalid && clientForm.get('contactEmail')?.touched) {
+            <span class="error-message">Ingrese un correo electrónico válido</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="contactPhone">Teléfono de Contacto</label>
+          <ion-input
+            id="contactPhone"
+            type="tel"
+            formControlName="contactPhone"
+            placeholder="Ej: 555-1234"
+          >
+            <ion-icon name="call-outline" slot="start"></ion-icon>
+          </ion-input>
+        </div>
+      </div>
+    }
+
+    <!-- Paso 3: Confirmación -->
+    @if (currentStep() === 2) {
+      <div class="step-content">
+        <app-wizard-confirmation-summary
+          [sections]="confirmationSections()"
+        />
+      </div>
+    }
+  </form>
+</app-wizard-stepper>
